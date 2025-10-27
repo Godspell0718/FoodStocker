@@ -5,6 +5,7 @@ import pasantesrouters from "./routes/pasanteRouters.js"
 import proveedoresRouters from "./routes/proveedoresRouters.js"
 import entradasRoutes from "./routes/entradasRoutes.js"
 import insumosProveedorRoutes from "./routes/insumosProveedorRoutes.js"
+
 import dotenv from "dotenv"
 
 dotenv.config();
