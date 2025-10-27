@@ -18,6 +18,8 @@ app.use("/api/pasantes", pasantesrouters)
 app.use("/api/proveedores", proveedoresRouters)
 app.use("/api/entradas", entradasRoutes)
 app.use("/api/insumosproveedor", insumosProveedorRoutes)
+app.use("/api/almacenRouters", almacenRouters.js)
+app.use("/api/insumosRouters", insumosRouters.js)
 
 
 
