@@ -1,8 +1,10 @@
 import express from "express"
 import cors from "cors"
 import db from "./database/db.js"
-import pasantesrouters from "./routes/pasantesrouters.js"
+import pasantesrouters from "./routes/pasanteRouters.js"
 import proveedoresRouters from "./routes/proveedoresRouters.js"
+import entradasRoutes from "./routes/entradasRoutes.js"
+import insumosProveedorRoutes from "./routes/insumosProveedorRoutes.js"
 import dotenv from "dotenv"
 
 dotenv.config();
@@ -14,6 +16,8 @@ app.use(cors())
 
 app.use("/api/pasantes", pasantesrouters)
 app.use("/api/proveedores", proveedoresRouters)
+app.use("/api/entradas", entradasRoutes)
+app.use("/api/insumosproveedor", insumosProveedorRoutes)
 
 
 

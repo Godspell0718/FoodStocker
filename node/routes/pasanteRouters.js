@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllPasantes, getPasante, createPasante, updatePasante, deletePasante } from "../controllers/pasantecontroler.js";
+import { getAllPasantes, getPasante, createPasante, updatePasante, deletePasante } from "../controllers/pasanteController.js";
 
 const router = express.Router();
 

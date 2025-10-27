@@ -1,7 +1,7 @@
 import express from "express";
 import { 
   getAllProveedores, getProveedor, createProveedor, updateProveedor, deleteProveedor 
-} from "../controllers/proveedorControler.js";
+} from "../controllers/proveedoresController.js";
 
 const router = express.Router();
 
