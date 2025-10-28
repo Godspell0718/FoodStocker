@@ -1,4 +1,4 @@
-import Insumo from "../models/mod_insumos.js"; 
+import Insumo from "../models/insumosModel.js"; 
 class ServInsumos {
     async getAll() {
         return await Insumo.findAll(); 

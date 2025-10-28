@@ -1,4 +1,4 @@
-import Ser_Salida from "../Service/salidasService.js";
+import Ser_Salida from "../services/salidasService.js";
 
 export const getAllSalidas = async (req, res) => {
     try {

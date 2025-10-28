@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllAlmacen,getAlmacen,createAlmacen,updateAlmacen,deleteAlmacen } from "../controll/controll_almacen.js";
+import { getAllAlmacen,getAlmacen,createAlmacen,updateAlmacen,deleteAlmacen } from "../controllers/almacenController.js";
 
 const router = express.Router(); 
 

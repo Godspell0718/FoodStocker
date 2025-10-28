@@ -1,6 +1,6 @@
-import Almacen from "../models/mod_almacen.js";
+import Almacen from "../models/almacenModel.js";
 
-class ServAlmacen {
+class almacenService {
     async getAll() {
         return await Almacen.findAll();
     }
@@ -40,4 +40,4 @@ class ServAlmacen {
     }
 }
 
-export default new ServAlmacen();
+export default new almacenService();

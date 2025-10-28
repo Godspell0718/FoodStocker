@@ -1,5 +1,5 @@
 import express from 'express'
-import { getAllEntradas, getEntradas, createEntradas, updateEntradas, deleteEntradas } from '../controllers/data/entradasController.js'
+import { getAllEntradas, getEntradas, createEntradas, updateEntradas, deleteEntradas } from '../controllers/entradasController.js'
 
 
 const router = express.Router()

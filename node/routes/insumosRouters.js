@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllInsumos,getInsumo,createInsumo,updateInsumo,deletedInsumo } from "../controll/controll_insumos.js";
+import { getAllInsumos,getInsumo,createInsumo,updateInsumo,deletedInsumo } from "../controllers/insumosController.js";
 
 const router = express.Router(); 
 

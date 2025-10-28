@@ -1,8 +1,8 @@
-import ServAlmacen from "../services/serv_almacen.js";
+import almacenService from "../services/almacenService.js";
 
 export const getAllAlmacen = async (req, res) => {
     try {
-        const almacenes = await ServAlmacen.getAll();
+        const almacenes = await almacenService.getAll();
         res.status(200).json(almacenes);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -11,7 +11,7 @@ export const getAllAlmacen = async (req, res) => {
 
 export const getAlmacen = async (req, res) => {
     try {
-        const almacen = await ServAlmacen.getById(req.params.id);
+        const almacen = await almacenService.getById(req.params.id);
         res.status(200).json(almacen);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -20,7 +20,7 @@ export const getAlmacen = async (req, res) => {
 
 export const createAlmacen = async (req, res) => {
     try {
-        const newAlmacen = await ServAlmacen.create(req.body);
+        const newAlmacen = await almacenService.create(req.body);
         res.status(201).json({ 
             Message: 'Almacén creado correctamente', 
             newAlmacen 
@@ -32,7 +32,7 @@ export const createAlmacen = async (req, res) => {
 
 export const updateAlmacen = async (req, res) => {
     try {
-        const updatedAlmacen = await ServAlmacen.update(req.params.id, req.body);
+        const updatedAlmacen = await almacenService.update(req.params.id, req.body);
         res.status(200).json({ 
             Message: 'Almacén actualizado correctamente', 
             updatedAlmacen 
@@ -44,7 +44,7 @@ export const updateAlmacen = async (req, res) => {
 
 export const deleteAlmacen = async (req, res) => { 
     try {
-        await ServAlmacen.delete(req.params.id);
+        await almacenService.delete(req.params.id);
         res.status(200).json({ 
             Message: 'Almacén eliminado correctamente'
         });

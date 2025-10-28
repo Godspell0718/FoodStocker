@@ -1,7 +1,7 @@
-import { where } from "sequelize";
-import Salidas from "../Models/Salidas.js";
 
-class Ser_Salida{
+import Salidas from "../models/salidasModel.js";
+
+class salidasService{
 
     async getAllSalidas(){
         return await Salidas.findAll()
@@ -30,4 +30,4 @@ class Ser_Salida{
     }
     
 }
-export default new Ser_Salida()
+export default new salidasService()

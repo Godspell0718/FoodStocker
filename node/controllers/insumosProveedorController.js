@@ -1,4 +1,4 @@
-import InsumosProveedorService from "../services/InsumosProveedorService.js";
+import InsumosProveedorService from "../services/insumosProveedorService.js";
 
 export const getAllInsumosProveedor = async (req, res) => {
   try {

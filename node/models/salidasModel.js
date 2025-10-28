@@ -1,4 +1,4 @@
-import db from '../Database/db.js'      
+import db from '../database/db.js'      
 import {DataTypes} from 'sequelize'
 
 const Salidas = db.define('salidas',{

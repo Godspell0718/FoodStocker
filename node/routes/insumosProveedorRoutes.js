@@ -1,5 +1,5 @@
 import express from 'express'
-import { getAllInsumosProveedor, getInsumosProveedor, createInsumosProveedor, updateInsumosProveedor, deleteInsumosProveedor } from '../controllers/data/InsumosProveedorController.js'
+import { getAllInsumosProveedor, getInsumosProveedor, createInsumosProveedor, updateInsumosProveedor, deleteInsumosProveedor } from '../controllers/InsumosProveedorController.js'
 
 
 const router = express.Router()

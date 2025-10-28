@@ -33,4 +33,4 @@ const InsumosProveedorModel = db.define('InsumosProveedores',{
     freezeTableName: true,
 })
 
-export default entradaModel;
+export default InsumosProveedorModel;
