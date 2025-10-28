@@ -7,7 +7,7 @@ class almacenService {
 
     async getById(id) {
         const almacen = await Almacen.findByPk(id);
-        if (!almacen) { 
+        if (!almacen) {
             throw new Error('Almacen no encontrado');
         }
         return almacen;
@@ -19,8 +19,8 @@ class almacenService {
     }
 
     async update(id, data) {
-        const result = await Almacen.update(data, { 
-            where: { Id_Almacen: id } 
+        const result = await Almacen.update(data, {
+            where: { Id_Almacen: id }
         });
         const updatedRows = result[0];
         if (updatedRows === 0) {
@@ -30,8 +30,8 @@ class almacenService {
     }
 
     async delete(id) {
-        const deleted = await Almacen.destroy({ 
-            where: { Id_Almacen: id } 
+        const deleted = await Almacen.destroy({
+            where: { Id_Almacen: id }
         });
         if (deleted === 0) {
             throw new Error('Almacen no encontrado');

@@ -1,15 +1,16 @@
-import express from "express"
+import express from 'express';
 import cors from "cors"
 import db from "./database/db.js"
-import almacenRouters from "./routes/almacenRouters.js" 
-import destinoRoutes from "./routes/destinoRoutes.js"
-import entradasRoutes from "./routes/entradasRoutes.js"
-import insumosProveedorRoutes from "./routes/insumosProveedorRoutes.js"
-import insumosRouters from "./routes/insumosRouters.js" 
-import loteRoutes from "./routes/loteRoutes.js"
-import pasantesRouters from "./routes/pasanteRouters.js"
-import proveedoresRouters from "./routes/proveedoresRouters.js"
-import salidasRoute from "./routes/salidasRoute.js"
+import almacenRouters from "./routes/almacenRouters.js";
+import destinoRoutes from "./routes/destinoRoutes.js";
+import entradasRoutes from "./routes/entradasRoutes.js";
+import insumosProveedorRoutes from "./routes/insumosProveedorRoutes.js";
+import insumosRouters from "./routes/insumosRouters.js";
+import loteRoutes from "./routes/loteRoutes.js";
+import pasantesRouters from "./routes/pasanteRouters.js";
+import proveedoresRouters from "./routes/proveedoresRouters.js";
+import salidasRoute from "./routes/salidasRoute.js";
+
 
 import dotenv from "dotenv"
 
@@ -39,7 +40,7 @@ try{
     process.exit(1)
 }
 app.get("/", (_req, res) => {
-    res.send("Hola Mundo de Andrey")
+    res.send("Hola Mundo de NPC'S")
 })
 
 
