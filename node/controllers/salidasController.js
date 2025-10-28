@@ -1,6 +1,7 @@
+import salidasService from "../services/salidasService.js";
 import Ser_Salida from "../services/salidasService.js";
 
-export const getAllSalidas = async (req, res) => {
+export const getAllSalidas = async (_req, res) => {
     try {
         const salidas = await Ser_Salida.getAllSalidas()
         res.status(200).json(salidas)
@@ -21,8 +22,8 @@ export const getSalida = async (req, res) => {
 }
 export const createSalida = async (req, res) => {
     try {
-        const salida = async(req, body)
-        res.status(201).json({ menssage: "Envio creado correctamente" })
+        const salida = await salidasService.create(req.body)
+        res.status(201).json({ message: "Salida creada", salida })
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
