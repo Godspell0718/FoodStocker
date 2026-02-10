@@ -6,14 +6,6 @@ const LoteModel = db.define('lote', {
         type: DataTypes.INTEGER,
         primaryKey: true, autoIncrement: true
     },
-    Id_Insumo: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'insumos',
-            key: 'Id_Insumo'
-        }
-    },
-    
     Id_Almacen: {
         type: DataTypes.INTEGER,
         references: {
@@ -21,13 +13,9 @@ const LoteModel = db.define('lote', {
             key: 'Id_Almacen'
         }
     },
-
-    Catidad_Dis_Insumo: {
-    type: DataTypes.INTEGER,
-},
     createdAt: {
     type: DataTypes.DATE,
-    field: "createdate"
+    field: "fech_lleg"
 },
     updatedAt: {
     type: DataTypes.DATE,
