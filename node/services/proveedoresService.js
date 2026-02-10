@@ -2,7 +2,9 @@ import ProveedorModel from "../models/proveedoresModel.js";
 
 class ProveedorService {
   async getAll() {
-    return await ProveedorModel.findAll();
+    return await ProveedorModel.findAll({
+      order:[['Id_Proveedor', 'DESC']]
+    });
   }
 
   async getById(id) {
