@@ -10,7 +10,11 @@ export default defineConfig([
     files: ['**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,
+<<<<<<< HEAD
       reactHooks.configs['recommended-latest'],
+=======
+      reactHooks.configs.flat.recommended,
+>>>>>>> 6172372 (Realice mis tablas Solicitud, Estados y Estados_Solicitud)
       reactRefresh.configs.vite,
     ],
     languageOptions: {
