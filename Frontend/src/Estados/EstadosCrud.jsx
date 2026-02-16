@@ -51,11 +51,12 @@ const EstadosCrud = () => {
         setShowModal(true)
     }
 
-    const createEstado = () => {
-        setselectEstados(null)
-        setIsEditing(false)
-        setShowModal(true)
-    }
+   const createEstado = () => {
+    setSelectedEstado(null)
+    setIsEditing(false)
+    setShowModal(true)
+}
+
 
     const hideModal = () => {
         setShowModal(false)

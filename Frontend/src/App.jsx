@@ -40,7 +40,7 @@ import Estado_solicitudCrud from "./Estados_solicitud/Estado_solicitudCrud.jsx";
 import Barra_nav from "./Componentes/Barra_nav.jsx";
 import Home from "./Componentes/Home.jsx";
 import Perfil from "./Componentes/perfil.jsx";
-import EstadosCrud from "./EstadosCrud/EstadosCrud.jsx";
+import EstadosCrud from "./Estados/EstadosCrud.jsx";
 
 function App() {
   return (
