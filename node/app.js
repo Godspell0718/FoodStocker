@@ -1,7 +1,6 @@
 import express from "express"
 import cors from "cors"
 import db from "./database/db.js"
-import almacenRouters from "./routes/almacenRouters.js" 
 import destinoRoutes from "./routes/destinoRoutes.js"
 import entradasRoutes from "./routes/entradasRoutes.js"
 import insumosProveedorRoutes from "./routes/insumosProveedorRoutes.js"
@@ -20,7 +19,6 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
-app.use("/api/almacen", almacenRouters)
 app.use("/api/destino", destinoRoutes)
 app.use("/api/entradas", entradasRoutes)
 app.use("/api/insumosproveedor", insumosProveedorRoutes)
@@ -48,6 +46,7 @@ const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
 
 export default app
