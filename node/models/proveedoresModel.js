@@ -10,7 +10,10 @@ const ProveedorModel = db.define("proveedores", {
   Nom_Proveedor: {
     type: DataTypes.STRING,
   },
-  Tip_Proveedor: {          // Natural o Empresa
+  Raz_Social: {
+    type: DataTypes.STRING,
+  },
+  Nit_Proveedor: {
     type: DataTypes.STRING,
   },
   Tel_Proveedor: {
@@ -19,13 +22,16 @@ const ProveedorModel = db.define("proveedores", {
   Cor_Proveedor: {
     type: DataTypes.STRING,
   },
+  Dir_Proveedor: {
+    type: DataTypes.STRING,
+  },
   createdAt: {
     type: DataTypes.DATE,
-    field: "createdate"
+    field: "createdat"
   },
   updatedAt: {
     type: DataTypes.DATE,
-    field: "updatedate"
+    field: "updatedat"
   }
 }, {
   freezeTableName: true,

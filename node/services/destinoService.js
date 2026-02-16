@@ -2,7 +2,9 @@ import DestinoModel from "../models/destinoModel.js";
 
 class DestinoService {
     async getAll() {
-        return await DestinoModel.findAll();
+        return await DestinoModel.findAll({
+            order: [['Id_Destino', 'DESC']]
+        });
     }
 
     async getById(id) {
@@ -17,20 +19,20 @@ class DestinoService {
     }
 
     async update(id, data) {
-        const result = await DestinoModel.update(data, { where: { Id_Destino:id } })
+        const result = await DestinoModel.update(data, { where: { Id_Destino: id } })
         const updated = result[0]
 
         if (updated === 0) throw new Error("Destino no encontrado o sin cambios");
 
         return true
-        
+
     }
 
     async delete(id) {
-        const deleted = await DestinoModel.destroy({ where: {Id_Destino: id}})
+        const deleted = await DestinoModel.destroy({ where: { Id_Destino: id } })
 
         if (!deleted) throw new Error("Destino no encontrado")
-            return true
+        return true
     }
 }
 
