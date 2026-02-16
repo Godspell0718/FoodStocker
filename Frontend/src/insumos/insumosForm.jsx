@@ -1,174 +1,142 @@
 import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
-const InsumosForm = ({ closeModal, insumoParaEditar }) => {
-    const [Nom_Insumo, setNom_Insumo] = useState("");
-    const [peso, setPeso] = useState("");
-    const [Tip_Insumo, setTip_Insumo] = useState("");
-    const [Can_Insumo, setCan_Insumo] = useState("");
-    const [Uni_Med_Insumo, setUni_Med_Insumo] = useState("");
-    const [Ref_Insumo, setRef_Insumo] = useState("");
-    const [Codigo_Insumo, setCodigo_Insumo] = useState("");
+const InsumosForm = ({ hideModal, insumoParaEditar }) => {
+
+    const MySwal = withReactContent(Swal);
+
+    const [Nom_Insumo, setNombre] = useState('');
+    const [peso, setPeso] = useState('');
+    const [Tip_Insumo, setTipo] = useState('');
+    const [Can_Insumo, setCantidad] = useState('');
+    const [Uni_Med_Insumo, setUnidad] = useState('');
+    const [Ref_Insumo, setReferencia] = useState('');
+    const [Codigo_Insumo, setCodigo] = useState('');
+    const [textFormButton, setTextFormButton] = useState("Enviar");
 
     useEffect(() => {
         if (insumoParaEditar) {
-            setNom_Insumo(insumoParaEditar.Nom_Insumo);
-            setPeso(insumoParaEditar.peso);
-            setTip_Insumo(insumoParaEditar.Tip_Insumo);
-            setCan_Insumo(insumoParaEditar.Can_Insumo);
-            setUni_Med_Insumo(insumoParaEditar.Uni_Med_Insumo);
-            setRef_Insumo(insumoParaEditar.Ref_Insumo);
-            setCodigo_Insumo(insumoParaEditar.Codigo_Insumo);
+            setNombre(insumoParaEditar.Nom_Insumo || '');
+            setPeso(insumoParaEditar.peso || '');
+            setTipo(insumoParaEditar.Tip_Insumo || '');
+            setCantidad(insumoParaEditar.Can_Insumo || '');
+            setUnidad(insumoParaEditar.Uni_Med_Insumo || '');
+            setReferencia(insumoParaEditar.Ref_Insumo || '');
+            setCodigo(insumoParaEditar.Codigo_Insumo || '');
+            setTextFormButton("Actualizar");
         } else {
-            setNom_Insumo("");
-            setPeso("");
-            setTip_Insumo("");
-            setCan_Insumo("");
-            setUni_Med_Insumo("");
-            setRef_Insumo("");
-            setCodigo_Insumo("");
+            limpiarFormulario();
         }
     }, [insumoParaEditar]);
+
+    const limpiarFormulario = () => {
+        setNombre('');
+        setPeso('');
+        setTipo('');
+        setCantidad('');
+        setUnidad('');
+        setReferencia('');
+        setCodigo('');
+        setTextFormButton("Enviar");
+    };
 
     const gestionarForm = async (e) => {
         e.preventDefault();
 
+        const data = {
+            Nom_Insumo,
+            peso,
+            Tip_Insumo,
+            Can_Insumo,
+            Uni_Med_Insumo,
+            Ref_Insumo,
+            Codigo_Insumo
+        };
+
         try {
-            if (insumoParaEditar) {
-                await apiAxios.put(`/api/insumos/${insumoParaEditar.Id_Insumos}`, {
-                    Nom_Insumo: Nom_Insumo,
-                    peso: peso,
-                    Tip_Insumo: Tip_Insumo,
-                    Can_Insumo: Can_Insumo,
-                    Uni_Med_Insumo: Uni_Med_Insumo,
-                    Ref_Insumo: Ref_Insumo,
-                    Codigo_Insumo: Codigo_Insumo
+            if (textFormButton === "Enviar") {
+                await apiAxios.post("/api/insumos/", data);
+                MySwal.fire({
+                    title: "Creado",
+                    text: "Insumo creado correctamente",
+                    icon: "success"
                 });
-                alert('Insumo actualizado correctamente');
-            } else {
-                await apiAxios.post('/api/insumos/', {
-                    Nom_Insumo: Nom_Insumo,
-                    peso: peso,
-                    Tip_Insumo: Tip_Insumo,
-                    Can_Insumo: Can_Insumo,
-                    Uni_Med_Insumo: Uni_Med_Insumo,
-                    Ref_Insumo: Ref_Insumo,
-                    Codigo_Insumo: Codigo_Insumo
-                });
-                alert('Insumo creado correctamente');
             }
 
-            setNom_Insumo("");
-            setPeso("");
-            setTip_Insumo("");
-            setCan_Insumo("");
-            setUni_Med_Insumo("");
-            setRef_Insumo("");
-            setCodigo_Insumo("");
-
-            if (closeModal) {
-                closeModal();
+            if (textFormButton === "Actualizar") {
+                await apiAxios.put(
+                    `/api/insumos/${insumoParaEditar.Id_Insumos}`,
+                    data
+                );
+                MySwal.fire({
+                    title: "Actualizado",
+                    text: "Insumo actualizado correctamente",
+                    icon: "success"
+                });
             }
+
+            limpiarFormulario();
+            hideModal();
 
         } catch (error) {
-            console.error("Error registrando insumo:", error.response ? error.response.data : error.message);
-            alert(error.message);
+            console.error("Error:", error);
+            MySwal.fire({
+                title: "Error",
+                text: "Ocurrió un error al guardar",
+                icon: "error"
+            });
         }
-    }
+    };
 
     return (
         <form onSubmit={gestionarForm}>
             <div className="mb-3">
-                <label htmlFor="Nom_Insumo" className="form-label">Nombre del Insumo</label>
+                <label>Nombre del Insumo</label>
                 <input
-                    type="text"
-                    id="Nom_Insumo"
                     className="form-control"
                     value={Nom_Insumo}
-                    onChange={(e) => setNom_Insumo(e.target.value)}
-                    required
+                    onChange={(e) => setNombre(e.target.value)}
                 />
             </div>
+
             <div className="mb-3">
-                <label htmlFor="Can_Insumo" className="form-label">unidades del Insumo</label>
+                <label>unidades del insumo</label>
                 <input
                     type="number"
-                    id="Can_Insumo"
                     className="form-control"
                     value={Can_Insumo}
-                    onChange={(e) => setCan_Insumo(e.target.value)}
-                    required
+                    onChange={(e) => setCantidad(e.target.value)}
                 />
             </div>
-                        <div className="mb-3">
-                <label htmlFor="peso del insumo" className="form-label">Peso del Insumo</label>
+
+            <div className="mb-3">
+                <label>Peso del insumo</label>
                 <input
-                    type="decimal"
-                    id="peso del insumo"
+                    type="number"
+                    step="0.01"
                     className="form-control"
                     value={peso}
                     onChange={(e) => setPeso(e.target.value)}
-                    required
                 />
             </div>
             <div className="mb-3">
-                <label htmlFor="Uni_Med_Insumo" className="form-label">Unidad de Medida</label>
+                <label>Tipo de insumo</label>
                 <select
-                    id="Uni_Med_Insumo"
-                    className="form-control"
-                    value={Uni_Med_Insumo}
-                    onChange={(e) => setUni_Med_Insumo(e.target.value)}
-                    required
-                >
-                    <option value="">Seleccione la Unidad de media del insumo</option>
-                    <option value="gr">Gramos</option>
-                    <option value="kg">Kilogramos</option>
-                    <option value="ml">Mililitros</option>
-                    <option value="L">Litros</option>
-                    <option value="lbs">Libras</option>
-
-                </select>
-            </div>
-            <div className="mb-3">
-                <label htmlFor="Ref_Insumo" className="form-label">Referencia del Insumo</label>
-                <select
-                    id="Ref_Insumo"
-                    className="form-control"
-                    value={Ref_Insumo}
-                    onChange={(e) => setRef_Insumo(e.target.value)}
-                    required
-                >
-                    <option value="">Seleccione la referencia del insumo</option>
-                    <option value="MP">Materia prima</option>
-                    <option value="IN">Insumo</option>
-                    </select>
-            </div>
-            <div className="mb-3">
-                <label htmlFor="Codigo_Insumo" className="form-label">Código del Insumo</label>
-                <input
-                    type="text"
-                    id="Codigo_Insumo"
-                    className="form-control"
-                    value={Codigo_Insumo}
-                    onChange={(e) => setCodigo_Insumo(e.target.value)}
-                    required
-                />
-            </div>
-            <div className="mb-3">
-                <label htmlFor="Tip_Insumo" className="form-label">Tipo de Insumo</label>
-                <select
-                    id="Tip_Insumo"
                     className="form-control"
                     value={Tip_Insumo}
-                    onChange={(e) => setTip_Insumo(e.target.value)}>
-                    <option value="">Seleccione un tipo de insumo</option>
-                    <option value="lacteos">Lácteos</option>
-                    <option value="carnicos">Cárnicos</option>
-                    <option value="chocolateria">Chocolatería</option>
-                    <option value="panaderia">Panadería</option>
-                    <option value="fruhor">Fruhor</option>
-                    <option value="cafe">Café</option>
-                    <option value="bebidas">Aguas</option>
+                    onChange={(e) => setTipo(e.target.value)}
+                >
+                    <option value="" disabled>Seleccione tipo</option>
+                    <option value="lacteos">lacteos</option>
+                    <option value="carnicos">carnicos</option>
+                    <option value="chocolateria">chocolateria</option>
+                    <option value="panaderia">panaderia</option>
+                    <option value="fruhor">fruhor</option>
+                    <option value="cafe">cafe</option>
+                    <option value="bebidas">bebidas</option>
+                    <option value="licores">licores</option>
                     <option value="condimentos">Condimentos</option>
                     <option value="especias">Especias</option>
                     <option value="frutas">Frutas</option>
@@ -181,26 +149,46 @@ const InsumosForm = ({ closeModal, insumoParaEditar }) => {
                     <option value="congelados">Congelados</option>
                 </select>
             </div>
-
             <div className="mb-3">
+                <label>unidad de medida del insumo</label>
+                <select
+                    className="form-control"
+                    value={Uni_Med_Insumo}
+                    onChange={(e) => setUnidad(e.target.value)}
+                >
+                    <option value="" disabled>Seleccione tipo</option>
+                    <option value="gr">gramos</option>
+                    <option value="kg">kilogramos</option>
+                    <option value="ml">mililitros</option>
+                    <option value="l">litros</option>
+                    <option value="lbs">libras</option>
+                </select>
+            </div>
+            <div className="mb-3">
+                <label>Referencia del Insumo</label>
+                <select
+                    className="form-control"
+                    value={Ref_Insumo}
+                    onChange={(e) => setReferencia(e.target.value)}
+                >
+                    <option value="" disabled>Seleccione referencia</option>
+                    <option value="IN">Insumo</option>
+                    <option value="MP">Materia Prima</option>
+                </select>
+            </div>
+            <div className="mb-3">
+                <label>Código</label>
                 <input
-                    type="submit"
-                    className="btn btn-primary w-50"
-                    value={insumoParaEditar ? "Actualizar" : "Enviar"}
+                    className="form-control"
+                    value={Codigo_Insumo}
+                    onChange={(e) => setCodigo(e.target.value)}
                 />
             </div>
-
-            {insumoParaEditar && (
-                <div className="alert alert-primary alert-dismissible fade show d-flex align-items-center" role="alert">
-                    <i className="fa-solid fa-circle-info me-2"></i>  
-                    <div>
-                        <strong>Nota:</strong> Los campos que no modifiques conservarán su valor actual.
-                    </div>
-                    <button type="button" className="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            )}
+            <button className="btn btn-primary w-100" type="submit">
+                {textFormButton}
+            </button>
         </form>
     );
-}
+};
 
 export default InsumosForm;
