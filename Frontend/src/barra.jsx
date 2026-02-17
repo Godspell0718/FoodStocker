@@ -43,6 +43,11 @@ export default function Barra() {
                                 Insumos 
                             </NavLink>
                         </li>
+                        <li className="nav-item">
+                            <NavLink to="/entradas" className={navClass}>
+                                Entradas
+                            </NavLink>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -82,6 +87,11 @@ export default function Barra() {
                         <div data-bs-dismiss="offcanvas">
                             <NavLink to="/insumos" className={navClass}>
                                 insumos
+                            </NavLink>
+                        </div>
+                        <div data-bs-dismiss="offcanvas">
+                            <NavLink to="/entradas" className={navClass}>
+                                Entradas
                             </NavLink>
                         </div>
                     </div>

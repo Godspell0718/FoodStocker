@@ -1,52 +1,87 @@
 import db from '../database/db.js';
 import { DataTypes } from 'sequelize';
 
-const entradaModel = db.define('entradas',{
-    Id_Entradas:{
-        type: DataTypes.INTEGER,
+const entradaModel = db.define('entradas', {
+    Id_Entradas: {
+        type: DataTypes.INTEGER(5),
         primaryKey: true,
         autoIncrement: true
     },
-    Fec_Entrada:{
-        type: DataTypes.DATE
+    Fec_Ven_Entrada: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
     },
-    Des_Entrada:{
-        type: DataTypes.STRING
+    Lote: {
+        type: DataTypes.STRING(40),
+        allowNull: false
     },
-    Can_Entrada:{
-        type: DataTypes.INTEGER
+    Vlr_Unitario: {
+        type: DataTypes.DECIMAL(10, 0),
+        allowNull: true
     },
-    Id_Almacen:{
-        type: DataTypes.INTEGER,
+    Vlr_Total: {
+        type: DataTypes.DECIMAL(10, 0),
+        allowNull: true
+        // Este campo es GENERATED en la DB, no se debe incluir en creates/updates
+    },
+    Can_Inicial: {
+        type: DataTypes.INTEGER(4),
+        allowNull: false
+    },
+    Can_Salida: {
+        type: DataTypes.INTEGER(4),
+        allowNull: false
+    },
+    Estado: {
+        type: DataTypes.ENUM('STOCK', 'AGOTADO', 'VENCIDO'),
+        allowNull: false,
+        defaultValue: 'STOCK'
+    },
+    Id_Proveedor: {
+        type: DataTypes.INTEGER(5),
+        allowNull: false,
         references: {
-            model: 'Almacenes',
-            key: 'Id_Almacen'
+            model: 'proveedores',
+            key: 'Id_Proveedor'
         }
     },
-    Id_Insumo:{
-        type: DataTypes.INTEGER,
+    Id_Pasante: {
+        type: DataTypes.INTEGER(5),
+        allowNull: false,
         references: {
-            model: 'Insumos',
-            key: 'Id_Insumo'
+            model: 'responsables',
+            key: 'Id_Responsable'
         }
     },
-    Id_Lote:{
-        type: DataTypes.INTEGER,
+    Id_Instructor: {
+        type: DataTypes.INTEGER(5),
+        allowNull: false,
         references: {
-            model: 'Lotes',
-            key: 'Id_Lote'
+            model: 'responsables',
+            key: 'Id_Responsable'
         }
     },
-    createdAt: {
+    Id_Insumos: {
+        type: DataTypes.INTEGER(5),
+        allowNull: false,
+        references: {
+            model: 'insumos',
+            key: 'Id_Insumos'
+        }
+    },
+    createdat: {
         type: DataTypes.DATE,
-        field: "createdat" 
+        defaultValue: DataTypes.NOW,
+        allowNull: false
     },
-    updatedAt: {
+    updatedat: {
         type: DataTypes.DATE,
-        field: "updatedat" 
+        defaultValue: DataTypes.NOW,
+        allowNull: false
     }
-},{
+}, {
     freezeTableName: true,
-})
+    timestamps: false
+});
 
 export default entradaModel;

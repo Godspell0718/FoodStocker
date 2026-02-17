@@ -3,7 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import CrudResponsables from './Responsables/crudResponsables'
 import CrudProveedores from './Proveedores/crudProveedores'
 import CrudDestino from './Destino/crudDestino'
-import CrudInsumos from './insumos/crudInsumos.jsx';
+import CrudInsumos from './insumos/crudInsumos.jsx'
+import CrudEntradas from './entradas/crudEntradas.jsx';
 
 function App() {
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="Responsables" element={<CrudResponsables />} />
         <Route path="Destino" element={<CrudDestino />} />
         <Route path="Insumos" element={<CrudInsumos />} />
+        <Route path="Entradas" element={<CrudEntradas />} />
 
       </Route>
 
