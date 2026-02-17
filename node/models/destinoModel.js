@@ -9,13 +9,16 @@ const DestinoModel = db.define('destino', {
     Nom_Destino: {
         type: DataTypes.STRING
     },
-    createdAt: {
-        type: DataTypes.DATE,
-        field: "createdate"
+    Tip_Destino: {
+        type: DataTypes.STRING
     },
-    updatedAt: {
+    createdat: {
         type: DataTypes.DATE,
-        field: "updatedate"
+        field: "createdat"
+    },
+    updatedat: {
+        type: DataTypes.DATE,
+        field: "updatedat"
     }
 }, {
     freezeTableName: true

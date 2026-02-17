@@ -1,7 +1,9 @@
 import Insumo from "../models/insumosModel.js"; 
 class ServInsumos {
     async getAll() {
-        return await Insumo.findAll(); 
+        return await Insumo.findAll({
+            order:[['Id_Insumos', 'DESC']]
+        });
     }
 
     async getById(id) {
@@ -13,8 +15,7 @@ class ServInsumos {
     }
 
     async create(data) {
-        const newInsumo = await Insumo.create(data); 
-        return newInsumo;
+        return await Insumo.create(data); 
     }
 
     async update(id, data) {
@@ -25,16 +26,15 @@ class ServInsumos {
         if (updatedRows === 0) {
             throw new Error('Insumo no encontrado o sin cambios');
         }
-        return await this.getById(id);
+        return true;
     }
 
     async delete(id) {
         const deleted = await Insumo.destroy({ 
             where: { Id_Insumos: id } 
         });
-        if (deleted === 0) {
+        if (!deleted) 
             throw new Error('Insumo no encontrado');
-        }
         return true;
     }
 }
