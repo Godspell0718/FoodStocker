@@ -7,7 +7,7 @@ export default function Barra() {
 
     return (
         <>
-           
+
             <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-3">
 
                 <Link className="navbar-brand" to="/">FoodStocker</Link>
@@ -31,6 +31,11 @@ export default function Barra() {
                         <li className="nav-item">
                             <NavLink to="/Responsables" className={navClass}>
                                 Responsables
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink to="/destino" className={navClass}>
+                                Destinos
                             </NavLink>
                         </li>
                     </ul>
@@ -64,6 +69,12 @@ export default function Barra() {
                             </NavLink>
                         </div>
 
+                        <div data-bs-dismiss="offcanvas">
+                            <NavLink to="/destino" className={navClass}>
+                                Destinos
+                            </NavLink>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -74,4 +85,3 @@ export default function Barra() {
         </>
     );
 }
-
