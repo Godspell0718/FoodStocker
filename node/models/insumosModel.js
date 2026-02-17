@@ -12,7 +12,8 @@ const insumoModel = db.define('insumos', {
         allowNull: false
     },
     Tip_Insumo: {
-        type: DataTypes.ENUM('lacteos', 'carnicos', 'chocolateria', 'panaderia', 'bebidas', 'condimentos', 'especias', 'frutas', 'verduras', 'granos', 'cereales', 'aceites', 'salsas', 'enlatados', 'congelados'),
+        type: DataTypes.ENUM('lacteos', 'carnicos', 'chocolateria', 'panaderia', 'bebidas', 'condimentos',
+        'especias', 'frutas', 'verduras', 'granos', 'cereales', 'aceites', 'salsas', 'enlatados', 'congelados'),
         allowNull: false
     },
     Can_Insumo: {
@@ -29,6 +30,7 @@ const insumoModel = db.define('insumos', {
         defaultValue: 'gr'
     },
     Ref_Insumo: {
+
         type: DataTypes.ENUM('MP', 'IN', 'MR', 'PT', 'PP'),
         allowNull: false,
         defaultValue: 'MP'

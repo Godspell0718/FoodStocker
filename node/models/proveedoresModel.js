@@ -10,10 +10,19 @@ const ProveedorModel = db.define("proveedores", {
   Nom_Proveedor: {
     type: DataTypes.STRING,
   },
+  Raz_Social: {
+    type: DataTypes.STRING,
+  },
+  Nit_Proveedor: {
+    type: DataTypes.STRING,
+  },
   Tel_Proveedor: {
     type: DataTypes.STRING,
   },
   Cor_Proveedor: {
+    type: DataTypes.STRING,
+  },
+  Dir_Proveedor: {
     type: DataTypes.STRING,
   },
   createdAt: {

@@ -1,13 +1,14 @@
-import express from "express"
+import express from 'express';
 import cors from "cors"
 import db from "./database/db.js"
 import destinoRoutes from "./routes/destinoRoutes.js"
 import entradasRoutes from "./routes/entradasRoutes.js"
 import insumosProveedorRoutes from "./routes/insumosProveedorRoutes.js"
 import insumosRouters from "./routes/insumosRouters.js" 
-import pasantesRouters from "./routes/pasanteRouters.js"
+import responsableRouters from "./routes/responsableRouters.js"
 import proveedoresRouters from "./routes/proveedoresRouters.js"
 import salidasRoute from "./routes/salidasRoute.js"
+
 
 import dotenv from "dotenv"
 
@@ -80,7 +81,7 @@ app.use("/api/destino", destinoRoutes)
 app.use("/api/entradas", entradasRoutes)
 app.use("/api/insumosproveedor", insumosProveedorRoutes)
 app.use("/api/insumos", insumosRouters)
-app.use("/api/pasantes", pasantesRouters)
+app.use("/api/responsables", responsableRouters)
 app.use("/api/proveedores", proveedoresRouters)
 app.use("/api/salidas", salidasRoute)
 
@@ -97,7 +98,7 @@ try{
 }
 
 app.get("/", (_req, res) => {
-    res.send("Hola Mundo de Andrey")
+    res.send("Hola Mundo de NPC'S")
 })
 
 // ============================================
