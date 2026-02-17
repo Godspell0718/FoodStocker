@@ -1,4 +1,4 @@
-import PasanteModel from "../models/pasanteModel.js";
+import PasanteModel from "../models/responsablesModel.js";
 
 class PasanteService {
   async getAll() {

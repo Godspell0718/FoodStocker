@@ -1,36 +1,55 @@
-import db from "../database/db.js";
+import db from '../database/db.js';
 import { DataTypes } from 'sequelize';
 
-const Insumo = db.define('insumos', {
+const insumoModel = db.define('insumos', {
     Id_Insumos: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER(5),
         primaryKey: true,
         autoIncrement: true
     },
-    Nom_insumo: {
-        type: DataTypes.STRING(40)
-    },
-    Vlr_insumo: {
-        type: DataTypes.INTEGER
-    },
-    Tip_producto: {
-        type: DataTypes.ENUM('lácteos', 'cárnicos', 'chocolatería', 
-        'panadería', 'bebidas', 'aseo', 'aseo personal', 'otros'),
+    Nom_Insumo: {
+        type: DataTypes.STRING(50),
         allowNull: false
     },
-    Id_Lote: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'lote',
-            key: 'Id_Lote'
-        }
+    Tip_Insumo: {
+        type: DataTypes.ENUM('lacteos', 'carnicos', 'chocolateria', 'panaderia', 'bebidas', 'condimentos', 'especias', 'frutas', 'verduras', 'granos', 'cereales', 'aceites', 'salsas', 'enlatados', 'congelados'),
+        allowNull: false
     },
-    Marc_insumo: {
-        type: DataTypes.STRING(30)
+    Can_Insumo: {
+        type: DataTypes.INTEGER(10),
+        allowNull: false
+    },
+    peso: {
+        type: DataTypes.DECIMAL(10, 1),
+        allowNull: false
+    },
+    Uni_Med_Insumo: {
+        type: DataTypes.ENUM('gr', 'kg', 'ml', 'L', 'lbs'),
+        allowNull: false,
+        defaultValue: 'gr'
+    },
+    Ref_Insumo: {
+        type: DataTypes.ENUM('MP', 'IN', 'MR', 'PT', 'PP'),
+        allowNull: false,
+        defaultValue: 'MP'
+    },
+    Codigo_Insumo: {
+        type: DataTypes.STRING(100),
+        allowNull: false
+    },
+    createdat: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: false
+    },
+    updatedat: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: false
     }
 }, {
     freezeTableName: true,
-    timestamps: true
+    timestamps: false
 });
 
-export default Insumo; 
+export default insumoModel;
