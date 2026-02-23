@@ -4,7 +4,8 @@ import CrudResponsables from './Responsables/crudResponsables'
 import CrudProveedores from './Proveedores/crudProveedores'
 import CrudDestino from './Destino/crudDestino'
 import CrudInsumos from './insumos/crudInsumos.jsx'
-import CrudEntradas from './entradas/crudEntradas.jsx';
+import CrudEntradas from './entradas/crudEntradas.jsx'
+import Inicio from './Inicio/Inicio.jsx';
 
 function App() {
 
@@ -14,7 +15,7 @@ function App() {
     
       <Route path="/" element={<Barra />}>
 
-        <Route index element={<Navigate to="/Proveedores" />} />
+        <Route index element={<Navigate to="/Inicio" />} />
 
         <Route path="Proveedores" element={<CrudProveedores />} />
         <Route path="Responsables" element={<CrudResponsables />} />
