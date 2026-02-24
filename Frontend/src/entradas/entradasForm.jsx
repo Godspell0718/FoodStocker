@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import apiAxios from '../api/axiosConfig.js'
+import apiNode from "../api/axiosConfig.js";
 
 const EntradasForm = ({ hideModal, refreshTable }) => {
     // Estados para cada campo del modelo
@@ -48,7 +48,9 @@ const EntradasForm = ({ hideModal, refreshTable }) => {
 
         try {
             setTextFormButton('Enviando...')
-            const response = await apiAxios.post('/api/entradas/', {
+            
+            // ✅ CORREGIDO: ahora usa apiNode en lugar de apiAxios
+            const response = await apiNode.post('/api/entradas/', {
                 Fec_Ven_Entrada,
                 Lote,
                 Vlr_Unitario: Vlr_Unitario ? parseFloat(Vlr_Unitario) : null,

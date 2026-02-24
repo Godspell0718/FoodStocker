@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import apiAxios from "../api/axiosConfig.js";
+import apiNode from "../api/axiosConfig.js";
 import DataTable from 'react-data-table-component';
 import EntradasForm from "./entradasForm.jsx";
 
@@ -91,20 +91,18 @@ const CrudEntradas = () => {
         },
     ]
 
-    useEffect(() => {
-        getAllEntradas()
-    }, [])
-
+    // ✅ DEFINIR LA FUNCIÓN getAllEntradas ANTES DEL useEffect
     const getAllEntradas = async () => {
         try {
             setLoading(true)
             setError(null)
             
-            const response = await apiAxios.get("/api/entradas/")
+            console.log('🔍 Obteniendo entradas...')
+            
+            const response = await apiNode.get("/api/entradas/")
             
             console.log("✅ Datos recibidos:", response.data)
             
-            // Verificar si response.data es un array
             if (Array.isArray(response.data)) {
                 setEntradas(response.data)
             } else {
@@ -114,16 +112,20 @@ const CrudEntradas = () => {
             }
             
         } catch (error) {
-            console.error("❌ Error completo:", error)
-            console.error("❌ Error response:", error.response)
-            console.error("❌ Error data:", error.response?.data)
-            
-            setError(error.response?.data?.mensaje || error.message || "Error al obtener entradas")
+            console.error("❌ Error:", error)
+            setError(error.response?.data?.mensaje || "Error al obtener entradas")
             setEntradas([])
         } finally {
             setLoading(false)
         }
     }
+
+    // ✅ useEffect para cargar datos al montar el componente
+    useEffect(() => {
+        getAllEntradas()
+    }, [])
+
+    // ✅ ELIMINAR la función gestionarLogin que no pertenece aquí
 
     const newListEntradas = entradas.filter(entrada => {
         const textToSearch = filterText.toLowerCase()
@@ -202,7 +204,7 @@ const CrudEntradas = () => {
                     title="Listado de Entradas"
                     columns={columnsTable}
                     data={newListEntradas}
-                    keyField="Id_Entradas"  // ← CORREGIDO
+                    keyField="Id_Entradas"
                     pagination
                     highlightOnHover
                     striped

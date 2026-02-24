@@ -1,3 +1,4 @@
+import dotenv from "dotenv"
 import express from 'express';
 import cors from "cors"
 import db from "./database/db.js"
@@ -10,7 +11,6 @@ import proveedoresRouters from "./routes/proveedoresRouters.js"
 import salidasRoute from "./routes/salidasRoute.js"
 
 
-import dotenv from "dotenv"
 
 import entradasModel from "./models/entradasModel.js"
 import insumosModel from "./models/insumosModel.js"
