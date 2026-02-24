@@ -27,11 +27,5 @@
     "sweetalert2": "^11.26.3",
     "sweetalert2-react-content": "^5.1.0",
     "uuid": "^13.0.0"
-<<<<<<< HEAD
-  },
-  "overrides": {
-    "vite": "npm:rolldown-vite@7.1.14"
-=======
->>>>>>> 1fbf33ae6afb9882bf95557e0f700a245ca37b5e
   }
 }
