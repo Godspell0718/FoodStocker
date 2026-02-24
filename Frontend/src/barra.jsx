@@ -53,6 +53,21 @@ const Navbar = ({ isAuth, logout }) => {
                                 Entradas
                             </NavLink>
                         </li>
+                        <li className="nav-item">
+                            <NavLink to="/Solicitudes" className={navClass}>
+                                Solicitudes
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">   
+                            <NavLink to="/Estados" className={navClass}>
+                                Estados                            </NavLink>
+                        </li>
+                        <li className="nav-item">
+                            <NavLink to="/Estado_solicitud" className={navClass}>
+                                Estado Solicitud
+                            </NavLink>
+                        </li>
+                        
                         
                         {/* 🔴 SECCIÓN AGREGADA - Dropdown de usuario */}
                         {isAuth ? (
