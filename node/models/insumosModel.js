@@ -30,7 +30,8 @@ const insumoModel = db.define('insumos', {
         defaultValue: 'gr'
     },
     Ref_Insumo: {
-        type: DataTypes.ENUM('MP', 'IN'),
+
+        type: DataTypes.ENUM('MP', 'IN', 'MR', 'PT', 'PP'),
         allowNull: false,
         defaultValue: 'MP'
     },
