@@ -15,7 +15,7 @@ import salidasRoute from "./routes/salidasRoute.js"
 import entradasModel from "./models/entradasModel.js"
 import insumosModel from "./models/insumosModel.js"
 import proveedoresModel from "./models/proveedoresModel.js" 
-import responsablesModel from "./models/responsablesModel.js"
+import responsablesModel from "./models/responsableModel.js"
 
 dotenv.config();
 
