@@ -1,4 +1,5 @@
 import express from 'express';
+import authMiddleware from '../middleware/usersmiddleware.js';
 import { 
   getAllEntradas, 
   getEntradas, 
@@ -16,12 +17,12 @@ import {
 
 const router = express.Router();
 
-// Rutas básicas CRUD
-router.get('/', getAllEntradas);
-router.get('/:id', getEntradas);
-router.post('/', createEntradas);
-router.put('/:id', updateEntradas);
-router.delete('/:id', deleteEntradas);
+//proteccion de rutas en el backend
+router.get('/', authMiddleware,getAllEntradas)
+router.get('/:id', authMiddleware, getEntradas)
+router.post('/', authMiddleware, createEntradas)
+router.put('/:id',authMiddleware, updateEntradas)
+router.delete('/:id', authMiddleware, deleteEntradas)
 
 // Rutas de consulta por filtros
 router.get('/lote/:lote', getEntradasByLote);
@@ -35,5 +36,6 @@ router.get('/stock/insumo/:idInsumo', getStockDisponible);
 
 // Ruta administrativa
 router.post('/admin/actualizar-estados', actualizarEstados);
+
 
 export default router;

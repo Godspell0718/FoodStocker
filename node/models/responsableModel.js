@@ -23,6 +23,15 @@ const responsableModel = db.define("responsables", {
     Cor_Responsable: {
         type: DataTypes.STRING
     },
+     Contraseña: {
+        type: DataTypes.STRING
+    },
+     uuid: {
+        type: DataTypes.STRING
+    },
+     token: {
+        type: DataTypes.STRING
+    },
     createdAt: {
         type: DataTypes.DATE,
         field: "createdat" 
