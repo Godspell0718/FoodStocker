@@ -11,7 +11,21 @@ const EntradasForm = ({ hideModal, refreshTable }) => {
     const [Id_Pasante, setId_Pasante] = useState('')
     const [Id_Instructor, setId_Instructor] = useState('')
     const [Id_Insumos, setId_Insumos] = useState('')
+    const [Uni_medida, setUnimedida] = useState('')   // ← Nuevo campo
     const [textFormButton, setTextFormButton] = useState('Enviar')
+
+    const resetForm = () => {
+        setFec_Ven_Entrada('')
+        setLote('')
+        setVlr_Unitario('')
+        setCan_Inicial('')
+        setId_Proveedor('')
+        setId_Pasante('')
+        setId_Instructor('')
+        setId_Insumos('')
+        setUnimedida('')
+        setTextFormButton('Enviar')
+    }
 
     const gestionarForm = async (e) => {
         e.preventDefault()
@@ -21,62 +35,68 @@ const EntradasForm = ({ hideModal, refreshTable }) => {
             alert('La fecha de vencimiento es obligatoria')
             return
         }
-        if (!Lote) {
+        if (!Lote.trim()) {
             alert('El lote es obligatorio')
             return
         }
-        if (!Can_Inicial || Can_Inicial <= 0) {
+        if (!Can_Inicial || Number(Can_Inicial) <= 0) {
             alert('La cantidad inicial debe ser un número positivo')
             return
         }
-        if (!Id_Proveedor) {
-            alert('El ID del proveedor es obligatorio')
+        if (!Id_Proveedor || Number(Id_Proveedor) <= 0) {
+            alert('El ID del proveedor es obligatorio y válido')
             return
         }
-        if (!Id_Pasante) {
-            alert('El ID del pasante es obligatorio')
+        if (!Id_Pasante || Number(Id_Pasante) <= 0) {
+            alert('El ID del pasante es obligatorio y válido')
             return
         }
-        if (!Id_Instructor) {
-            alert('El ID del instructor es obligatorio')
+        if (!Id_Instructor || Number(Id_Instructor) <= 0) {
+            alert('El ID del instructor es obligatorio y válido')
             return
         }
-        if (!Id_Insumos) {
-            alert('El ID del insumo es obligatorio')
+        if (!Id_Insumos || Number(Id_Insumos) <= 0) {
+            alert('El ID del insumo es obligatorio y válido')
+            return
+        }
+        if (!Uni_medida) {
+            alert('La unidad de medida es obligatoria')
             return
         }
 
         try {
             setTextFormButton('Enviando...')
-            
-            // ✅ CORREGIDO: ahora usa apiNode en lugar de apiAxios
-            const response = await apiNode.post('/api/entradas/', {
+
+            const payload = {
                 Fec_Ven_Entrada,
-                Lote,
+                Lote: Lote.trim(),
                 Vlr_Unitario: Vlr_Unitario ? parseFloat(Vlr_Unitario) : null,
-                Can_Inicial: parseInt(Can_Inicial),
-                Id_Proveedor: parseInt(Id_Proveedor),
-                Id_Pasante: parseInt(Id_Pasante),
-                Id_Instructor: parseInt(Id_Instructor),
-                Id_Insumos: parseInt(Id_Insumos)
-                // No enviamos Vlr_Total (generado) ni Estado (se calcula automáticamente)
-            })
+                Can_Inicial: parseInt(Can_Inicial, 10),
+                Id_Proveedor: parseInt(Id_Proveedor, 10),
+                Id_Pasante: parseInt(Id_Pasante, 10),
+                Id_Instructor: parseInt(Id_Instructor, 10),
+                Id_Insumos: parseInt(Id_Insumos, 10),
+                Uni_medida,
+            }
+
+            const response = await apiNode.post('/api/entradas/', payload)
 
             alert('Entrada creada con éxito!')
-            // Limpiar formulario
-            setFec_Ven_Entrada('')
-            setLote('')
-            setVlr_Unitario('')
-            setCan_Inicial('')
-            setId_Proveedor('')
-            setId_Pasante('')
-            setId_Instructor('')
-            setId_Insumos('')
+
+            resetForm()
             hideModal()
-            refreshTable() // Actualizar la lista de entradas
+            refreshTable()
+
         } catch (error) {
-            console.error('Error al crear la entrada:', error.response ? error.response.data : error.message)
-            alert(error.response?.data?.mensaje || error.message || 'Error al crear la entrada')
+            console.error('Error al crear la entrada:', error)
+            
+            const mensajeError = 
+                error.response?.data?.mensaje ||
+                error.response?.data?.error ||
+                error.message ||
+                'Error desconocido al crear la entrada'
+
+            alert(mensajeError)
         } finally {
             setTextFormButton('Enviar')
         }
@@ -136,6 +156,27 @@ const EntradasForm = ({ hideModal, refreshTable }) => {
             </div>
 
             <div className='mb-3'>
+                <label htmlFor="Uni_medida" className='form-label'>Unidad de medida *</label>
+                <select
+                    className='form-control'
+                    id='Uni_medida'
+                    value={Uni_medida}
+                    onChange={(e) => setUnimedida(e.target.value)}
+                    required
+                >
+                    <option value="">Seleccione unidad</option>
+                    <option value="gr">gramos</option>
+                    <option value="kg">kilogramos</option>
+                    <option value="ml">mililitros</option>
+                    <option value="l">litros</option>
+                    <option value="lbs">libras</option>
+                    <option value="un">unidades</option>
+                    <option value="caja">cajas</option>
+                    <option value="paq">paquetes</option>
+                </select>
+            </div>
+
+            <div className='mb-3'>
                 <label htmlFor="Id_Proveedor" className='form-label'>ID del proveedor *</label>
                 <input
                     type="number"
@@ -188,7 +229,13 @@ const EntradasForm = ({ hideModal, refreshTable }) => {
             </div>
 
             <div className='mb-3'>
-                <input type="submit" className='btn btn-primary w-50' value={textFormButton} />
+                <button 
+                    type="submit" 
+                    className='btn btn-primary w-50'
+                    disabled={textFormButton === 'Enviando...'}
+                >
+                    {textFormButton}
+                </button>
             </div>
         </form>
     )
