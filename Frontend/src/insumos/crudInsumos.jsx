@@ -14,11 +14,7 @@ const CrudInsumos = () => {
         { name: "Id de Insumos", selector: row => row.Id_Insumos, sortable: true },
         { name: "Nombre del insumo", selector: row => row.Nom_Insumo, sortable: true },
         { name: "Tipo de insumo", selector: row => row.Tip_Insumo, sortable: true },
-        { name: "Unidades del insumo", selector: row => row.Can_Insumo, sortable: true },
-        { name: "Peso del insumo", selector: row => row.peso, sortable: true },
-        { name: "Unidad de medida", selector: row => row.Uni_Med_Insumo, sortable: true },
         { name: "Referencia del insumo", selector: row => row.Ref_Insumo, sortable: true },
-        { name: "Código Insumo", selector: row => row.Codigo_Insumo, sortable: true },
         {
             name: "Actualizar",
             selector: row => (

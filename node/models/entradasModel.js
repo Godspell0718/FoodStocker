@@ -69,6 +69,11 @@ const entradaModel = db.define('entradas', {
             key: 'Id_Insumos'
         }
     },
+    Uni_medida: {
+        type: DataTypes.ENUM('Kg', 'Gr', 'Ml', 'L', 'Lbs'),
+        allowNull: false, 
+        defaultValue: 'Gr'
+    },
     createdat: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
