@@ -145,6 +145,21 @@ const Navbar = ({ isAuth, logout }) => {
                                 Entradas
                             </NavLink>
                         </div>
+                         <div data-bs-dismiss="offcanvas">
+                            <NavLink to="/Solicitudes" className={navClass}>
+                                Solicitudes
+                            </NavLink>
+                        </div>
+                        <div data-bs-dismiss="offcanvas">
+                            <NavLink to="/Estados" className={navClass}>
+                                Estados
+                            </NavLink>
+                        </div>
+                        <div data-bs-dismiss="offcanvas">
+                            <NavLink to="/Estado_solicitud" className={navClass}>
+                                Estado Solicitud
+                            </NavLink>
+                        </div>
                         
                         {/* 🔴 También agregar logout en el offcanvas para móviles */}
                         {isAuth && (
