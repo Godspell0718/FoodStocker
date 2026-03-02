@@ -7,8 +7,12 @@ const Estado_solicitudForm = ({ hideModal, isEditing, selectedEstado_solicitud, 
     const [formData, setFormData] = useState({
         Id_solicitud: "",
         Id_estado: "",
-        fecha:""
+        fecha: ""
     })
+    //select
+    const [solicitudes, setSolicitudes] = useState([]);
+    const [estados, setEstados] = useState([]);
+    //fin
 
     const [textFormButton, setTextFormButton] = useState("Crear")
     useEffect(() => {
@@ -24,11 +28,40 @@ const Estado_solicitudForm = ({ hideModal, isEditing, selectedEstado_solicitud, 
             setFormData({
                 Id_solicitud: "",
                 Id_estado: "",
-                fecha:""
+                fecha: ""
             })
             setTextFormButton("Crear")
         }
+        //select
+        getSolicitudes();
+        getEstados();
+        //fin
+
     }, [isEditing, selectedEstado_solicitud])
+
+    // select
+    const getSolicitudes = async () => {
+        try {
+            const res = await apiAxios.get("/api/solicitudes");
+            setSolicitudes(res.data);
+            console.log("SOLICITUDES:", res.data);
+        } catch (error) {
+            console.error("Error cargando solicitudes", error);
+        }
+    };
+
+
+    const getEstados = async () => {
+        try {
+            const res = await apiAxios.get("/api/estados");
+            setEstados(res.data);
+            console.log("ESTADOS:", res.data);
+        } catch (error) {
+            console.error("Error cargando estados", error);
+        }
+    };
+
+    //fin
 
     const handleInputChange = (e) => {
         const { id, value } = e.target
@@ -71,28 +104,56 @@ const Estado_solicitudForm = ({ hideModal, isEditing, selectedEstado_solicitud, 
                     />
                 </div>
             )}
-
+            
+            
             <div className="mb-3">
                 <label className="form-label">ID Solicitud</label>
-                <input
-                    type="text"
-                    id="Id_solicitud"
-                    className="form-control"
-                    value={formData.Id_solicitud}
-                    onChange={handleInputChange}
-                />
-            </div>
 
-            <div className="mb-3">
+                {isEditing ? (//select
+                    
+                    <select
+                        id="Id_solicitud"
+                        className="form-control"
+                        value={formData.Id_solicitud}
+                        onChange={handleInputChange}
+                    >
+                        <option value="">Seleccione una solicitud...</option>
+
+                        {solicitudes.map((sol) => (
+                            <option key={sol.Id_solicitud} value={sol.Id_solicitud}>
+                                {sol.Id_solicitud}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    
+                    <input
+                        type="text"
+                        id="Id_solicitud"
+                        className="form-control"
+                        value={formData.Id_solicitud}
+                        onChange={handleInputChange}
+                    />
+                )}
+            </div> //fin
+                        
+            <div className="mb-3">//select
                 <label className="form-label">ID Estado</label>
-                <input
-                    type="text"
+                <select
                     id="Id_estado"
                     className="form-control"
                     value={formData.Id_estado}
                     onChange={handleInputChange}
-                />
-            </div>
+                >
+                    <option value="">Seleccione un estado...</option>
+
+                    {estados.map((est) => (
+                        <option key={est.Id_estado} value={est.Id_estado}>
+                            {est.nom_estado}
+                        </option>
+                    ))}
+                </select>
+            </div>//fin
             <div className="mb-3">
                 <label className="form-label">Fecha</label>
                 <input
