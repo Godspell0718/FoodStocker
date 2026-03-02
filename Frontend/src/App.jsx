@@ -5,6 +5,9 @@ import CrudProveedores from './Proveedores/crudProveedores'
 import CrudDestino from './Destino/crudDestino'
 import CrudInsumos from './insumos/crudInsumos.jsx'
 import CrudEntradas from './entradas/crudEntradas.jsx'
+import SolicitudCrud from './solicitudes/solicitudCrud.jsx'
+import EstadoCrud from './Estados/EstadosCrud.jsx'
+import Estados_solicitudCrud from './Estados_solicitud/Estado_solicitudCrud.jsx'
 import Login from './home/Login'
 import { useState, useEffect } from 'react'
 
@@ -46,6 +49,9 @@ function App() {
           <Route path="Destino" element={<CrudDestino />} />
           <Route path="Insumos" element={<CrudInsumos />} />
           <Route path="Entradas" element={<CrudEntradas />} />
+          <Route path="Solicitudes" element={<SolicitudCrud />} />
+          <Route path="Estados" element={<EstadoCrud />} />
+          <Route path="Estado_solicitud" element={<Estados_solicitudCrud />} />
         </Route>
         
         <Route path="*" element={<Navigate to={isAuth ? "/" : "/login"} />} />
