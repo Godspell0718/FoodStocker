@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
-import apiNode from "../api/axiosConfig.js";
-import DataTable from 'react-data-table-component';
-import EntradasForm from "./entradasForm.jsx";
+import apiNode from "../api/axiosConfig.js"
+import DataTable from "react-data-table-component"
+import EntradasForm from "./entradasForm.jsx"
 
 const CrudEntradas = () => {
 
@@ -9,245 +9,195 @@ const CrudEntradas = () => {
     const [filterText, setFilterText] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [entradaSeleccionada, setEntradaSeleccionada] = useState(null)
 
     const columnsTable = [
         {
-            name: 'ID',
+            name: "ID",
             selector: row => row.Id_Entradas,
             sortable: true,
-            width: '80px'
+            width: "80px"
         },
         {
-            name: 'Lote',
-            selector: row => row.Lote || 'N/A',
+            name: "Lote",
+            selector: row => row.Lote,
             sortable: true,
-            width: '120px'
+            width: "120px"
         },
         {
-            name: 'Fecha Venc.',
-            selector: row => {
-                if (!row.Fec_Ven_Entrada) return 'No definida';
-                const fecha = new Date(row.Fec_Ven_Entrada);
-                return fecha.toLocaleDateString('es-ES');
-            },
+            name: "Fecha Venc.",
+            selector: row =>
+                row.Fec_Ven_Entrada
+                    ? new Date(row.Fec_Ven_Entrada).toLocaleDateString("es-CO")
+                    : "—",
             sortable: true,
-            width: '130px'
+            width: "130px"
         },
         {
-            name: 'Insumo',
-            selector: row => row.insumo?.Nom_Insumo || `ID: ${row.Id_Insumos}`,
+            name: "Insumo",
+            selector: row => row.insumo?.Nom_Insumo || `ID ${row.Id_Insumos}`,
             sortable: true
         },
         {
-            name: 'Unidad Medida',
-            selector: row => row.Uni_medida || '—',
+            name: "Unidad Med.",
+            selector: row => row.Uni_medida || "—",
             sortable: true,
-            width: '120px'
+            width: "120px"
         },
         {
-            name: 'Proveedor',
-            selector: row => row.proveedor?.Nom_Proveedor || `ID: ${row.Id_Proveedor}`,
+            name: "Proveedor",
+            selector: row => row.proveedor?.Nom_Proveedor || `ID ${row.Id_Proveedor}`,
             sortable: true
         },
         {
-            name: 'Cantidad',
+            name: "Cantidad",
             selector: row => `${row.Can_Inicial - row.Can_Salida} / ${row.Can_Inicial}`,
             sortable: true,
-            width: '100px'
+            width: "130px"
         },
         {
-            name: 'Vlr Unitario',
-            selector: row => row.Vlr_Unitario,
+            name: "Vlr Unitario",
+            selector: row => row.Vlr_Unitario ?? "—",
             sortable: true,
-            width: '100px'
+            width: "120px"
         },
         {
-            name: 'Vlr Total',
-            selector: row => row.Vlr_Total,
+            name: "Vlr Total",
+            selector: row => row.Vlr_Total ?? "—",
             sortable: true,
-            width: '100px'
+            width: "120px"
         },
         {
-            name: 'Estado',
-            selector: row => row.Estado,
+            name: "Estado",
             sortable: true,
-            width: '100px',
+            width: "110px",
             cell: row => {
-                const badges = {
-                    'STOCK': 'success',
-                    'AGOTADO': 'danger',
-                    'VENCIDO': 'warning'
-                };
+                const color = {
+                    STOCK: "success",
+                    AGOTADO: "danger",
+                    VENCIDO: "warning"
+                }
                 return (
-                    <span className={`badge bg-${badges[row.Estado] || 'secondary'}`}>
+                    <span className={`badge bg-${color[row.Estado] || "secondary"}`}>
                         {row.Estado}
                     </span>
-                );
+                )
             }
         },
         {
-            name: 'Pasante',
-            selector: row => row.pasante?.Nom_Responsable || `ID: ${row.Id_Pasante}`,
+            name: "Pasante",
+            selector: row => row.pasante?.Nom_Responsable || `ID ${row.Id_Pasante}`,
             sortable: true
         },
         {
-            name: 'Instructor',
-            selector: row => row.instructor?.Nom_Responsable || `ID: ${row.Id_Instructor}`,
+            name: "Instructor",
+            selector: row => row.instructor?.Nom_Responsable || `ID ${row.Id_Instructor}`,
             sortable: true
         },
+        {
+            name: "Acciones",
+            cell: row => (
+                <button
+                    className="btn btn-sm btn-dark"
+                    data-bs-toggle="modal"
+                    data-bs-target="#entradasModal"
+                    onClick={() => setEntradaSeleccionada(row)}
+                >
+                    <i className="fa-solid fa-utensils"></i>
+                </button>
+            ),
+            ignoreRowClick: true,
+            button: true
+        }
     ]
 
-    // ✅ DEFINIR LA FUNCIÓN getAllEntradas ANTES DEL useEffect
     const getAllEntradas = async () => {
         try {
             setLoading(true)
             setError(null)
-
-            console.log('🔍 Obteniendo entradas...')
-
             const response = await apiNode.get("/api/entradas/")
-
-            console.log("✅ Datos recibidos:", response.data)
-
-            if (Array.isArray(response.data)) {
-                setEntradas(response.data)
-            } else {
-                console.error("❌ Los datos no son un array:", response.data)
-                setError("Formato de datos incorrecto")
-                setEntradas([])
-            }
-
-        } catch (error) {
-            console.error("❌ Error:", error)
-            setError(error.response?.data?.mensaje || "Error al obtener entradas")
-            setEntradas([])
+            setEntradas(Array.isArray(response.data) ? response.data : [])
+        } catch {
+            setError("Error al cargar entradas")
         } finally {
             setLoading(false)
         }
     }
 
-    // ✅ useEffect para cargar datos al montar el componente
     useEffect(() => {
         getAllEntradas()
     }, [])
 
-    // ✅ ELIMINAR la función gestionarLogin que no pertenece aquí
-
-    const newListEntradas = entradas.filter(entrada => {
-        const textToSearch = filterText.toLowerCase()
-        const id = entrada.Id_Entradas?.toString().toLowerCase() || ""
-        const lote = entrada.Lote?.toLowerCase() || ""
-        const insumo = entrada.insumo?.Nom_Insumo?.toLowerCase() || ""
-        const proveedor = entrada.proveedor?.Nom_Proveedor?.toLowerCase() || ""
-        const pasante = entrada.pasante?.Nom_Responsable?.toLowerCase() || ""
-        const instructor = entrada.instructor?.Nom_Responsable?.toLowerCase() || ""
-        const estado = entrada.Estado?.toLowerCase() || ""
-
-        return (
-            id.includes(textToSearch) ||
-            lote.includes(textToSearch) ||
-            insumo.includes(textToSearch) ||
-            proveedor.includes(textToSearch) ||
-            pasante.includes(textToSearch) ||
-            instructor.includes(textToSearch) ||
-            estado.includes(textToSearch)
-        )
-    })
+    const filtered = entradas.filter(e =>
+        JSON.stringify(e).toLowerCase().includes(filterText.toLowerCase())
+    )
 
     const hideModal = () => {
-        document.getElementById('closeModal').click();
-    }
-
-    const refreshTable = () => {
-        getAllEntradas();
+        document.getElementById("closeModal").click()
+        setEntradaSeleccionada(null)
+        getAllEntradas()
     }
 
     return (
-        <>
-            <div className="container mt-5">
-                {/* Mostrar error si existe */}
-                {error && (
-                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                        <strong>Error:</strong> {error}
-                        <button
-                            type="button"
-                            className="btn-close"
-                            onClick={() => setError(null)}
-                        ></button>
-                    </div>
-                )}
+        <div className="container mt-5">
 
-                <div className="row d-flex justify-content-between mb-3">
-                    <div className="col-8">
-                        <input
-                            className="form-control"
-                            placeholder="Buscar por ID, lote, insumo, proveedor, estado..."
-                            value={filterText}
-                            onChange={(e) => setFilterText(e.target.value)}
-                        />
-                    </div>
-                    <div className="col-4 text-end">
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            data-bs-toggle="modal"
-                            data-bs-target="#exampleModal"
-                        >
-                            Nueva Entrada
-                        </button>
-                        <button
-                            type="button"
-                            className="btn btn-secondary ms-2"
-                            onClick={refreshTable}
-                            disabled={loading}
-                        >
-                            {loading ? 'Cargando...' : 'Actualizar'}
-                        </button>
-                    </div>
+            {error && <div className="alert alert-danger">{error}</div>}
+
+            <div className="row mb-3">
+                <div className="col-8">
+                    <input
+                        className="form-control"
+                        placeholder="Buscar..."
+                        value={filterText}
+                        onChange={e => setFilterText(e.target.value)}
+                    />
                 </div>
+                <div className="col-4 text-end">
+                    <button
+                        className="btn btn-dark"
+                        data-bs-toggle="modal"
+                        data-bs-target="#entradasModal"
+                        onClick={() => setEntradaSeleccionada(null)}
+                    >
+                        Nueva Entrada
+                    </button>
+                </div>
+            </div>
 
-                <DataTable
-                    title="Listado de Entradas"
-                    columns={columnsTable}
-                    data={newListEntradas}
-                    keyField="Id_Entradas"
-                    pagination
-                    highlightOnHover
-                    striped
-                    progressPending={loading}
-                    progressComponent={<div className="p-5">Cargando entradas...</div>}
-                    noDataComponent={
-                        error
-                            ? "Error al cargar los datos"
-                            : "No hay entradas registradas"
-                    }
-                />
+            <DataTable
+                title="Entradas"
+                columns={columnsTable}
+                data={filtered}
+                pagination
+                highlightOnHover
+                striped
+                progressPending={loading}
+            />
 
-                {/* Modal */}
-                <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5" id="exampleModalLabel">Nueva Entrada</h1>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    data-bs-dismiss="modal"
-                                    aria-label="Close"
-                                    id="closeModal"
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <EntradasForm
-                                    hideModal={hideModal}
-                                    refreshTable={refreshTable}
-                                />
-                            </div>
+            <div className="modal fade" id="entradasModal" tabIndex="-1">
+                <div className="modal-dialog modal-lg">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Entrada</h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                data-bs-dismiss="modal"
+                                id="closeModal"
+                            ></button>
+                        </div>
+                        <div className="modal-body">
+                            <EntradasForm
+                                hideModal={hideModal}
+                                refreshTable={getAllEntradas}
+                                entradaSeleccionada={entradaSeleccionada}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
-        </>
+
+        </div>
     )
 }
 
