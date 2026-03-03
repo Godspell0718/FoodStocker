@@ -11,7 +11,7 @@ import proveedoresRouters from "./routes/proveedoresRouters.js"
 import SolicitudRoutes from "./routes/SolicitudRoutes.js"
 import EstadosRoutes from "./routes/EstadosRoutes.js"
 import Estado_solicitudRoutes from "./routes/Estados_solcitudRoutes.js"
-
+import solicitudInsumosRoutes from "./routes/solicitudInsumosRoutes.js";
 import Estado_solicitudModel from "./models/Estado_solicitudModel.js"
 import EstadosModel from "./models/EstadosModel.js";
 import SolicitudModel from "./models/SolicitudModel.js";
@@ -19,6 +19,7 @@ import entradasModel from "./models/entradasModel.js"
 import insumosModel from "./models/insumosModel.js"
 import proveedoresModel from "./models/proveedoresModel.js" 
 import responsablesModel from "./models/responsableModel.js"
+import InsumosSolicitudModel from './models/insumosSolicitudModel.js';
 
 dotenv.config();
 
@@ -33,6 +34,26 @@ app.use(cors())
 // ⚠️ IMPORTANTE: Las asociaciones deben ir ANTES de las rutas
 //Solicitud -> Estado_solicitud
 
+// ... justo después de tus otras asociaciones (ej. entradas - insumos)
+
+// Asociaciones de insumos_solicitud
+SolicitudModel.hasMany(InsumosSolicitudModel, {
+    foreignKey: 'Id_solicitud',
+    as: 'insumos_solicitados'
+});
+InsumosSolicitudModel.belongsTo(SolicitudModel, {
+    foreignKey: 'Id_solicitud',
+    as: 'solicitud'
+});
+
+InsumosSolicitudModel.belongsTo(insumosModel, {
+    foreignKey: 'Id_insumos',
+    as: 'insumo'
+});
+insumosModel.hasMany(InsumosSolicitudModel, {
+    foreignKey: 'Id_insumos',
+    as: 'solicitudes_insumo'
+});
 
 // Entrada -> Insumo
 entradasModel.belongsTo(insumosModel, {
@@ -91,7 +112,7 @@ app.use("/api/proveedores", proveedoresRouters)
 app.use("/api/solicitudes", SolicitudRoutes)
 app.use("/api/estados", EstadosRoutes)
 app.use("/api/estado_solicitud", Estado_solicitudRoutes)
-
+app.use("/api/solicitud-insumos", solicitudInsumosRoutes)
 // ============================================
 // CONEXIÓN A BASE DE DATOS
 // ============================================
