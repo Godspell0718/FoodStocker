@@ -1,6 +1,7 @@
 import apiAxios from "../api/axiosConfig.js"
 import { useEffect, useState } from "react"
 import DataTable from "react-data-table-component"
+import SolicitudFormNuevo from "./SolicitudFormN.jsx"
 import SolicitudForm from "./SolicitudForm.jsx"
 
 const SolicitudCrud = () => {
@@ -10,6 +11,8 @@ const SolicitudCrud = () => {
     const [showModal, setShowModal] = useState(false)
     const [refresh, setRefresh] = useState(false)
     const [filterText, setFilterText] = useState("")
+    const [idSolicitudActiva, setIdSolicitudActiva] = useState(null)  // ← NUEVO ESTADO
+
     const columnsTable = [
         { name: 'ID', selector: row => row.Id_solicitud },
         { name: 'Responsable', selector: row => row.responsable?.Nom_Responsable ?? "Sin responsable" },
@@ -46,7 +49,6 @@ const SolicitudCrud = () => {
     const updateSolicitud = (Id_solicitud) => {
         const solicitudToUpdate = solicitudes.find(solicitud => solicitud.Id_solicitud === Id_solicitud)
         console.log("Actualizar solicitud: ", solicitudToUpdate)
-
         setSelectedSolicitud(solicitudToUpdate)
         setIsEditing(true)
         setShowModal(true)
@@ -63,86 +65,95 @@ const SolicitudCrud = () => {
         setRefresh(!refresh)
     }
 
-
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
             setShowModal(false)
         }
     }
-    //buscador
-    // const newListSalidas = salidas.filter(salidas => {
-    //     const texToSearch = filterText.toLowerCase();
 
-    //     const almacen = salidas.almacen?.Nom_almacen?.toLowerCase() ?? "";
-    //     const destino = salidas.destino?.Nom_Destino?.toLowerCase() ?? "";
-    //     return almacen.includes(texToSearch) || destino.includes(texToSearch);
-    // }
+    // Nueva función para manejar el paso a selección de insumos
+    const handleSiguiente = (idSolicitud) => {
+        setIdSolicitudActiva(idSolicitud)
+        setShowModal(false) // Cierra el modal del formulario
+    }
 
-        const newListSolicitudes = solicitudes.filter(solicitudes => {
-            const texToSearch = filterText.toLowerCase();
+    // Filtro
+    const newListSolicitudes = solicitudes.filter(solicitud => {
+        const textToSearch = filterText.toLowerCase()
+        const responsable = solicitud.responsable?.Nom_Responsable?.toLowerCase() ?? ""
+        const motivo = solicitud.motivo?.toLowerCase() ?? ""
+        return responsable.includes(textToSearch) || motivo.includes(textToSearch)
+    })
 
-            const responsable = solicitudes.responsable?.Nom_Responsable?.toLowerCase() ?? "";
-            const motivo = solicitudes.motivo?.toLowerCase() ?? "";
-            return responsable.includes(texToSearch) || motivo.includes(texToSearch);
-        })
+    // Si hay una solicitud activa, mostramos la pantalla de selección de insumos
+    if (idSolicitudActiva) {
+        return (
+            <SeleccionInsumosSolicitud
+                idSolicitud={idSolicitudActiva}
+                onCompletado={() => {
+                    setIdSolicitudActiva(null)
+                    setRefresh(!refresh) // Recarga la lista de solicitudes
+                }}
+                onCancelar={() => setIdSolicitudActiva(null)}
+            />
+        )
+    }
 
-
-
+    // Vista principal del crud
     return (
-        <>
-            <div className="container mt-5">
-                <div className="col-4" >
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Buscar por Responsable o motivo"
-                        value={filterText}
-                        onChange={(e) => setFilterText(e.target.value)}
-                    />
-
-                </div>
-                <div className="row d-flex justify-content-between">
-                    <h2>Gestión de Solicitudes</h2>
-                    <button
-                        type="button"
-                        className="btn btn-dark"
-                        onClick={createSolicitud}
-                    >
-                        Nueva Solicitud
-                    </button>
-                </div>
-
-                <DataTable
-                    title="Listado de Solicitudes"
-                    columns={columnsTable}
-                    data={newListSolicitudes}
-                    keyField="Id_Solicitud"
-                    pagination
-                    highlightOnHover
-                    striped
+        <div className="container mt-5">
+            <div className="col-4" >
+                <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Buscar por Responsable o motivo"
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
                 />
+            </div>
+            <div className="row d-flex justify-content-between">
+                <h2>Gestión de Solicitudes</h2>
+                <button
+                    type="button"
+                    className="btn btn-dark"
+                    onClick={createSolicitud}
+                >
+                    Nueva Solicitud
+                </button>
+            </div>
 
-                {/* Modal con control React */}
-                {showModal && (
-                    <div
-                        className="modal fade show d-block"
-                        tabIndex="-1"
-                        onClick={handleBackdropClick}
-                    >
-                        <div className="modal-dialog">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h5 className="modal-title fs-5">
-                                        {isEditing ? 'Editar Solicitud' : 'Nueva Solicitud'}
-                                    </h5>
-                                    <button
-                                        type="button"
-                                        className="btn-close btn-close-dark"
-                                        aria-label="Close"
-                                        onClick={() => setShowModal(false)}
-                                    ></button>
-                                </div>
-                                <div className="modal-body">
+            <DataTable
+                title="Listado de Solicitudes"
+                columns={columnsTable}
+                data={newListSolicitudes}
+                keyField="Id_Solicitud"
+                pagination
+                highlightOnHover
+                striped
+            />
+
+            {/* Modal con control React */}
+            {showModal && (
+                <div
+                    className="modal fade show d-block"
+                    tabIndex="-1"
+                    onClick={handleBackdropClick}
+                >
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title fs-5">
+                                    {isEditing ? 'Editar Solicitud' : 'Nueva Solicitud'}
+                                </h5>
+                                <button
+                                    type="button"
+                                    className="btn-close btn-close-dark"
+                                    aria-label="Close"
+                                    onClick={() => setShowModal(false)}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                {isEditing ? (
                                     <SolicitudForm
                                         hideModal={hideModal}
                                         isEditing={isEditing}
@@ -150,14 +161,17 @@ const SolicitudCrud = () => {
                                         setRefresh={setRefresh}
                                         refresh={refresh}
                                     />
-                                </div>
+                                ) : (
+                                    <SolicitudFormNuevo
+                                        hideModal={hideModal}
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>
-                )}
-
-            </div>
-        </>
+                </div>
+            )}
+        </div>
     )
 }
 

@@ -1,8 +1,8 @@
 import express from "express";
-import { getAllInsumos,getInsumo,createInsumo,updateInsumo,deletedInsumo } from "../controllers/insumosController.js";
+import { getAllInsumos, getInsumo, createInsumo, updateInsumo, deletedInsumo, getInsumosConStock } from "../controllers/insumosController.js";
 
 const router = express.Router(); 
-
+router.get("/con-stock", getInsumosConStock);
 router.get("/", getAllInsumos);
 router.get("/:id", getInsumo);
 router.post("/", createInsumo);
