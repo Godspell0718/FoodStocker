@@ -45,7 +45,7 @@ const Navbar = ({ isAuth, logout }) => {
                         </li>
                         <li className="nav-item">
                             <NavLink to="/insumos" className={navClass}>
-                                Insumos 
+                                Insumos
                             </NavLink>
                         </li>
                         <li className="nav-item">
@@ -58,7 +58,7 @@ const Navbar = ({ isAuth, logout }) => {
                                 Solicitudes
                             </NavLink>
                         </li>
-                        <li className="nav-item">   
+                        <li className="nav-item">
                             <NavLink to="/Estados" className={navClass}>
                                 Estados                            </NavLink>
                         </li>
@@ -67,8 +67,13 @@ const Navbar = ({ isAuth, logout }) => {
                                 Estado Solicitud
                             </NavLink>
                         </li>
-                        
-                        
+                        <li className='nav-item'>
+                            <NavLink to="/solicitud-nueva" className={navClass}>
+                                Solicitud - Usuario
+                            </NavLink>
+                        </li>
+
+
                         {/* 🔴 SECCIÓN AGREGADA - Dropdown de usuario */}
                         {isAuth ? (
                             <li className="nav-item dropdown">
@@ -83,8 +88,8 @@ const Navbar = ({ isAuth, logout }) => {
                                 </a>
                                 <ul className="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <button 
-                                            className="dropdown-item" 
+                                        <button
+                                            className="dropdown-item"
                                             onClick={handleLogout}
                                         >
                                             Cerrar Sesión
@@ -110,9 +115,9 @@ const Navbar = ({ isAuth, logout }) => {
             >
                 <div className="offcanvas-header">
                     <h5 className="offcanvas-title">Menú</h5>
-                    <button 
-                        type="button" 
-                        className="btn-close" 
+                    <button
+                        type="button"
+                        className="btn-close"
                         data-bs-dismiss="offcanvas"
                         id="botonCerrarOffCanvas"
                     ></button>
@@ -145,7 +150,7 @@ const Navbar = ({ isAuth, logout }) => {
                                 Entradas
                             </NavLink>
                         </div>
-                         <div data-bs-dismiss="offcanvas">
+                        <div data-bs-dismiss="offcanvas">
                             <NavLink to="/Solicitudes" className={navClass}>
                                 Solicitudes
                             </NavLink>
@@ -160,11 +165,16 @@ const Navbar = ({ isAuth, logout }) => {
                                 Estado Solicitud
                             </NavLink>
                         </div>
-                        
+                        <div data-bs-dismiss="offcanvas" >
+                            <NavLink to="/solicitud-nueva" className={navClass} >
+                                SOlicitud - Usuario
+                            </NavLink>
+                        </div>
+
                         {/* 🔴 También agregar logout en el offcanvas para móviles */}
                         {isAuth && (
                             <div className="mt-3 border-top pt-2">
-                                <button 
+                                <button
                                     className="btn btn-outline-danger w-100"
                                     onClick={() => {
                                         handleLogout();

@@ -1,4 +1,6 @@
-import solicitudService from "../services/SolicitudService.js"
+import solicitudService from "../services/solicitudService.js";
+import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
+import insumosModel from "../models/insumosModel.js";
 
 export const getAll = async (req, res) => {
     try {
@@ -21,20 +23,20 @@ export const getById = async (req, res) => {
 }
 
 export const createSolicitud = async (req, res) => {
-  try {
-    console.log("REQ BODY ", req.body);
+    try {
+        console.log("REQ BODY ", req.body);
 
-    const solicitud = await solicitudService.create({
-      Id_Responsable: req.body.Id_Responsable,
-      Fec_entrega: req.body.Fec_entrega,
-      motivo: req.body.motivo
-    });
+        const solicitud = await solicitudService.create({
+            Id_Responsable: req.body.Id_Responsable,
+            Fec_entrega: req.body.Fec_entrega,
+            motivo: req.body.motivo
+        });
 
-    res.status(201).json(solicitud);
-  } catch (error) {
-    console.error("SEQUELIZE ERROR ", error);
-    res.status(400).json({ message: error.message });
-  }
+        res.status(201).json(solicitud);
+    } catch (error) {
+        console.error("SEQUELIZE ERROR ", error);
+        res.status(400).json({ message: error.message });
+    }
 };
 
 
@@ -57,3 +59,20 @@ export const deletesolicitud = async (req, res) => {
         res.status(400).json({ message: error.message })
     }
 }
+    export const getInsumosBySolicitud = async (req, res) => {
+        try {
+            const { Id_solicitud } = req.params;
+            const insumos = await insumosSolicitudModel.findAll({
+                where: { Id_solicitud },
+                include: [{
+                    model: insumosModel,
+                    as: 'insumo',
+                    attributes: ['Nom_Insumo', 'Uni_Med_Insumo']
+                }]
+            });
+            res.status(200).json(insumos);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+
+    }

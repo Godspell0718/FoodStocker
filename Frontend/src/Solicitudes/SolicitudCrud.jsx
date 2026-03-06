@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import DataTable from "react-data-table-component"
 import SolicitudFormNuevo from "./SolicitudFormN.jsx"
 import SolicitudForm from "./SolicitudForm.jsx"
+import Swal from 'sweetalert2';
 
 const SolicitudCrud = () => {
     const [solicitudes, setSolicitudes] = useState([])
@@ -22,12 +23,20 @@ const SolicitudCrud = () => {
         {
             name: 'Accion',
             cell: (row) => (
-                <button
-                    className="btn btn-dark btn-sm"
-                    onClick={() => updateSolicitud(row.Id_solicitud)}
-                >
-                    <i className="fa-solid fa-utensils"></i>
-                </button>
+                <div className="d-flex gap-1">
+                    <button
+                        className="btn btn-dark btn-sm"
+                        onClick={() => updateSolicitud(row.Id_solicitud)}
+                    >
+                        <i className="fa-solid fa-utensils"></i>
+                    </button>
+                    <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => deleteSolicitud(row.Id_solicitud)}
+                    >
+                        <i className="fa-solid fa-trash"></i>
+                    </button>
+                </div>
             )
         }
     ]
@@ -63,6 +72,22 @@ const SolicitudCrud = () => {
     const hideModal = () => {
         setShowModal(false)
         setRefresh(!refresh)
+    }
+    const deleteSolicitud = async (Id_solicitud) => {
+        const confirm = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (confirm.isConfirmed) {
+            await apiAxios.delete(`/api/solicitudes/${Id_solicitud}`);
+            Swal.fire('Eliminado', 'La solicitud fue eliminada', 'success');
+            setRefresh(!refresh);
+        }
     }
 
     const handleBackdropClick = (e) => {
@@ -139,7 +164,7 @@ const SolicitudCrud = () => {
                     tabIndex="-1"
                     onClick={handleBackdropClick}
                 >
-                    <div className="modal-dialog">
+                    <div className="modal-dialog modal-lg">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title fs-5">
