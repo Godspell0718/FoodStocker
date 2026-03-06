@@ -1,9 +1,11 @@
 import express from 'express';
+import { getInsumosBySolicitud } from '../controllers/SolicitudController.js';
 import { crearSolicitudCompleta } from '../controllers/SolicitudControllerNuevo.js'
 import { getAll, getById, createSolicitud, updatesolicitud, deletesolicitud} from '../controllers/SolicitudController.js';
 const router = express.Router()
 
 router.get('/', getAll);
+router.get('/:Id_solicitud/insumos', getInsumosBySolicitud);
 router.get('/:Id_solicitud', getById);
 router.post('/', createSolicitud);
 router.post('/completa', crearSolicitudCompleta)

@@ -32,14 +32,13 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
 
             setTextFormButton("Crear")
         }
-        //select
+        
         getResponsables();
-        //fin
+        
 
     }, [isEditing, selectedSolicitud])
 
-    //select
-
+ 
     const getResponsables = async () => {
         try {
             const res = await apiAxios.get("/api/responsables");
@@ -49,7 +48,7 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
             console.error("Error cargando responsables", error);
         }
     };
-    //fin
+    
 
     const handleInputChange = (e) => {
         const { id, value } = e.target
@@ -100,7 +99,7 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                 </div>
             )}
           
-            <select //select
+            <select 
                 id="Id_Responsable"  
                 className="form-control"
                 value={formData.Id_Responsable}
@@ -114,7 +113,7 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                     </option>
                 ))} 
             </select> 
-          //fin//
+          
             <div className="mb-3">
                 <label className="form-label">Fecha Entrega</label>
                 <input
