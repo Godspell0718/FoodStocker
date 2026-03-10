@@ -72,6 +72,11 @@ const Navbar = ({ isAuth, logout }) => {
                                 Solicitud - Usuario
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/solicitudes-pendientes" className={navClass}>
+                                Solicitudes Pendientes
+                            </NavLink>
+                        </li>
 
 
                         {/* 🔴 SECCIÓN AGREGADA - Dropdown de usuario */}
@@ -170,7 +175,11 @@ const Navbar = ({ isAuth, logout }) => {
                                 SOlicitud - Usuario
                             </NavLink>
                         </div>
-
+                        <div data-bs-dismiss="offcanvas">
+                            <NavLink to="/solicitudes-pendientes" className={navClass}>
+                                Solicitudes Pendientes
+                            </NavLink>
+                        </div>
                         {/* 🔴 También agregar logout en el offcanvas para móviles */}
                         {isAuth && (
                             <div className="mt-3 border-top pt-2">

@@ -1,6 +1,3 @@
-// ============================================================
-// SolicitudControllerNuevo.js
-// ============================================================
 import solicitudServiceNuevo from "../services/SolicitudServiceNuevo.js";
 
 export const crearSolicitudCompleta = async (req, res) => {
