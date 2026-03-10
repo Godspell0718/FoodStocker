@@ -10,7 +10,8 @@ class SolicitudService {
         model: responsablesModel,
         as: 'responsable',
         attributes: ['Nom_Responsable']
-      }]
+      }],
+      order: [['Id_solicitud', 'DESC']]
     });
   }
 

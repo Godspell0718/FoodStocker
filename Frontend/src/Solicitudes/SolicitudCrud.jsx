@@ -19,7 +19,7 @@ const SolicitudCrud = () => {
         { name: 'Responsable', selector: row => row.responsable?.Nom_Responsable ?? "Sin responsable" },
         { name: 'Fecha Entrega', selector: row => row.Fec_entrega },
         { name: 'motivo', selector: row => row.motivo },
-        { name: 'Fecha de solicitud', selector: row => row.createdat },
+        { name: 'Fecha de solicitud', selector: row => row.createdat?.slice(0, 19) },
         {
             name: 'Accion',
             cell: (row) => (
@@ -68,23 +68,6 @@ const SolicitudCrud = () => {
         setIsEditing(false)
         setShowModal(true)
     }
-    const deleteSolicitud = async (Id_solicitud) => {
-        const confirm = await Swal.fire({
-            title: '¿Estás seguro?',
-            text: 'Esta acción no se puede deshacer',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        });
-
-        if (confirm.isConfirmed) {
-            await apiAxios.delete(`/api/solicitudes/${Id_solicitud}`);
-            Swal.fire('Eliminado', 'La solicitud fue eliminada', 'success');
-            setRefresh(!refresh);
-        }
-    }
-
     const hideModal = () => {
         setShowModal(false)
         setRefresh(!refresh)

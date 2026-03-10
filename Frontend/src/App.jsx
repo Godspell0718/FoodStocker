@@ -11,6 +11,7 @@ import Estados_solicitudCrud from './Estados_solicitud/Estado_solicitudCrud.jsx'
 import Login from './home/Login'
 import { useState, useEffect } from 'react'
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx"
+import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx"
 
 
 
@@ -54,6 +55,7 @@ function App() {
           <Route path="Entradas" element={<CrudEntradas />} />
           <Route path="Solicitudes" element={<SolicitudCrud />} />
           <Route path="Estados" element={<EstadoCrud />} />
+          <Route path="/solicitudes-pendientes" element={<SolicitudPendientes />} />
           <Route path="solicitud-nueva" element={<SolicitudConLotes />} />
           <Route path="Estado_solicitud" element={<Estados_solicitudCrud />} />
 

@@ -1,6 +1,11 @@
 import solicitudService from "../services/solicitudService.js";
+import solicitudServiceNuevo from "../services/SolicitudServiceNuevo.js";
+import SolicitudModel from "../models/SolicitudModel.js";
+import responsablesModel from "../models/responsableModel.js";
 import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
 import insumosModel from "../models/insumosModel.js";
+import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
+import EstadosModel from "../models/EstadosModel.js";
 
 export const getAll = async (req, res) => {
     try {
@@ -9,6 +14,7 @@ export const getAll = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
+  
 }
 
 export const getById = async (req, res) => {
@@ -76,3 +82,63 @@ export const deletesolicitud = async (req, res) => {
         }
 
     }
+
+// Trae todas las solicitudes con su último estado, responsable e insumos
+export const getSolicitudesPendientes = async (req, res) => {
+    try {
+        const solicitudes = await SolicitudModel.findAll({
+            include: [
+                {
+                    model: responsablesModel,
+                    as: 'responsable',
+                    attributes: ['Nom_Responsable', 'Tip_Responsable']
+                },
+                {
+                    model: insumosSolicitudModel,
+                    as: 'insumos',
+                    include: [{
+                        model: insumosModel,
+                        as: 'insumo',
+                        attributes: ['Nom_Insumo']
+                    }]
+                }
+            ],
+            order: [['createdat', 'DESC']]
+        });
+
+        // Agregar el último estado a cada solicitud
+        const result = await Promise.all(solicitudes.map(async (sol) => {
+            const ultimoEstadoReg = await Estado_solicitudModel.findOne({
+                where: { Id_solicitud: sol.Id_solicitud },
+                include: [{ model: EstadosModel, as: 'estado', attributes: ['nom_estado'] }],
+                order: [['createdat', 'DESC']]
+            });
+
+            return {
+                ...sol.toJSON(),
+                ultimoEstado: ultimoEstadoReg?.estado?.nom_estado ?? "solicitado"
+            };
+        }));
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// POST /api/solicitudes/cambiar-estado
+export const cambiarEstadoSolicitud = async (req, res) => {
+    try {
+        const { Id_solicitud, Id_estado } = req.body;
+        if (!Id_solicitud || !Id_estado) {
+            return res.status(400).json({ message: "Id_solicitud e Id_estado son requeridos" });
+        }
+        const registro = await solicitudServiceNuevo.cambiarEstado({ Id_solicitud, Id_estado });
+        res.status(201).json({ message: "Estado actualizado", registro });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+

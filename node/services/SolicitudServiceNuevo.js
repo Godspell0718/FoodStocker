@@ -3,6 +3,7 @@ import db from "../database/db.js";
 import SolicitudModel from "../models/SolicitudModel.js";
 import insumosSolicitudModel from "../models/insumosSolicitudModel.js"; // crea este modelo si no existe
 import entradasModel from "../models/entradasModel.js";
+import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 
 class SolicitudServiceNuevo {
 
@@ -88,6 +89,13 @@ class SolicitudServiceNuevo {
             await t.rollback();
             throw error;
         }
+    }
+    async cambiarEstado({ Id_solicitud, Id_estado }) {
+        return await Estado_solicitudModel.create({
+            Id_solicitud,
+            Id_estado,
+            fecha: new Date()
+        });
     }
 }
 
