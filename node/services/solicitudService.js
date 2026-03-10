@@ -1,4 +1,5 @@
 import SolicitudModel from "../models/SolicitudModel.js";
+import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
 
 class SolicitudService {
 
@@ -28,13 +29,19 @@ class SolicitudService {
   }
 
   async delete(Id_solicitud) {
+    // Primero eliminar los insumos asociados
+    await insumosSolicitudModel.destroy({
+        where: { Id_solicitud }
+    });
+
+    // Luego eliminar la solicitud
     const deleted = await SolicitudModel.destroy({
-      where: { Id_solicitud }
+        where: { Id_solicitud }
     });
 
     if (!deleted) throw new Error("Solicitud no encontrada");
     return true;
-  }
+}
 }
 
 export default new SolicitudService();

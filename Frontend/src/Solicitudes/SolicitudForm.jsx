@@ -100,7 +100,7 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                 </div>
             )}
           
-            <select //select
+            <select 
                 id="Id_Responsable"  
                 className="form-control"
                 value={formData.Id_Responsable}
@@ -114,7 +114,7 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                     </option>
                 ))} 
             </select> 
-          //fin//
+          
             <div className="mb-3">
                 <label className="form-label">Fecha Entrega</label>
                 <input
