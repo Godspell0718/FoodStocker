@@ -11,20 +11,37 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
     const [Id_Pasante, setPasante] = useState("")
     const [Id_Instructor, setInstructor] = useState("")
     const [Id_Insumos, setInsumo] = useState("")
-    const [Uni_medida, setUnidad] = useState("")
     const [textFormButton, setText] = useState("Enviar")
 
+    // ─── Datos para los selects ───────────────────────────────────
+    const [proveedores, setProveedores] = useState([])
+    const [responsables, setResponsables] = useState([])
+    const [insumos, setInsumos] = useState([])
+
+    // ─── Cargar datos al montar ───────────────────────────────────
+    useEffect(() => {
+        cargarDatos()
+    }, [])
+
+    const cargarDatos = async () => {
+        try {
+            const [resP, resR, resI] = await Promise.all([
+                apiNode.get("/api/proveedores/"),
+                apiNode.get("/api/responsables/"),
+                apiNode.get("/api/insumos/")
+            ])
+            setProveedores(resP.data)
+            setResponsables(resR.data)
+            setInsumos(resI.data)
+        } catch (error) {
+            console.error("Error cargando datos:", error)
+        }
+    }
+
     const resetForm = () => {
-        setFec("")
-        setLote("")
-        setVlr("")
-        setCantidad("")
-        setProveedor("")
-        setPasante("")
-        setInstructor("")
-        setInsumo("")
-        setUnidad("")
-        setText("Enviar")
+        setFec(""); setLote(""); setVlr(""); setCantidad("")
+        setProveedor(""); setPasante(""); setInstructor("")
+        setInsumo(""); setText("Enviar")
     }
 
     useEffect(() => {
@@ -37,7 +54,6 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
             setPasante(entradaSeleccionada.Id_Pasante || "")
             setInstructor(entradaSeleccionada.Id_Instructor || "")
             setInsumo(entradaSeleccionada.Id_Insumos || "")
-            setUnidad(entradaSeleccionada.Uni_medida || "")
             setText("Actualizar")
         } else {
             resetForm()
@@ -55,8 +71,7 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
             Id_Proveedor,
             Id_Pasante,
             Id_Instructor,
-            Id_Insumos,
-            Uni_medida
+            Id_Insumos
         }
 
         try {
@@ -64,21 +79,21 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
                 await apiNode.post("/api/entradas/", payload)
                 alert("Entrada creada")
             } else {
-                await apiNode.put(
-                    `/api/entradas/${entradaSeleccionada.Id_Entradas}`,
-                    payload
-                )
+                await apiNode.put(`/api/entradas/${entradaSeleccionada.Id_Entradas}`, payload)
                 alert("Entrada actualizada")
             }
-
             resetForm()
             hideModal()
             refreshTable()
-
         } catch (err) {
+            console.error(err)
             alert("Error al guardar entrada")
         }
     }
+
+    // ─── Filtrar pasantes e instructores ─────────────────────────
+    const pasantes = responsables.filter(r => r.Tip_Responsable === 'P')
+    const instructores = responsables.filter(r => r.Tip_Responsable === 'I')
 
     return (
         <form onSubmit={gestionarForm}>
@@ -89,7 +104,7 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
                         {entradaSeleccionada ? "Actualizar entrada" : "Registrar nueva entrada"}
                     </h5>
 
-                    {/* Sección general */}
+                    {/* Fecha y Lote */}
                     <div className="row mb-3">
                         <div className="col-md-6">
                             <label className="form-label">Fecha de vencimiento</label>
@@ -100,7 +115,6 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
                                 onChange={e => setFec(e.target.value)}
                             />
                         </div>
-
                         <div className="col-md-6">
                             <label className="form-label">Lote</label>
                             <input
@@ -109,11 +123,12 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
                                 placeholder="Ej: LOTE-2024-01"
                                 value={Lote}
                                 onChange={e => setLote(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
 
-                    {/* Valores */}
+                    {/* Valor y Cantidad */}
                     <div className="row mb-3">
                         <div className="col-md-6">
                             <label className="form-label">Valor unitario</label>
@@ -125,7 +140,6 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
                                 onChange={e => setVlr(e.target.value)}
                             />
                         </div>
-
                         <div className="col-md-6">
                             <label className="form-label">Cantidad inicial</label>
                             <input
@@ -133,78 +147,86 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
                                 className="form-control"
                                 value={Can_Inicial}
                                 onChange={e => setCantidad(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Relaciones */}
-                    <div className="row mb-3">
-                        <div className="col-md-4">
-                            <label className="form-label">Proveedor</label>
-                            <input
-                                type="number"
-                                className="form-control"
-                                placeholder="ID Proveedor"
-                                value={Id_Proveedor}
-                                onChange={e => setProveedor(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="col-md-4">
-                            <label className="form-label">Pasante</label>
-                            <input
-                                type="number"
-                                className="form-control"
-                                placeholder="ID Pasante"
-                                value={Id_Pasante}
-                                onChange={e => setPasante(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="col-md-4">
-                            <label className="form-label">Instructor</label>
-                            <input
-                                type="number"
-                                className="form-control"
-                                placeholder="ID Instructor"
-                                value={Id_Instructor}
-                                onChange={e => setInstructor(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
 
                     {/* Insumo */}
+                    <div className="mb-3">
+                        <label className="form-label">Insumo</label>
+                        <select
+                            className="form-select"
+                            value={Id_Insumos}
+                            onChange={e => setInsumo(e.target.value)}
+                            required
+                        >
+                            <option value="">Seleccione un insumo...</option>
+                            {insumos.map(ins => (
+                                <option key={ins.Id_Insumos} value={ins.Id_Insumos}>
+                                    {ins.Nom_Insumo} — {ins.Tip_Insumo}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Proveedor */}
+                    <div className="mb-3">
+                        <label className="form-label">Proveedor</label>
+                        <select
+                            className="form-select"
+                            value={Id_Proveedor}
+                            onChange={e => setProveedor(e.target.value)}
+                            required
+                        >
+                            <option value="">Seleccione un proveedor...</option>
+                            {proveedores.map(p => (
+                                <option key={p.Id_Proveedor} value={p.Id_Proveedor}>
+                                    {p.Nom_Proveedor}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Pasante e Instructor */}
                     <div className="row mb-4">
                         <div className="col-md-6">
-                            <label className="form-label">Insumo</label>
-                            <input
-                                type="number"
-                                className="form-control"
-                                placeholder="ID Insumo"
-                                value={Id_Insumos}
-                                onChange={e => setInsumo(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="col-md-6">
-                            <label className="form-label">Unidad de medida</label>
+                            <label className="form-label">Pasante</label>
                             <select
                                 className="form-select"
-                                value={Uni_medida}
-                                onChange={e => setUnidad(e.target.value)}
+                                value={Id_Pasante}
+                                onChange={e => setPasante(e.target.value)}
+                                required
                             >
-                                <option value="">Seleccione unidad</option>
-                                <option value="kg">Kilogramos (kg)</option>
-                                <option value="gr">Gramos (gr)</option>
-                                <option value="l">Litros (l)</option>
-                                <option value="ml">Mililitros (ml)</option>
+                                <option value="">Seleccione un pasante...</option>
+                                {pasantes.map(p => (
+                                    <option key={p.Id_Responsable} value={p.Id_Responsable}>
+                                        {p.Nom_Responsable}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="col-md-6">
+                            <label className="form-label">Instructor</label>
+                            <select
+                                className="form-select"
+                                value={Id_Instructor}
+                                onChange={e => setInstructor(e.target.value)}
+                                required
+                            >
+                                <option value="">Seleccione un instructor...</option>
+                                {instructores.map(i => (
+                                    <option key={i.Id_Responsable} value={i.Id_Responsable}>
+                                        {i.Nom_Responsable}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
 
                     {/* Botón */}
                     <div className="d-grid">
-                        <button className="btn btn-primary btn-lg" type="submit">
+                        <button className="btn btn-dark btn-lg" type="submit">
                             {textFormButton}
                         </button>
                     </div>

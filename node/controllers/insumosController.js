@@ -72,3 +72,21 @@ export const getInsumosConStock = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+export const getInsumosConLotes = async (req, res) => {
+    try {
+        const insumos = await Insumo.findAll({
+            include: [{
+                model: entradasModel,
+                as: 'entradas',
+                attributes: ['Id_Entradas', 'Lote', 'Fec_Ven_Entrada', 'Can_Inicial', 'Can_Salida', 'Estado'],
+                where: { Estado: 'STOCK' },
+                required: false,
+                order: [['Fec_Ven_Entrada', 'ASC']]
+            }],
+            order: [['Nom_Insumo', 'ASC']]
+        });
+        res.status(200).json(insumos);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}

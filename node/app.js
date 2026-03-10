@@ -20,6 +20,7 @@ import insumosModel from "./models/insumosModel.js"
 import proveedoresModel from "./models/proveedoresModel.js" 
 import responsablesModel from "./models/responsableModel.js"
 
+
 dotenv.config();
 
 const app = express()
@@ -76,6 +77,16 @@ responsablesModel.hasMany(entradasModel, {
 responsablesModel.hasMany(entradasModel, {
     foreignKey: 'Id_Instructor',
     as: 'entradas_como_instructor'
+});
+
+// Solicitud -> Responsable
+SolicitudModel.belongsTo(responsablesModel, {
+    foreignKey: 'Id_Responsable',
+    as: 'responsable'
+});
+responsablesModel.hasMany(SolicitudModel, {
+    foreignKey: 'Id_Responsable',
+    as: 'solicitudes'
 });
 
 // ============================================

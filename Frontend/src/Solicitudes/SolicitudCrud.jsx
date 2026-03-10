@@ -89,6 +89,22 @@ const SolicitudCrud = () => {
         setShowModal(false)
         setRefresh(!refresh)
     }
+    const deleteSolicitud = async (Id_solicitud) => {
+        const confirm = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (confirm.isConfirmed) {
+            await apiAxios.delete(`/api/solicitudes/${Id_solicitud}`);
+            Swal.fire('Eliminado', 'La solicitud fue eliminada', 'success');
+            setRefresh(!refresh);
+        }
+    }
 
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -164,7 +180,7 @@ const SolicitudCrud = () => {
                     tabIndex="-1"
                     onClick={handleBackdropClick}
                 >
-                    <div className="modal-dialog">
+                    <div className="modal-dialog modal-lg">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title fs-5">
