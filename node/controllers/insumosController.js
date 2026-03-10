@@ -1,6 +1,8 @@
+// controllers/insumosController.js
 import ServInsumos from "../services/insumosServices.js";
 import entradasModel from "../models/entradasModel.js";
 import Insumo from "../models/insumosModel.js";
+import ProveedorModel from "../models/proveedoresModel.js";
 
 export const getAllInsumos = async (req, res) => {
     try {
@@ -38,8 +40,20 @@ export const updateInsumo = async (req, res) => {
     }
 }
 
+// 🆕 FUNCIÓN ELIMINAR (NUEVA)
 export const deletedInsumo = async (req, res) => {
     try {
+        // Verificar si tiene entradas asociadas
+        const entradasAsociadas = await entradasModel.count({
+            where: { Id_Insumos: req.params.id }
+        });
+        
+        if (entradasAsociadas > 0) {
+            return res.status(400).json({ 
+                error: 'No se puede eliminar porque tiene entradas asociadas' 
+            });
+        }
+        
         await ServInsumos.delete(req.params.id);
         res.status(200).json({ Message: 'Insumo eliminado correctamente' });
     } catch (error) {
@@ -47,6 +61,31 @@ export const deletedInsumo = async (req, res) => {
     }
 }
 
+// 🆕 FUNCIÓN CON LOTES Y PROVEEDORES (NUEVA)
+export const getInsumosConLotes = async (req, res) => {
+    try {
+        const insumos = await Insumo.findAll({
+            include: [{
+                model: entradasModel,
+                as: 'entradas',
+                attributes: ['Id_Entradas', 'Lote', 'Fec_Ven_Entrada', 'Can_Inicial', 'Can_Salida', 'Estado'],
+                // 👇 ELIMINAMOS el where: { Estado: 'STOCK' } para traer TODOS los lotes
+                required: false,
+                include: [{
+                    model: ProveedorModel,
+                    as: 'proveedor',
+                    attributes: ['Nom_Proveedor']
+                }]
+            }],
+            order: [['Nom_Insumo', 'ASC']]
+        });
+        res.status(200).json(insumos);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+// 🆕 FUNCIÓN CON STOCK (YA EXISTE PERO LA DEJAMOS)
 export const getInsumosConStock = async (req, res) => {
     try {
         const insumos = await Insumo.findAll({
@@ -68,24 +107,6 @@ export const getInsumosConStock = async (req, res) => {
         });
 
         res.status(200).json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-}
-export const getInsumosConLotes = async (req, res) => {
-    try {
-        const insumos = await Insumo.findAll({
-            include: [{
-                model: entradasModel,
-                as: 'entradas',
-                attributes: ['Id_Entradas', 'Lote', 'Fec_Ven_Entrada', 'Can_Inicial', 'Can_Salida', 'Estado'],
-                where: { Estado: 'STOCK' },
-                required: false,
-                order: [['Fec_Ven_Entrada', 'ASC']]
-            }],
-            order: [['Nom_Insumo', 'ASC']]
-        });
-        res.status(200).json(insumos);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
