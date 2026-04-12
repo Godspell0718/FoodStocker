@@ -112,6 +112,7 @@ const SolicitudConLotes = () => {
                 motivo,
                 insumos: carrito.map(item => ({
                     Id_insumos: item.Id_Insumos,
+                    Id_Entradas: item.Id_Entradas, // 🔥 IMPORTANTE
                     cantidad_solicitada: item.cantidad
                 }))
             });
@@ -213,7 +214,6 @@ const SolicitudConLotes = () => {
 
                                             const hoy = new Date();
 
-                                            // 🔥 FILTRO AQUÍ (SIN CAMBIAR DISEÑO)
                                             const lotes = (ins.entradas || []).filter(lote => {
                                                 const disponible = lote.Can_Inicial - lote.Can_Salida;
                                                 const fechaVencimiento = new Date(lote.Fec_Ven_Entrada);
