@@ -25,7 +25,7 @@ export const getResponsableById = async (req, res) => {
 };
 
 // ==============================
-// REGISTRO (con hash)
+// REGISTRO
 // ==============================
 export const registerResponsable = async (req, res) => {
   try {
@@ -40,25 +40,16 @@ export const registerResponsable = async (req, res) => {
 };
 
 // ==============================
-// LOGIN (JWT)
+// LOGIN
 // ==============================
 export const loginResponsable = async (req, res) => {
   try {
     const { Cor_Responsable, Contraseña } = req.body;
-    
-    // 🔍 LOG AÑADIDO
-    console.log('🔍 Login attempt for:', Cor_Responsable);
-    console.log('🔍 Contraseña recibida (primeros 3 chars):', Contraseña ? Contraseña.substring(0, 3) + '...' : 'No password');
 
     const data = await ResponsableService.login(
       Cor_Responsable,
       Contraseña
     );
-
-    // 🔍 LOG AÑADIDO
-    console.log('✅ Login successful for:', Cor_Responsable);
-    console.log('🔑 Token generado:', data.token ? data.token.substring(0, 30) + '...' : 'No token');
-    console.log('👤 Usuario data:', { ...data, token: '[HIDDEN]' }); // Ocultamos token en log por seguridad
 
     res.status(200).json({
       message: "Responsable logeado exitosamente",
@@ -66,10 +57,6 @@ export const loginResponsable = async (req, res) => {
     });
 
   } catch (error) {
-    // 🔍 LOG AÑADIDO
-    console.error('❌ Login failed for:', req.body.Cor_Responsable);
-    console.error('❌ Error message:', error.message);
-    
     res.status(401).json({ message: error.message });
   }
 };
@@ -79,7 +66,15 @@ export const loginResponsable = async (req, res) => {
 // ==============================
 export const updateResponsable = async (req, res) => {
   try {
-    await ResponsableService.update(req.params.id, req.body);
+    const data = { ...req.body };
+
+    // 🚫 Evitar sobrescribir contraseña vacía
+    if (!data.Contraseña) {
+      delete data.Contraseña;
+    }
+
+    await ResponsableService.update(req.params.id, data);
+
     res.status(200).json({
       message: "Responsable actualizado correctamente"
     });

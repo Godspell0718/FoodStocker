@@ -3,28 +3,20 @@ import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
 
 const SolicitudConLotes = () => {
-    // ─── PASO (1 o 2) ───────────────────────────────────────────
     const [paso, setPaso] = useState(1);
 
-    // ─── PASO 1: datos básicos ───────────────────────────────────
     const [motivo, setMotivo] = useState("");
     const [fechaEntrega, setFechaEntrega] = useState("");
 
-    // ─── PASO 2: insumos y lotes ─────────────────────────────────
     const [insumos, setInsumos] = useState([]);
     const [filtro, setFiltro] = useState("");
 
-    // loteSeleccionado: { [Id_Insumos]: Id_Entradas }
     const [loteSeleccionado, setLoteSeleccionado] = useState({});
-    // cantidades: { [Id_Insumos]: number }
     const [cantidades, setCantidades] = useState({});
-    // carrito: array de items agregados
     const [carrito, setCarrito] = useState([]);
 
-    // ─── Usuario logueado ────────────────────────────────────────
     const usuario = JSON.parse(localStorage.getItem("userFoodStocker") || "{}");
 
-    // ─── Cargar insumos con lotes al entrar al paso 2 ────────────
     useEffect(() => {
         if (paso === 2) cargarInsumosConLotes();
     }, [paso]);
@@ -38,7 +30,6 @@ const SolicitudConLotes = () => {
         }
     };
 
-    // ─── Siguiente (paso 1 → 2) ──────────────────────────────────
     const handleSiguiente = () => {
         if (!motivo.trim() || !fechaEntrega) {
             Swal.fire("Campos requeridos", "Completa el motivo y la fecha", "warning");
@@ -47,12 +38,10 @@ const SolicitudConLotes = () => {
         setPaso(2);
     };
 
-    // ─── Filtrar insumos ─────────────────────────────────────────
     const insumosFiltrados = insumos.filter(ins =>
         ins.Nom_Insumo.toLowerCase().includes(filtro.toLowerCase())
     );
 
-    // ─── Seleccionar lote con checkbox ───────────────────────────
     const handleCheckbox = (Id_Insumos, Id_Entradas) => {
         setLoteSeleccionado(prev => ({
             ...prev,
@@ -60,25 +49,30 @@ const SolicitudConLotes = () => {
         }));
     };
 
-    // ─── Agregar al carrito ──────────────────────────────────────
     const handleAgregar = (insumo) => {
         const lote = insumo.entradas?.find(e => e.Id_Entradas === loteSeleccionado[insumo.Id_Insumos]);
+
         if (!lote) {
             Swal.fire("Selecciona un lote", "Marca el checkbox del lote que deseas", "warning");
             return;
         }
+
         const cantidad = parseInt(cantidades[insumo.Id_Insumos] || 0);
+
         if (!cantidad || cantidad <= 0) {
             Swal.fire("Cantidad inválida", "Ingresa una cantidad mayor a 0", "warning");
             return;
         }
+
         const stockLote = lote.Can_Inicial - lote.Can_Salida;
+
         if (cantidad > stockLote) {
             Swal.fire("Stock insuficiente", `Este lote solo tiene ${stockLote} disponibles`, "warning");
             return;
         }
 
         const yaExiste = carrito.find(item => item.Id_Entradas === lote.Id_Entradas);
+
         if (yaExiste) {
             setCarrito(carrito.map(item =>
                 item.Id_Entradas === lote.Id_Entradas ? { ...item, cantidad } : item
@@ -95,24 +89,22 @@ const SolicitudConLotes = () => {
             }]);
         }
 
-        // Limpiar selección
         setCantidades(prev => ({ ...prev, [insumo.Id_Insumos]: "" }));
         setLoteSeleccionado(prev => ({ ...prev, [insumo.Id_Insumos]: null }));
 
         Swal.fire({ icon: "success", title: "Agregado", timer: 800, showConfirmButton: false });
     };
 
-    // ─── Quitar del carrito ──────────────────────────────────────
     const handleQuitar = (Id_Entradas) => {
         setCarrito(carrito.filter(item => item.Id_Entradas !== Id_Entradas));
     };
 
-    // ─── Enviar solicitud ────────────────────────────────────────
     const handleEnviar = async () => {
         if (carrito.length === 0) {
             Swal.fire("Carrito vacío", "Agrega al menos un insumo", "warning");
             return;
         }
+
         try {
             await apiAxios.post("/api/solicitudes/completa", {
                 Id_Responsable: usuario.id,
@@ -123,22 +115,24 @@ const SolicitudConLotes = () => {
                     cantidad_solicitada: item.cantidad
                 }))
             });
+
             Swal.fire("¡Solicitud creada!", "Tu solicitud fue registrada correctamente", "success");
-            // Resetear
-            setMotivo(""); setFechaEntrega(""); setCarrito([]); setPaso(1);
+
+            setMotivo("");
+            setFechaEntrega("");
+            setCarrito([]);
+            setPaso(1);
+
         } catch (error) {
             Swal.fire("Error", error.response?.data?.message || "Error al crear", "error");
         }
     };
 
-    // ════════════════════════════════════════════════════════════
-    // RENDER
-    // ════════════════════════════════════════════════════════════
     return (
         <div className="container mt-4">
             <h4 className="fw-bold mb-4">Nueva Solicitud de Insumos</h4>
 
-            {/* ── PASO 1: Motivo + Fecha + Siguiente ── */}
+            {/* PASO 1 */}
             <div className="card mb-4 shadow-sm">
                 <div className="card-body">
                     <div className="row g-3 align-items-end">
@@ -147,12 +141,12 @@ const SolicitudConLotes = () => {
                             <input
                                 type="text"
                                 className="form-control"
-                                placeholder="Ej: Práctica de panadería"
                                 value={motivo}
                                 onChange={e => setMotivo(e.target.value)}
                                 disabled={paso === 2}
                             />
                         </div>
+
                         <div className="col-md-4">
                             <label className="form-label fw-semibold">Fecha para cuándo</label>
                             <input
@@ -163,6 +157,7 @@ const SolicitudConLotes = () => {
                                 disabled={paso === 2}
                             />
                         </div>
+
                         <div className="col-md-4">
                             {paso === 1 ? (
                                 <button className="btn btn-dark w-100" onClick={handleSiguiente}>
@@ -178,12 +173,12 @@ const SolicitudConLotes = () => {
                 </div>
             </div>
 
-            {/* ── PASO 2: Tabla de insumos con lotes ── */}
+            {/* PASO 2 */}
             {paso === 2 && (
                 <div className="card shadow-sm">
                     <div className="card-body">
 
-                        {/* Filtro */}
+                        {/* FILTRO */}
                         <div className="mb-3">
                             <input
                                 type="text"
@@ -194,7 +189,7 @@ const SolicitudConLotes = () => {
                             />
                         </div>
 
-                        {/* Tabla */}
+                        {/* TABLA */}
                         <div style={{ maxHeight: 350, overflowY: "auto" }}>
                             <table className="table table-bordered table-hover table-sm mb-0">
                                 <thead className="table-dark sticky-top">
@@ -205,6 +200,7 @@ const SolicitudConLotes = () => {
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     {insumosFiltrados.length === 0 ? (
                                         <tr>
@@ -214,31 +210,44 @@ const SolicitudConLotes = () => {
                                         </tr>
                                     ) : (
                                         insumosFiltrados.map(ins => {
-                                            const lotes = ins.entradas || [];
+
+                                            const hoy = new Date();
+
+                                            // 🔥 FILTRO AQUÍ (SIN CAMBIAR DISEÑO)
+                                            const lotes = (ins.entradas || []).filter(lote => {
+                                                const disponible = lote.Can_Inicial - lote.Can_Salida;
+                                                const fechaVencimiento = new Date(lote.Fec_Ven_Entrada);
+                                                return disponible > 0 && fechaVencimiento >= hoy;
+                                            });
+
                                             return (
                                                 <tr key={ins.Id_Insumos}>
-                                                    {/* Nombre */}
                                                     <td className="align-middle fw-semibold">
                                                         {ins.Nom_Insumo}
                                                         <br />
                                                         <small className="text-muted">{ins.Uni_Med_Insumo}</small>
                                                     </td>
 
-                                                    {/* Lotes con checkbox */}
                                                     <td>
                                                         {lotes.length === 0 ? (
-                                                            <span className="text-danger small">Sin stock</span>
+                                                            <span className="text-danger small">
+                                                                Sin stock disponible
+                                                            </span>
                                                         ) : (
                                                             lotes.map(lote => {
                                                                 const disponible = lote.Can_Inicial - lote.Can_Salida;
-                                                                const seleccionado = loteSeleccionado[ins.Id_Insumos] === lote.Id_Entradas;
+                                                                const seleccionado =
+                                                                    loteSeleccionado[ins.Id_Insumos] === lote.Id_Entradas;
+
                                                                 return (
                                                                     <div key={lote.Id_Entradas} className="form-check mb-1">
                                                                         <input
                                                                             type="checkbox"
                                                                             className="form-check-input"
                                                                             checked={seleccionado}
-                                                                            onChange={() => handleCheckbox(ins.Id_Insumos, lote.Id_Entradas)}
+                                                                            onChange={() =>
+                                                                                handleCheckbox(ins.Id_Insumos, lote.Id_Entradas)
+                                                                            }
                                                                         />
                                                                         <label className="form-check-label small">
                                                                             <strong>{lote.Lote}</strong> — vence: {lote.Fec_Ven_Entrada} — disponible: <strong>{disponible}</strong>
@@ -249,7 +258,6 @@ const SolicitudConLotes = () => {
                                                         )}
                                                     </td>
 
-                                                    {/* Cantidad */}
                                                     <td className="align-middle">
                                                         <input
                                                             type="number"
@@ -264,7 +272,6 @@ const SolicitudConLotes = () => {
                                                         />
                                                     </td>
 
-                                                    {/* Botón Agregar */}
                                                     <td className="align-middle">
                                                         <button
                                                             className="btn btn-dark btn-sm"
@@ -282,10 +289,14 @@ const SolicitudConLotes = () => {
                             </table>
                         </div>
 
-                        {/* Carrito */}
+                        {/* CARRITO */}
                         {carrito.length > 0 && (
                             <div className="mt-4">
-                                <h6 className="fw-bold"><i className="fa-solid fa-cart-shopping me-1"></i> Insumos seleccionados</h6>
+                                <h6 className="fw-bold">
+                                    <i className="fa-solid fa-cart-shopping me-1"></i>
+                                    Insumos seleccionados
+                                </h6>
+
                                 <table className="table table-sm table-bordered">
                                     <thead className="table-secondary">
                                         <tr>
@@ -296,13 +307,16 @@ const SolicitudConLotes = () => {
                                             <th></th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
                                         {carrito.map(item => (
                                             <tr key={item.Id_Entradas}>
                                                 <td>{item.Nom_Insumo}</td>
                                                 <td>{item.Lote}</td>
                                                 <td>{item.Fec_Ven}</td>
-                                                <td><strong>{item.cantidad}</strong> {item.Uni_Med}</td>
+                                                <td>
+                                                    <strong>{item.cantidad}</strong> {item.Uni_Med}
+                                                </td>
                                                 <td>
                                                     <button
                                                         className="btn btn-outline-danger btn-sm"
@@ -317,7 +331,8 @@ const SolicitudConLotes = () => {
                                 </table>
 
                                 <button className="btn btn-dark w-100 mt-2" onClick={handleEnviar}>
-                                    <i className="fa-solid fa-paper-plane me-2"></i> Crear Solicitud
+                                    <i className="fa-solid fa-paper-plane me-2"></i>
+                                    Crear Solicitud
                                 </button>
                             </div>
                         )}

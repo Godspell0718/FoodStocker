@@ -6,17 +6,21 @@ import { v4 as uuidv4 } from "uuid";
 class ResponsableService {
 
   // ========================
-  // OBTENER TODOS
+  // OBTENER TODOS (SIN CONTRASEÑA)
   // ========================
   async getAll() {
-    return await responsableModel.findAll();
+    return await responsableModel.findAll({
+      attributes: { exclude: ["Contraseña"] }
+    });
   }
 
   // ========================
   // OBTENER POR ID
   // ========================
   async getById(id) {
-    const responsable = await responsableModel.findByPk(id);
+    const responsable = await responsableModel.findByPk(id, {
+      attributes: { exclude: ["Contraseña"] }
+    });
 
     if (!responsable)
       throw new Error("Responsable no encontrado");
@@ -45,6 +49,7 @@ class ResponsableService {
     if (existe)
       throw new Error("El correo ya está registrado");
 
+    // 🔐 Encriptar contraseña
     const hashedPassword = await bcrypt.hash(Contraseña, 10);
 
     const nuevo = await responsableModel.create({
@@ -65,35 +70,21 @@ class ResponsableService {
   // ========================
   async login(Cor_Responsable, Contraseña) {
 
-    console.log('🔍 [SERVICE] Buscando responsable con correo:', Cor_Responsable);
-
     const responsable = await responsableModel.findOne({
       where: { Cor_Responsable }
     });
 
-    if (!responsable) {
-      console.log('❌ [SERVICE] No se encontró responsable con ese correo');
+    if (!responsable)
       throw new Error("Credenciales inválidas");
-    }
-
-    console.log('✅ [SERVICE] Responsable encontrado. ID:', responsable.Id_Responsable);
-    console.log('🔍 [SERVICE] Comparando contraseñas...');
-    console.log('🔍 [SERVICE] Contraseña recibida (primeros 3 chars):', Contraseña ? Contraseña.substring(0, 3) + '...' : 'No password');
-    console.log('🔍 [SERVICE] Hash almacenado (primeros 20 chars):', responsable.Contraseña ? responsable.Contraseña.substring(0, 20) + '...' : 'No hash');
 
     const passwordValida = await bcrypt.compare(
       Contraseña,
       responsable.Contraseña
     );
 
-    if (!passwordValida) {
-      console.log('❌ [SERVICE] Contraseña incorrecta');
+    if (!passwordValida)
       throw new Error("Credenciales inválidas");
-    }
 
-    console.log('✅ [SERVICE] Contraseña válida. Generando token...');
-    console.log('🔑 [SERVICE] JWT_SECRET existe:', process.env.JWT_SECRET ? '✓ Sí' : '✗ No');
-    
     const token = jwt.sign(
       {
         id: responsable.Id_Responsable,
@@ -103,9 +94,6 @@ class ResponsableService {
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
-
-    console.log('✅ [SERVICE] Token generado:', token.substring(0, 30) + '...');
-    console.log('✅ [SERVICE] Token expira en: 2 horas');
 
     return {
       token,
@@ -121,6 +109,12 @@ class ResponsableService {
   // ACTUALIZAR
   // ========================
   async update(id, data) {
+
+    // 🔐 Si viene contraseña → encriptar
+    if (data.Contraseña) {
+      data.Contraseña = await bcrypt.hash(data.Contraseña, 10);
+    }
+
     const [updated] = await responsableModel.update(data, {
       where: { Id_Responsable: id }
     });
