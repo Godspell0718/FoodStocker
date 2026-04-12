@@ -129,21 +129,29 @@ const SolicitudPendientes = () => {
 
                             {/* Botones de acción */}
                             <div className="d-flex gap-2 flex-wrap">
-                                <button
-                                    className="btn btn-primary btn-sm"
-                                    onClick={() => cambiarEstado(sol.Id_solicitud, 2, "proceso")}
-                                >
-                                    <i className="fa-solid fa-gears me-1"></i> En proceso
-                                </button>
-                                <button
-                                    className="btn btn-success btn-sm"
-                                    onClick={() => cambiarEstado(sol.Id_solicitud, 3, "despachado")}
-                                >
-                                    <i className="fa-solid fa-truck me-1"></i> Despachar
-                                </button>
+                                {/* Solo mostrar botones si NO está cancelado NI despachado */}
+                                {sol.ultimoEstado?.toLowerCase() !== "cancelado" && sol.ultimoEstado?.toLowerCase() !== "despachado" && (
+                                    <>
+                                        <button
+                                            className="btn btn-primary btn-sm"
+                                            onClick={() => cambiarEstado(sol.Id_solicitud, 2, "proceso")}
+                                        >
+                                            <i className="fa-solid fa-gears me-1"></i> En proceso
+                                        </button>
+                                        <button
+                                            className="btn btn-success btn-sm"
+                                            onClick={() => cambiarEstado(sol.Id_solicitud, 3, "despachado")}
+                                        >
+                                            <i className="fa-solid fa-truck me-1"></i> Despachar
+                                        </button>
+                                    </>
+                                )}
+
+                                {/* Botón Cancelar: mostrar siempre, pero deshabilitar si ya está cancelado o despachado */}
                                 <button
                                     className="btn btn-danger btn-sm"
                                     onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
+                                    disabled={sol.ultimoEstado?.toLowerCase() === "cancelado" || sol.ultimoEstado?.toLowerCase() === "despachado"}
                                 >
                                     <i className="fa-solid fa-ban me-1"></i> Cancelar
                                 </button>
