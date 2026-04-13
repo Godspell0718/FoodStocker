@@ -19,7 +19,7 @@ class EntradasService {
     if (entrada.Fec_Ven_Entrada) {
       const fechaVencimiento = new Date(entrada.Fec_Ven_Entrada);
       fechaVencimiento.setHours(0, 0, 0, 0);
-      
+
       if (fechaVencimiento <= hoy) {
         return 'VENCIDO';
       }
@@ -92,6 +92,7 @@ class EntradasService {
 
   async getAll() {
     const entradas = await entradasModel.findAll({
+      order: [['Id_Entradas', 'DESC']], // 🔥 agregado
       include: [
         {
           model: ProveedorModel,
@@ -119,6 +120,7 @@ class EntradasService {
 
     // Volver a consultar para obtener los estados actualizados
     return await entradasModel.findAll({
+      order: [['Id_Entradas', 'DESC']], // 🔥 agregado
       include: [
         {
           model: ProveedorModel,
@@ -139,7 +141,6 @@ class EntradasService {
       ]
     });
   }
-
   async getById(id) {
     // Actualizar estado antes de consultar
     await this.actualizarEstadoAutomatico(id);
@@ -164,7 +165,7 @@ class EntradasService {
         }
       ]
     });
-    
+
     if (!entrada) throw new Error("Entrada no encontrada");
     return entrada;
   }
@@ -172,7 +173,7 @@ class EntradasService {
   async create(data) {
     // Eliminar Vlr_Total y Estado si vienen en los datos
     const { Vlr_Total, Estado, ...dataToCreate } = data;
-    
+
     // Validar campos requeridos
     const camposRequeridos = [
       'Lote',
@@ -182,7 +183,7 @@ class EntradasService {
       'Id_Instructor',
       'Id_Insumos'
     ];
-    
+
     for (const campo of camposRequeridos) {
       if (dataToCreate[campo] === undefined || dataToCreate[campo] === null) {
         throw new Error(`El campo ${campo} es requerido`);
@@ -211,22 +212,22 @@ class EntradasService {
     // Eliminar Vlr_Total y Estado si vienen en los datos
     const { Vlr_Total, Estado, ...dataToUpdate } = data;
 
-    const [updated] = await entradasModel.update(dataToUpdate, { 
-      where: { Id_Entradas: id } 
+    const [updated] = await entradasModel.update(dataToUpdate, {
+      where: { Id_Entradas: id }
     });
-    
+
     if (updated === 0) throw new Error("Entrada no encontrada o sin cambios");
-    
+
     // Recalcular y actualizar el estado automáticamente
     await this.actualizarEstadoAutomatico(id);
-    
+
     // Retornar el registro actualizado
     return await this.getById(id);
   }
 
   async delete(id) {
-    const deleted = await entradasModel.destroy({ 
-      where: { Id_Entradas: id } 
+    const deleted = await entradasModel.destroy({
+      where: { Id_Entradas: id }
     });
     if (!deleted) throw new Error("Entrada no encontrada");
     return true;
@@ -388,7 +389,7 @@ class EntradasService {
    */
   async getStockDisponiblePorInsumo(idInsumo) {
     const entradas = await entradasModel.findAll({
-      where: { 
+      where: {
         Id_Insumos: idInsumo,
         Estado: 'STOCK' // Solo contar entradas disponibles
       }
