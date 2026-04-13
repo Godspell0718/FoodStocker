@@ -360,7 +360,7 @@ const CrudInsumos = () => {
                             <div className="modal-body">
                                 <InsumosForm
                                     hideModal={hideModal}
-                                    insumoParaEditar={insumoEditando}
+                                    insumoParaEditar={insumoEditando} //hola//
                                 />
                             </div>
 
