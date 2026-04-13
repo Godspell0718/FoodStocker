@@ -15,6 +15,7 @@ const CrudInsumos = () => {
     const [insumoEditando, setInsumoEditando] = useState(null);
     const [insumoDetalle, setInsumoDetalle] = useState(null);
     const [tipoDetalle, setTipoDetalle] = useState('disponible'); // 'disponible' o 'nodisponible'
+    const [vistaDetalle, setVistaDetalle] = useState(null);
 
     const eliminarInsumo = async (id, nombre) => {
         const result = await MySwal.fire({
@@ -120,13 +121,13 @@ const CrudInsumos = () => {
 
         // 🆕 COLUMNA 2: Stock no disponible (dañados/vencidos)
         {
-            name: "Stock no disponible",
+            name: "Stock Consumido",
             cell: row => {
                 const total = row.entradas
                     ?.filter(e => e.Estado !== 'STOCK')
                     .reduce((acc, e) => acc + (e.Can_Inicial - e.Can_Salida), 0) || 0;
 
-                // Si hay stock no disponible, mostrar botón rojo
+                // Si hay stock no disponible, mostrar botón rojo con ojo
                 return (
                     <button
                         className="btn btn-sm"
@@ -141,17 +142,16 @@ const CrudInsumos = () => {
                             cursor: 'pointer',
                             transition: 'all 0.3s ease'
                         }}
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalDetalleLotes"
-                        onClick={() => verLotesNoDisponibles(row)}
+
+                        onClick={() => setVistaDetalle(row)}
                     >
-                        {total}
+                        <i className="fa-solid fa-eye"></i>  {/* ← CAMBIADO: ahora muestra el ojo */}
                     </button>
                 );
             }
-        }, 
-        
-        
+        },
+
+
         {
             sortable: true,
             sortFunction: (a, b) => {
@@ -260,17 +260,86 @@ const CrudInsumos = () => {
                     </div>
                 </div>
 
-                <DataTable
-                    title="Lista de Insumos"
-                    columns={columns}
-                    data={filteredInsumos}
-                    keyField="Id_Insumos"
-                    pagination
-                    highlightOnHover
-                    striped
-                    responsive
-                />
+                {!vistaDetalle ? (
 
+                    <DataTable
+                        title="Lista de Insumos"
+                        columns={columns}
+                        data={filteredInsumos}
+                        keyField="Id_Insumos"
+                        pagination
+                        highlightOnHover
+                        striped
+                        responsive
+                    />
+
+                ) : (
+
+                    <div className="card shadow">
+
+                        <div className="card-header bg-dark text-white d-flex justify-content-between">
+                            <span>Detalle de {vistaDetalle.Nom_Insumo}</span>
+
+                            <button
+                                className="btn btn-light btn-sm"
+                                onClick={() => setVistaDetalle(null)}
+                            >
+                                ← Volver
+                            </button>
+                        </div>
+
+                        <div className="card-body">
+
+                            {vistaDetalle.entradas?.filter(e => e.Estado !== 'STOCK').length === 0 ? (
+
+                                <div className="alert alert-info">
+                                    No hay lotes no disponibles
+                                </div>
+
+                            ) : (
+
+                                <table className="table table-bordered">
+                                    <thead className="table-dark">
+                                        <tr>
+                                            <th>Lote</th>
+                                            <th>Cantidad</th>
+                                            <th>Vence</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {vistaDetalle.entradas
+                                            .filter(e => e.Estado !== 'STOCK')
+                                            .map(l => (
+                                                <tr key={l.Id_Entradas}>
+                                                    <td>{l.Lote}</td>
+                                                    <td>{l.Can_Inicial - l.Can_Salida}</td>
+                                                    <td>{l.Fec_Ven_Entrada}</td>
+                                                    <td>
+                                                        {l.Estado === 'AGOTADO' && (
+                                                            <span className="badge bg-danger">Agotado</span>
+                                                        )}
+
+                                                        {l.Estado === 'VENCIDO' && (
+                                                            <span className="badge bg-warning text-dark">Vencido</span>
+                                                        )}
+
+                                                        {l.Estado !== 'AGOTADO' && l.Estado !== 'VENCIDO' && (
+                                                            <span className="badge bg-secondary">{l.Estado}</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                    </tbody>
+                                </table>
+
+                            )}
+
+                        </div>
+                    </div>
+
+                )}
                 {/* Modal existente de edición/creación */}
                 <div className="modal fade" id="modalInsumos" tabIndex="-1" aria-hidden="true">
                     <div className="modal-dialog">
@@ -291,7 +360,7 @@ const CrudInsumos = () => {
                             <div className="modal-body">
                                 <InsumosForm
                                     hideModal={hideModal}
-                                    insumoParaEditar={insumoEditando}
+                                    insumoParaEditar={insumoEditando} //hola//
                                 />
                             </div>
 
