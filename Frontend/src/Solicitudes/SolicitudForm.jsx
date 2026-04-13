@@ -10,7 +10,9 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
         Fec_entrega: "",
         motivo: ""
     });
-
+    // select
+    const [responsables, setResponsables] = useState([]);
+    //fin
 
     const [textFormButton, setTextFormButton] = useState("Crear")
     useEffect(() => {
@@ -27,10 +29,26 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                 Fec_entrega: "",
                 motivo: ""
             })
-            
+
             setTextFormButton("Crear")
         }
+        
+        getResponsables();
+        
+
     }, [isEditing, selectedSolicitud])
+
+ 
+    const getResponsables = async () => {
+        try {
+            const res = await apiAxios.get("/api/responsables");
+            setResponsables(res.data);
+            console.log(res.data);
+        } catch (error) {
+            console.error("Error cargando responsables", error);
+        }
+    };
+    
 
     const handleInputChange = (e) => {
         const { id, value } = e.target
@@ -50,19 +68,20 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                 await apiAxios.post("/api/solicitudes/", formData)
                 Swal.fire("Creado", "La solicitud fue creada correctamente", "success")
             }
-            
-            hideModal()
-           
-        }catch (error) {
-  console.error("ERROR AXIOS ", error);
-  console.log("RESPUESTA BACKEND ", error.response?.data);
 
-  Swal.fire(
-    "Error",
-    error.response?.data?.message || "Error desconocido",
-    "error"
-  );
-}}
+            hideModal()
+
+        } catch (error) {
+            console.error("ERROR AXIOS ", error);
+            console.log("RESPUESTA BACKEND ", error.response?.data);
+
+            Swal.fire(
+                "Error",
+                error.response?.data?.message || "Error desconocido",
+                "error"
+            );
+        }
+    }
 
     return (
         <form onSubmit={gestionarForm} className="col-12">
@@ -79,17 +98,22 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                     />
                 </div>
             )}
+          
+            <select 
+                id="Id_Responsable"  
+                className="form-control"
+                value={formData.Id_Responsable}
+                onChange={handleInputChange}
+            >
+                <option value="">Seleccione uno...</option>
 
-            <div className="mb-3">
-                <label className="form-label">Responsable</label>
-                <input
-                    type="text"
-                    id="Id_Responsable"
-                    className="form-control"
-                    value={formData.Id_Responsable}
-                    onChange={handleInputChange}
-                />
-            </div>
+                {responsables.map((resp) => (
+                    <option key={resp.Id_Responsable} value={resp.Id_Responsable}>
+                        {resp.Nom_Responsable}
+                    </option>
+                ))} 
+            </select> 
+          
             <div className="mb-3">
                 <label className="form-label">Fecha Entrega</label>
                 <input

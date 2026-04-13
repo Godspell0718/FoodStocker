@@ -4,16 +4,16 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
-    const MySwal = withReactContent(Swal)
+    const MySwal = withReactContent(Swal);
 
     const [Nom_Responsable, setNombre] = useState('');
     const [Doc_Responsable, setDocumento] = useState('');
     const [Cor_Responsable, setCorreo] = useState('');
     const [Tel_Responsable, setTelefono] = useState('');
     const [Tip_Responsable, setTipo] = useState('P');
+    const [contrasena, setContrasena] = useState('');
     const [textFormButton, setTextFormButton] = useState("Enviar");
 
-    // 🟢 RESET AUTOMÁTICO DEL FORMULARIO
     useEffect(() => {
         if (responsableSeleccionado) {
             setNombre(responsableSeleccionado.Nom_Responsable || '');
@@ -21,9 +21,10 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
             setCorreo(responsableSeleccionado.Cor_Responsable || '');
             setTelefono(responsableSeleccionado.Tel_Responsable || '');
             setTipo(responsableSeleccionado.Tip_Responsable || 'P');
+            setContrasena('');
             setTextFormButton("Actualizar");
         } else {
-            limpiarFormulario();
+            limpiarFormulario(); // 🔥 CLAVE
         }
     }, [responsableSeleccionado]);
 
@@ -33,6 +34,7 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
         setCorreo('');
         setTelefono('');
         setTipo('P');
+        setContrasena('');
         setTextFormButton("Enviar");
     };
 
@@ -44,46 +46,47 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
             Doc_Responsable,
             Cor_Responsable,
             Tel_Responsable,
-            Tip_Responsable
+            Tip_Responsable,
+            Contraseña: contrasena // 👈 backend
         };
 
         try {
-        if (textFormButton === "Enviar") {
-            await apiAxios.post("/api/responsables", data);
+            if (textFormButton === "Enviar") {
+                await apiAxios.post("/api/responsables", data);
 
+                MySwal.fire({
+                    title: "Registro exitoso",
+                    text: "Responsable creado correctamente",
+                    icon: "success"
+                });
+
+                limpiarFormulario();
+            }
+
+            if (textFormButton === "Actualizar") {
+                await apiAxios.put(
+                    `/api/responsables/${responsableSeleccionado.Id_Responsable}`,
+                    data
+                );
+
+                MySwal.fire({
+                    title: "Actualización",
+                    text: "Responsable actualizado correctamente",
+                    icon: "success"
+                });
+            }
+
+            hideModal();
+
+        } catch (error) {
+            console.error("Error:", error);
             MySwal.fire({
-                title: "Registro exitoso",
-                text: "Responsable creado correctamente",
-                icon: "success"
-            });
-
-            limpiarFormulario();
-        }
-
-        if (textFormButton === "Actualizar") {
-            await apiAxios.put(
-                `/api/responsables/${responsableSeleccionado.Id_Responsable}`,
-                data
-            );
-
-            MySwal.fire({
-                title: "Actualización",
-                text: "Responsable actualizado correctamente",
-                icon: "success"
+                title: "Error",
+                text: "Ocurrió un error",
+                icon: "error"
             });
         }
-
-        hideModal();
-
-    } catch (error) {
-        console.error("Error:", error);
-        MySwal.fire({
-            title: "Error",
-            text: "Ocurrió un error",
-            icon: "error"
-        });
-    }
-};
+    };
 
     return (
         <form onSubmit={gestionarForm}>
@@ -119,8 +122,19 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
                 <label>Teléfono</label>
                 <input
                     className="form-control"
-                    value={Tel_Responsable}
+                    value={Tel_Responsable || ''} // 🔥 evita bugs
                     onChange={(e) => setTelefono(e.target.value)}
+                />
+            </div>
+
+            <div className="mb-3">
+                <label>Contraseña</label>
+                <input
+                    type="password"
+                    className="form-control"
+                    value={contrasena}
+                    onChange={(e) => setContrasena(e.target.value)}
+                    placeholder="Ingrese contraseña"
                 />
             </div>
 

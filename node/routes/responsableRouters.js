@@ -11,17 +11,17 @@ import {
 const router = express.Router();
 
 // ======================
-// CRUD
+// CRUD (REST CORRECTO)
 // ======================
 router.get("/", getAllResponsables);
 router.get("/:id", getResponsableById);
+router.post("/", registerResponsable); // 🔥 CAMBIO CLAVE
 router.put("/:id", updateResponsable);
 router.delete("/:id", deleteResponsable);
 
 // ======================
 // AUTENTICACIÓN
 // ======================
-router.post("/register", registerResponsable);
 router.post("/login", loginResponsable);
 
 export default router;

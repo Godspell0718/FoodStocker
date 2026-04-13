@@ -1,9 +1,18 @@
 import SolicitudModel from "../models/SolicitudModel.js";
+import responsablesModel from "../models/responsableModel.js";
+import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
 
 class SolicitudService {
 
   async getAll() {
-    return await SolicitudModel.findAll();
+    return await SolicitudModel.findAll({
+      include: [{
+        model: responsablesModel,
+        as: 'responsable',
+        attributes: ['Nom_Responsable']
+      }],
+      order: [['Id_solicitud', 'DESC']]
+    });
   }
 
   async getById(Id_solicitud) {
@@ -20,18 +29,18 @@ class SolicitudService {
     const result = await SolicitudModel.update(data, {
       where: { Id_solicitud }
     });
-
     if (result[0] === 0)
       throw new Error("Solicitud no encontrada o sin cambios");
-
     return true;
   }
 
   async delete(Id_solicitud) {
+    await insumosSolicitudModel.destroy({
+      where: { Id_solicitud }
+    });
     const deleted = await SolicitudModel.destroy({
       where: { Id_solicitud }
     });
-
     if (!deleted) throw new Error("Solicitud no encontrada");
     return true;
   }
