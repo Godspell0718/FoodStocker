@@ -8,14 +8,17 @@ import insumosProveedorRoutes from "./routes/insumosProveedorRoutes.js"
 import insumosRouters from "./routes/insumosRouters.js" 
 import responsableRouters from "./routes/responsableRouters.js"
 import proveedoresRouters from "./routes/proveedoresRouters.js"
-import salidasRoute from "./routes/salidasRoute.js"
+import SolicitudRoutes from "./routes/SolicitudRoutes.js"
+import EstadosRoutes from "./routes/EstadosRoutes.js"
+import Estado_solicitudRoutes from "./routes/Estados_solcitudRoutes.js"
 
-
-
+import Estado_solicitudModel from "./models/Estado_solicitudModel.js"
+import EstadosModel from "./models/EstadosModel.js";
+import SolicitudModel from "./models/SolicitudModel.js";
 import entradasModel from "./models/entradasModel.js"
 import insumosModel from "./models/insumosModel.js"
 import proveedoresModel from "./models/proveedoresModel.js" 
-import responsablesModel from "./models/responsablesModel.js"
+import responsablesModel from "./models/responsableModel.js"
 
 dotenv.config();
 
@@ -28,6 +31,8 @@ app.use(cors())
 // ASOCIACIONES DE MODELOS
 // ============================================
 // ⚠️ IMPORTANTE: Las asociaciones deben ir ANTES de las rutas
+//Solicitud -> Estado_solicitud
+
 
 // Entrada -> Insumo
 entradasModel.belongsTo(insumosModel, {
@@ -83,7 +88,9 @@ app.use("/api/insumosproveedor", insumosProveedorRoutes)
 app.use("/api/insumos", insumosRouters)
 app.use("/api/responsables", responsableRouters)
 app.use("/api/proveedores", proveedoresRouters)
-app.use("/api/salidas", salidasRoute)
+app.use("/api/solicitudes", SolicitudRoutes)
+app.use("/api/estados", EstadosRoutes)
+app.use("/api/estado_solicitud", Estado_solicitudRoutes)
 
 // ============================================
 // CONEXIÓN A BASE DE DATOS

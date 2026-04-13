@@ -1,5 +1,5 @@
 import entradasModel from "../models/entradasModel.js";
-import responsablesModel from "../models/responsablesModel.js";
+import responsablesModel from "../models/responsableModel.js";
 import ProveedorModel from "../models/proveedoresModel.js";
 import insumoModel from "../models/insumosModel.js";
 import { Op } from 'sequelize';

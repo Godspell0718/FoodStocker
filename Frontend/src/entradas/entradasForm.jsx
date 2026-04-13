@@ -1,194 +1,215 @@
-import { useState } from 'react'
-import apiNode from "../api/axiosConfig.js";
+import { useState, useEffect } from "react"
+import apiNode from "../api/axiosConfig.js"
 
-const EntradasForm = ({ hideModal, refreshTable }) => {
-    // Estados para cada campo del modelo
-    const [Fec_Ven_Entrada, setFec_Ven_Entrada] = useState('')
-    const [Lote, setLote] = useState('')
-    const [Vlr_Unitario, setVlr_Unitario] = useState('')
-    const [Can_Inicial, setCan_Inicial] = useState('')
-    const [Id_Proveedor, setId_Proveedor] = useState('')
-    const [Id_Pasante, setId_Pasante] = useState('')
-    const [Id_Instructor, setId_Instructor] = useState('')
-    const [Id_Insumos, setId_Insumos] = useState('')
-    const [textFormButton, setTextFormButton] = useState('Enviar')
+const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
 
-    const gestionarForm = async (e) => {
+    const [Fec_Ven_Entrada, setFec] = useState("")
+    const [Lote, setLote] = useState("")
+    const [Vlr_Unitario, setVlr] = useState("")
+    const [Can_Inicial, setCantidad] = useState("")
+    const [Id_Proveedor, setProveedor] = useState("")
+    const [Id_Pasante, setPasante] = useState("")
+    const [Id_Instructor, setInstructor] = useState("")
+    const [Id_Insumos, setInsumo] = useState("")
+    const [Uni_medida, setUnidad] = useState("")
+    const [textFormButton, setText] = useState("Enviar")
+
+    const resetForm = () => {
+        setFec("")
+        setLote("")
+        setVlr("")
+        setCantidad("")
+        setProveedor("")
+        setPasante("")
+        setInstructor("")
+        setInsumo("")
+        setUnidad("")
+        setText("Enviar")
+    }
+
+    useEffect(() => {
+        if (entradaSeleccionada) {
+            setFec(entradaSeleccionada.Fec_Ven_Entrada?.slice(0, 10) || "")
+            setLote(entradaSeleccionada.Lote || "")
+            setVlr(entradaSeleccionada.Vlr_Unitario || "")
+            setCantidad(entradaSeleccionada.Can_Inicial || "")
+            setProveedor(entradaSeleccionada.Id_Proveedor || "")
+            setPasante(entradaSeleccionada.Id_Pasante || "")
+            setInstructor(entradaSeleccionada.Id_Instructor || "")
+            setInsumo(entradaSeleccionada.Id_Insumos || "")
+            setUnidad(entradaSeleccionada.Uni_medida || "")
+            setText("Actualizar")
+        } else {
+            resetForm()
+        }
+    }, [entradaSeleccionada])
+
+    const gestionarForm = async e => {
         e.preventDefault()
 
-        // Validar campos obligatorios
-        if (!Fec_Ven_Entrada) {
-            alert('La fecha de vencimiento es obligatoria')
-            return
-        }
-        if (!Lote) {
-            alert('El lote es obligatorio')
-            return
-        }
-        if (!Can_Inicial || Can_Inicial <= 0) {
-            alert('La cantidad inicial debe ser un número positivo')
-            return
-        }
-        if (!Id_Proveedor) {
-            alert('El ID del proveedor es obligatorio')
-            return
-        }
-        if (!Id_Pasante) {
-            alert('El ID del pasante es obligatorio')
-            return
-        }
-        if (!Id_Instructor) {
-            alert('El ID del instructor es obligatorio')
-            return
-        }
-        if (!Id_Insumos) {
-            alert('El ID del insumo es obligatorio')
-            return
+        const payload = {
+            Fec_Ven_Entrada,
+            Lote,
+            Vlr_Unitario: Vlr_Unitario || null,
+            Can_Inicial,
+            Id_Proveedor,
+            Id_Pasante,
+            Id_Instructor,
+            Id_Insumos,
+            Uni_medida
         }
 
         try {
-            setTextFormButton('Enviando...')
-            
-            // ✅ CORREGIDO: ahora usa apiNode en lugar de apiAxios
-            const response = await apiNode.post('/api/entradas/', {
-                Fec_Ven_Entrada,
-                Lote,
-                Vlr_Unitario: Vlr_Unitario ? parseFloat(Vlr_Unitario) : null,
-                Can_Inicial: parseInt(Can_Inicial),
-                Id_Proveedor: parseInt(Id_Proveedor),
-                Id_Pasante: parseInt(Id_Pasante),
-                Id_Instructor: parseInt(Id_Instructor),
-                Id_Insumos: parseInt(Id_Insumos)
-                // No enviamos Vlr_Total (generado) ni Estado (se calcula automáticamente)
-            })
+            if (!entradaSeleccionada) {
+                await apiNode.post("/api/entradas/", payload)
+                alert("Entrada creada")
+            } else {
+                await apiNode.put(
+                    `/api/entradas/${entradaSeleccionada.Id_Entradas}`,
+                    payload
+                )
+                alert("Entrada actualizada")
+            }
 
-            alert('Entrada creada con éxito!')
-            // Limpiar formulario
-            setFec_Ven_Entrada('')
-            setLote('')
-            setVlr_Unitario('')
-            setCan_Inicial('')
-            setId_Proveedor('')
-            setId_Pasante('')
-            setId_Instructor('')
-            setId_Insumos('')
+            resetForm()
             hideModal()
-            refreshTable() // Actualizar la lista de entradas
-        } catch (error) {
-            console.error('Error al crear la entrada:', error.response ? error.response.data : error.message)
-            alert(error.response?.data?.mensaje || error.message || 'Error al crear la entrada')
-        } finally {
-            setTextFormButton('Enviar')
+            refreshTable()
+
+        } catch (err) {
+            alert("Error al guardar entrada")
         }
     }
 
     return (
-        <form onSubmit={gestionarForm} className='col-12 col-md-6'>
-            <div className='mb-3'>
-                <label htmlFor="Fec_Ven_Entrada" className='form-label'>Fecha de vencimiento *</label>
-                <input
-                    type="date"
-                    className='form-control'
-                    id='Fec_Ven_Entrada'
-                    value={Fec_Ven_Entrada}
-                    onChange={(e) => setFec_Ven_Entrada(e.target.value)}
-                    required
-                />
-            </div>
+        <form onSubmit={gestionarForm}>
+            <div className="card border-0 shadow-sm">
+                <div className="card-body">
 
-            <div className='mb-3'>
-                <label htmlFor="Lote" className='form-label'>Lote *</label>
-                <input
-                    type="text"
-                    className='form-control'
-                    id='Lote'
-                    value={Lote}
-                    onChange={(e) => setLote(e.target.value)}
-                    placeholder='Ej: L123ABC'
-                    required
-                />
-            </div>
+                    <h5 className="mb-4 text-center fw-semibold">
+                        {entradaSeleccionada ? "Actualizar entrada" : "Registrar nueva entrada"}
+                    </h5>
 
-            <div className='mb-3'>
-                <label htmlFor="Vlr_Unitario" className='form-label'>Valor unitario (opcional)</label>
-                <input
-                    type="number"
-                    step="0.01"
-                    className='form-control'
-                    id='Vlr_Unitario'
-                    value={Vlr_Unitario}
-                    onChange={(e) => setVlr_Unitario(e.target.value)}
-                    placeholder='Ej: 2500.50'
-                />
-            </div>
+                    {/* Sección general */}
+                    <div className="row mb-3">
+                        <div className="col-md-6">
+                            <label className="form-label">Fecha de vencimiento</label>
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={Fec_Ven_Entrada}
+                                onChange={e => setFec(e.target.value)}
+                            />
+                        </div>
 
-            <div className='mb-3'>
-                <label htmlFor="Can_Inicial" className='form-label'>Cantidad inicial *</label>
-                <input
-                    type="number"
-                    className='form-control'
-                    id='Can_Inicial'
-                    value={Can_Inicial}
-                    onChange={(e) => setCan_Inicial(e.target.value)}
-                    min='1'
-                    required
-                />
-            </div>
+                        <div className="col-md-6">
+                            <label className="form-label">Lote</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Ej: LOTE-2024-01"
+                                value={Lote}
+                                onChange={e => setLote(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-            <div className='mb-3'>
-                <label htmlFor="Id_Proveedor" className='form-label'>ID del proveedor *</label>
-                <input
-                    type="number"
-                    className='form-control'
-                    id='Id_Proveedor'
-                    value={Id_Proveedor}
-                    onChange={(e) => setId_Proveedor(e.target.value)}
-                    min='1'
-                    required
-                />
-            </div>
+                    {/* Valores */}
+                    <div className="row mb-3">
+                        <div className="col-md-6">
+                            <label className="form-label">Valor unitario</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="$"
+                                value={Vlr_Unitario}
+                                onChange={e => setVlr(e.target.value)}
+                            />
+                        </div>
 
-            <div className='mb-3'>
-                <label htmlFor="Id_Pasante" className='form-label'>ID del pasante *</label>
-                <input
-                    type="number"
-                    className='form-control'
-                    id='Id_Pasante'
-                    value={Id_Pasante}
-                    onChange={(e) => setId_Pasante(e.target.value)}
-                    min='1'
-                    required
-                />
-            </div>
+                        <div className="col-md-6">
+                            <label className="form-label">Cantidad inicial</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                value={Can_Inicial}
+                                onChange={e => setCantidad(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-            <div className='mb-3'>
-                <label htmlFor="Id_Instructor" className='form-label'>ID del instructor *</label>
-                <input
-                    type="number"
-                    className='form-control'
-                    id='Id_Instructor'
-                    value={Id_Instructor}
-                    onChange={(e) => setId_Instructor(e.target.value)}
-                    min='1'
-                    required
-                />
-            </div>
+                    {/* Relaciones */}
+                    <div className="row mb-3">
+                        <div className="col-md-4">
+                            <label className="form-label">Proveedor</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="ID Proveedor"
+                                value={Id_Proveedor}
+                                onChange={e => setProveedor(e.target.value)}
+                            />
+                        </div>
 
-            <div className='mb-3'>
-                <label htmlFor="Id_Insumos" className='form-label'>ID del insumo *</label>
-                <input
-                    type="number"
-                    className='form-control'
-                    id='Id_Insumos'
-                    value={Id_Insumos}
-                    onChange={(e) => setId_Insumos(e.target.value)}
-                    min='1'
-                    required
-                />
-            </div>
+                        <div className="col-md-4">
+                            <label className="form-label">Pasante</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="ID Pasante"
+                                value={Id_Pasante}
+                                onChange={e => setPasante(e.target.value)}
+                            />
+                        </div>
 
-            <div className='mb-3'>
-                <input type="submit" className='btn btn-primary w-50' value={textFormButton} />
+                        <div className="col-md-4">
+                            <label className="form-label">Instructor</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="ID Instructor"
+                                value={Id_Instructor}
+                                onChange={e => setInstructor(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Insumo */}
+                    <div className="row mb-4">
+                        <div className="col-md-6">
+                            <label className="form-label">Insumo</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="ID Insumo"
+                                value={Id_Insumos}
+                                onChange={e => setInsumo(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="col-md-6">
+                            <label className="form-label">Unidad de medida</label>
+                            <select
+                                className="form-select"
+                                value={Uni_medida}
+                                onChange={e => setUnidad(e.target.value)}
+                            >
+                                <option value="">Seleccione unidad</option>
+                                <option value="kg">Kilogramos (kg)</option>
+                                <option value="gr">Gramos (gr)</option>
+                                <option value="l">Litros (l)</option>
+                                <option value="ml">Mililitros (ml)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Botón */}
+                    <div className="d-grid">
+                        <button className="btn btn-primary btn-lg" type="submit">
+                            {textFormButton}
+                        </button>
+                    </div>
+
+                </div>
             </div>
         </form>
     )

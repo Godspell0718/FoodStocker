@@ -16,28 +16,11 @@ const insumoModel = db.define('insumos', {
         'especias', 'frutas', 'verduras', 'granos', 'cereales', 'aceites', 'salsas', 'enlatados', 'congelados'),
         allowNull: false
     },
-    Can_Insumo: {
-        type: DataTypes.INTEGER(10),
-        allowNull: false
-    },
-    peso: {
-        type: DataTypes.DECIMAL(10, 1),
-        allowNull: false
-    },
-    Uni_Med_Insumo: {
-        type: DataTypes.ENUM('gr', 'kg', 'ml', 'L', 'lbs'),
-        allowNull: false,
-        defaultValue: 'gr'
-    },
     Ref_Insumo: {
 
         type: DataTypes.ENUM('MP', 'IN', 'MR', 'PT', 'PP'),
         allowNull: false,
         defaultValue: 'MP'
-    },
-    Codigo_Insumo: {
-        type: DataTypes.STRING(100),
-        allowNull: false
     },
     createdat: {
         type: DataTypes.DATE,

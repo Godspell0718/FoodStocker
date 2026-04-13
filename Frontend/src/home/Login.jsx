@@ -31,7 +31,7 @@ const Login = ({ setIsAuth }) => {
             localStorage.setItem('tokenFoodStocker', token)
             localStorage.setItem('userFoodStocker', JSON.stringify(usuario))
             setIsAuth(true)
-            navigate('/Entradas')
+            navigate('/home')
 
         } catch (err) {
             setError(err.response?.data?.mensaje || 'Email o contraseña incorrecta')

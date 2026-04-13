@@ -1,0 +1,226 @@
+import { Outlet } from "react-router-dom";
+import { useState } from "react";
+import {
+    ClipboardPaste,
+    ArchiveRestore,
+    Wheat,
+    UserRound,
+    Package,
+    Settings,
+    Bell,
+    Search,
+    ChevronDown,
+} from "lucide-react";
+
+const navItems = [
+    { icon: ClipboardPaste, label: "Solicitudes", active: true },
+    { icon: ArchiveRestore, label: "Entradas" },
+    { icon: Wheat, label: "Insumos" },
+    { icon: UserRound, label: "Responsables" },
+    { icon: Package, label: "Proveedores" },
+];
+
+const teams = [
+    { label: "lorem", initial: "L", color: "bg-primario-50" },
+    { label: "ipsum", initial: "I", color: "bg-primario-50" },
+    { label: "dolor", initial: "D", color: "bg-primario-50" },
+];
+
+export default function Dashboard() {
+    return (
+        <div className="tw-flex tw-h-full tw-font-sans tw-bg-gray-100">
+
+            {/* ── SIDEBAR ──────────────────────────────── */}
+            <aside className="tw-w-64 tw-flex tw-flex-col tw-bg-gray-900 tw-border-r tw-border-gray-800 tw-shrink-0">
+
+
+                {/* Logo */}
+                <div className="tw-h-16 tw-flex tw-items-center tw-px-6 tw-border-b tw-border-gray-800 tw-bg-primario-900" >
+                    <div className="tw-flex tw-items-center tw-gap-2">
+                        <div className="tw-w-8 tw-h-8 tw-rounded-lg tw-bg-gradient-to-br tw-from-indigo-500 tw-to-sky-400 tw-flex tw-items-center tw-justify-center">
+                            <svg width="592.000000pt" height="589.000000pt" viewBox="0 0 592.000000 589.000000" xmlns="http://www.w3.org/2000/svg">
+                                <g transform="translate(0.000000,589.000000) scale(0.100000,-0.100000)" fill="#fdfef9" stroke="none">
+                                    <path d="M0 2945 c0 -2945 0 -2945 2960 -2945 2960 0 2960 0 2960 2945 0 2945
+0 2945 -2960 2945 -2960 0 -2960 0 -2960 -2945z m3013 2628 c12 -15 16 -52 19
+-198 3 -180 3 -180 36 -245 89 -173 120 -303 101 -421 -9 -58 -30 -107 -110
+-259 -32 -60 -42 -244 -14 -238 10 2 24 25 36 58 58 167 157 286 344 413 148
+100 159 94 156 -81 -4 -303 -91 -466 -339 -634 -166 -112 -205 -180 -210 -365
+-5 -158 15 -172 63 -45 63 169 167 278 386 405 107 63 130 4 94 -234 -32 -216
+-116 -352 -303 -491 -197 -145 -235 -207 -240 -385 -5 -158 15 -172 63 -46 50
+129 125 222 268 328 198 148 232 140 224 -54 -12 -281 -101 -448 -321 -603
+-190 -135 -228 -195 -234 -376 -4 -119 14 -156 40 -82 58 167 156 284 345 410
+162 109 180 95 163 -127 -22 -295 -125 -451 -390 -592 -79 -41 -96 -55 -104
+-80 -6 -20 -15 -31 -27 -31 -11 0 -19 -7 -19 -15 0 -21 143 -20 240 0 730 153
+1211 940 1026 1675 -79 312 -285 620 -520 775 -31 21 -56 41 -56 44 0 3 7 38
+15 76 8 39 15 102 15 141 0 72 0 72 142 189 206 172 191 169 324 49 44 -40
+122 -109 174 -154 148 -129 148 -128 40 -288 -95 -141 -95 -142 -29 -252 49
+-81 108 -205 159 -333 29 -74 45 -81 210 -102 222 -27 217 -22 236 -232 41
+-454 68 -409 -291 -490 -49 -10 -64 -36 -99 -163 -19 -69 -57 -178 -85 -244
+-72 -168 -75 -154 72 -334 125 -154 126 -145 -37 -312 -67 -69 -153 -159 -191
+-200 -112 -123 -109 -123 -251 -26 -175 117 -197 124 -264 76 -64 -45 -247
+-131 -365 -170 -145 -48 -136 -38 -160 -188 -40 -252 -17 -237 -370 -237 -354
+0 -331 -16 -374 257 -21 129 -7 116 -184 175 -141 48 -191 71 -313 144 -114
+68 -105 70 -294 -55 -63 -42 -121 -76 -128 -76 -24 0 -69 29 -86 55 -9 14 -90
+101 -180 193 -217 224 -213 201 -61 387 114 140 120 155 86 223 -39 78 -92
+224 -121 333 -38 145 -37 144 -212 185 -233 54 -231 49 -189 456 23 228 21
+226 266 248 159 15 165 19 218 161 29 76 101 221 151 304 45 75 45 77 -10 155
+-140 199 -147 220 -91 273 75 74 344 302 369 315 38 19 64 1 334 -223 21 -18
+24 -29 24 -90 1 -39 7 -106 15 -150 14 -78 14 -80 -6 -95 -757 -551 -796
+-1623 -80 -2198 218 -176 458 -277 684 -289 94 -5 136 10 83 30 -9 4 -12 14
+-9 25 6 23 2 26 -102 72 -271 121 -399 316 -412 624 -9 216 6 222 217 77 137
+-94 232 -214 279 -354 33 -95 51 -77 51 52 0 177 -46 252 -237 388 -208 147
+-296 310 -310 569 -10 192 7 218 105 163 204 -115 323 -241 387 -409 42 -110
+57 -97 53 48 -5 178 -40 234 -243 387 -191 145 -270 276 -295 492 -20 180 -8
+263 39 263 14 0 159 -98 231 -156 103 -83 206 -231 233 -334 3 -11 13 -20 22
+-20 15 0 16 13 13 123 -5 181 -38 238 -215 365 -208 149 -301 295 -323 505
+-30 284 -8 317 147 221 160 -100 292 -258 344 -413 31 -92 49 -82 49 27 0 92
+-14 135 -73 229 -95 151 -90 311 16 537 52 111 52 111 57 287 4 156 7 180 24
+198 23 26 67 27 89 4z" />
+                                </g>
+                                <g transform="translate(0.000000,589.000000) scale(0.100000,-0.100000)" fill="#183751" stroke="none">
+                                    <path d="M1804 4623 c-17 -10 -98 -76 -180 -148 -274 -239 -267 -200 -85 -462
+44 -63 44 -63 3 -130 -55 -94 -120 -226 -149 -302 -53 -142 -59 -146 -218
+-161 -245 -22 -243 -20 -266 -248 -44 -422 -44 -422 189 -476 175 -41 174 -40
+212 -185 29 -109 82 -255 121 -333 29 -58 26 -67 -80 -196 -169 -205 -173
+-180 65 -423 83 -86 160 -169 169 -183 51 -78 95 -72 250 29 166 109 156 108
+257 47 124 -75 174 -97 315 -145 177 -59 163 -46 184 -175 43 -274 18 -257
+384 -257 365 0 340 -15 380 237 24 150 15 140 160 188 116 39 300 124 364 169
+63 44 72 41 245 -75 156 -106 148 -108 328 86 69 74 156 164 192 200 102 100
+100 122 -21 272 -146 179 -141 154 -72 314 28 66 66 175 85 244 35 127 50 153
+99 163 359 81 334 38 291 510 -19 210 -14 205 -236 232 -165 21 -181 28 -210
+102 -51 128 -110 252 -159 333 -64 106 -66 91 29 232 113 167 112 176 -40 308
+-52 45 -130 114 -174 154 -139 126 -133 127 -344 -48 -142 -118 -142 -118
+-142 -190 0 -39 -7 -102 -15 -141 -21 -99 -21 -98 41 -140 177 -117 373 -369
+462 -592 261 -661 -32 -1414 -676 -1737 -364 -182 -904 -161 -1265 51 -873
+511 -924 1725 -97 2303 22 16 22 16 6 110 -9 51 -16 123 -16 159 0 66 0 66
+-121 166 -197 163 -209 169 -265 138z" />
+                                </g>
+                                <g transform="translate(0.000000,589.000000) scale(0.100000,-0.100000)" fill="#f7c417" stroke="none">
+                                    <path d="M2914 5579 c-17 -18 -20 -42 -24 -198 -5 -176 -5 -176 -57 -287 -115
+-244 -114 -387 1 -589 52 -90 58 -114 54 -205 -3 -65 -3 -65 -25 -2 -57 163
+-186 316 -353 420 -134 83 -170 68 -170 -70 1 -335 82 -500 333 -680 174 -125
+210 -185 215 -357 3 -80 1 -111 -7 -107 -6 4 -11 13 -11 19 0 64 -129 250
+-230 331 -233 189 -300 197 -300 39 0 -311 80 -489 288 -645 223 -166 266
+-235 260 -413 -3 -90 -3 -90 -31 -18 -54 139 -137 242 -269 335 -223 158 -255
+147 -245 -86 12 -278 96 -438 310 -589 188 -133 237 -212 237 -379 0 -105 -8
+-115 -30 -43 -41 132 -144 262 -280 356 -223 152 -246 144 -238 -86 12 -318
+138 -512 413 -635 103 -45 104 -46 98 -70 -3 -13 1 -22 12 -26 13 -5 14 -9 3
+-15 -7 -5 45 -8 122 -7 89 0 121 3 95 8 -22 4 -31 8 -19 9 14 1 24 11 30 32 8
+25 25 39 104 80 266 141 367 296 390 597 19 239 -8 260 -183 142 -183 -122
+-347 -320 -347 -418 0 -6 -5 -14 -11 -18 -8 -5 -10 22 -7 97 6 171 47 234 234
+367 223 157 310 323 321 613 6 148 -2 169 -62 169 -42 0 -270 -160 -330 -232
+-52 -62 -93 -132 -120 -201 -39 -104 -48 -97 -43 36 5 167 47 232 240 375 187
+139 271 275 303 491 16 102 20 239 7 257 -32 48 -59 40 -212 -61 -161 -106
+-239 -198 -295 -347 -40 -105 -48 -98 -43 35 6 176 47 245 214 357 223 151
+317 310 333 565 17 264 -3 283 -174 168 -187 -127 -293 -254 -346 -418 -23
+-72 -31 -63 -27 30 2 71 8 100 27 135 82 156 101 201 111 264 20 125 -11 260
+-102 436 -33 65 -33 65 -36 245 -4 203 -8 215 -72 215 -25 0 -43 -7 -56 -21z" />
+                                </g>
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+
+                    </div>
+                    <p className="tw-text-white tw-text-lg tw-font-bold tw-mb-2 tw-pl-3 tw-pt-1">FoodStocker</p>
+                </div>
+
+                {/* Nav principal */}
+                <nav className="tw-flex-1 tw-px-3 tw-py-4 tw-space-y-0.5 tw-overflow-y-auto tw-bg-primario-900">
+                    {navItems.map(({ icon: Icon, label, active }) => (
+                        <button
+                            key={label}
+                            className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150 tw-cursor-pointer
+              ${active
+                                    ? "tw-bg-gray-800 tw-text-white"
+                                    : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
+                                }`}
+                        >
+                            <Icon className="tw-w-5 tw-h-5 tw-shrink-0" />
+                            {label}
+                        </button>
+                    ))}
+
+                    {/* Sección de equipos */}
+                    <div className="tw-pt-6 tw-pb-2">
+                        <p className="tw-px-3 tw-text-xs tw-font-semibold tw-text-primario-50 tw-uppercase tw-tracking-wider tw-mb-2">
+                            Quizas lo usemos mas adelante
+                        </p>
+                        {teams.map(({ label, initial, color }) => (
+                            <button
+                                key={label}
+                                className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white tw-transition-all tw-duration-150"
+                            >
+                                <span
+                                    className={`tw-w-6 tw-h-6 tw-rounded ${color} tw-flex tw-items-center tw-justify-center tw-text-white tw-text-xs tw-font-bold tw-shrink-0`}
+                                >
+                                    {initial}
+                                </span>
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </nav>
+
+                {/* Settings al fondo */}
+                <div className="tw-px-3 tw-pb-4 tw-border-t tw-border-gray-800 tw-pt-4 tw-bg-primario-900">
+                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white tw-transition-all tw-duration-150">
+                        <Settings className="tw-w-5 tw-h-5 tw-shrink-0" />
+                        Settings
+                    </button>
+                </div>
+            </aside >
+
+            {/* ── CONTENIDO PRINCIPAL ──────────────────── */}
+            < div className="tw-flex-1 tw-flex tw-flex-col tw-overflow-hidden" >
+
+                {/* Topbar */}
+                < header className="tw-h-16 tw-flex tw-items-center tw-justify-between tw-px-6 tw-border-b tw-border-gray-200 tw-bg-primario-900 tw-shrink-0" >
+
+                    {/* Buscador */}
+                    <div className="tw-relative">
+                        <input
+                            placeholder="Search..."
+                            className="tw-input tw-shadow-lg focus:tw-border-2 tw-border-gray-300 tw-px-5 tw-py-3 tw-rounded-xl tw-w-56 tw-transition-all focus:tw-w-64 tw-outline-none"
+                            name="search"
+                            type="search"
+                        />
+
+                        <Search className="tw-size-6 tw-absolute tw-top-3 tw-right-3 tw-text-gray-500" />
+                    </div>
+
+
+
+
+                    {/* Acciones */}
+                    < div className="tw-flex tw-items-center tw-gap-3" >
+
+                        {/* Notificaciones */}
+                        < button className="tw-w-9 tw-h-9 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200 tw-transition-all tw-duration-200 tw-relative" >
+                            <Bell className="tw-w-4 tw-h-4" />
+                            <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-w-2 tw-h-2 tw-bg-indigo-500 tw-rounded-full" />
+                        </button >
+
+                        {/* Avatar usuario */}
+                        < div className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer group" >
+                            <div className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gradient-to-br tw-from-orange-400 tw-to-rose-400 tw-flex tw-items-center tw-justify-center tw-text-white tw-text-sm tw-font-bold">
+                                U
+                            </div>
+                            <span className="tw-text-sm tw-font-medium tw-text-primario-50 tw-hidden sm:tw-block">
+                                Usuario
+                            </span>
+                            <ChevronDown className="tw-w-4 tw-h-4 tw-text-primario-50 group-hover:tw-text-gray-600 tw-transition-colors" />
+                        </div >
+                    </div >
+                </header >
+
+                {/* Área de contenido */}
+                < main className="tw-flex-1 tw-p-6 tw-overflow-auto tw-bg-gray-50" >
+
+                    <Outlet />
+
+                </main >
+            </div >
+        </div >
+    );
+}
+
