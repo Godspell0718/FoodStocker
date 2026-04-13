@@ -17,13 +17,13 @@ const CrudInsumos = () => {
     const [tipoDetalle, setTipoDetalle] = useState('disponible'); // 'disponible' o 'nodisponible'
     const [vistaDetalle, setVistaDetalle] = useState(null);
 
-    // 🆕 ESTADOS PARA LA FUNCIONALIDAD DE SOLICITUDES
+
     const [solicitudes, setSolicitudes] = useState([]);
     const [insumoSolicitudDetalle, setInsumoSolicitudDetalle] = useState(null);
 
     useEffect(() => {
         getAllInsumos();
-        cargarSolicitudes();
+        cargarSolicitudesInsumos(); // Nueva carga independiente
     }, []);
 
     const getAllInsumos = async () => {
@@ -35,32 +35,41 @@ const CrudInsumos = () => {
         }
     };
 
-    // 🆕 CARGAR SOLICITUDES PENDIENTES
-    const cargarSolicitudes = async () => {
+    const cargarSolicitudesInsumos = async () => {
         try {
             const res = await apiAxios.get("/api/solicitudes/pendientes");
-            const filtradas = res.data.filter(s => 
-                ['solicitado', 'proceso'].includes(s.ultimoEstado?.toLowerCase())
+            // Filtramos solo las que están en proceso de gestión
+            const activas = res.data.filter(s => 
+                s.ultimoEstado?.toLowerCase() === 'solicitado' || 
+                s.ultimoEstado?.toLowerCase() === 'proceso'
             );
-            setSolicitudes(filtradas);
+            setSolicitudes(activas);
         } catch (error) {
-            console.error("Error cargando solicitudes:", error);
+            console.error("Error al obtener solicitudes para conteo:", error);
         }
     };
 
-    // 🆕 LÓGICA DE CONTEO PARA LA COLUMNA
-    const getInfoSolicitudes = (idInsumo) => {
-        const lista = [];
-        let total = 0;
+    const obtenerConteoYLista = (idInsumo) => {
+        const listaParaModal = [];
+        let acumuladoSolicitado = 0;
+        
         solicitudes.forEach(sol => {
-            (sol.insumos || []).forEach(item => {
-                if (item.Id_insumos === idInsumo || item.id_insumo === idInsumo) {
-                    total += item.cantidad_solicitada;
-                    lista.push({ ...sol, cantEsp: item.cantidad_solicitada });
-                }
-            });
+            if (sol.insumos && Array.isArray(sol.insumos)) {
+                sol.insumos.forEach(item => {
+                    // Verificación por ambos posibles nombres de ID en el objeto
+                    if (item.Id_insumos === idInsumo || item.id_insumo === idInsumo) {
+                        acumuladoSolicitado += item.cantidad_solicitada;
+                        listaParaModal.push({
+                            id: sol.Id_solicitud,
+                            cantidad: item.cantidad_solicitada,
+                            estado: sol.ultimoEstado,
+                            responsable: sol.responsable?.Nom_Responsable || 'N/A'
+                        });
+                    }
+                });
+            }
         });
-        return { total, lista };
+        return { acumuladoSolicitado, listaParaModal };
     };
 
     const eliminarInsumo = async (id, nombre) => {
@@ -70,7 +79,7 @@ const CrudInsumos = () => {
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            cancelButtonColor: '#236099',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
         });
@@ -87,18 +96,13 @@ const CrudInsumos = () => {
                 });
                 getAllInsumos();
             } catch (error) {
-                let mensaje = 'Error al eliminar';
-                if (error.response?.status === 400) {
-                    mensaje = error.response.data.error || 'No se puede eliminar';
+                let mensaje = 'Error al eliminar el insumo';
+                if (error.response && error.response.status === 400) {
+                    mensaje = error.response.data.error || 'No se puede eliminar el insumo porque tiene registros asociados.';
                 }
                 MySwal.fire({ title: 'Error', text: mensaje, icon: 'error' });
             }
         }
-    };
-
-    const verLotesDisponibles = (row) => {
-        setTipoDetalle('disponible');
-        setInsumoDetalle(row);
     };
 
     const columns = [
@@ -109,48 +113,39 @@ const CrudInsumos = () => {
         {
             name: "Stock disponible",
             cell: row => {
-                const total = row.entradas
+                const totalFisico = row.entradas
                     ?.filter(e => e.Estado === 'STOCK')
                     .reduce((acc, e) => acc + (e.Can_Inicial - e.Can_Salida), 0) || 0;
                 return (
                     <button
                         className="btn btn-sm"
-                        style={{
-                            backgroundColor: '#1d334a',
-                            color: 'white',
-                            border: 'none',
-                            minWidth: '40px',
-                            borderRadius: '4px',
-                            padding: '4px 8px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer'
-                        }}
+                        style={{ backgroundColor: '#1d334a', color: 'white', border: 'none', minWidth: '40px', borderRadius: '4px', padding: '4px 8px', fontWeight: 'bold' }}
                         data-bs-toggle="modal"
                         data-bs-target="#modalDetalleLotes"
-                        onClick={() => verLotesDisponibles(row)}
+                        onClick={() => { setTipoDetalle('disponible'); setInsumoDetalle(row); }}
                     >
-                        {total}
+                        {totalFisico}
                     </button>
                 );
             },
             sortable: true
         },
-        // 🆕 COLUMNA SOLICITUDES (Ubicada entre disponible y consumido)
+        // 🆕 NUEVA COLUMNA: SOLO CONTEO Y ACCESO AL MODAL DE DETALLES
         {
             name: "Stock en solicitud",
             cell: row => {
-                const { total, lista } = getInfoSolicitudes(row.Id_Insumos);
+                const { acumuladoSolicitado, listaParaModal } = obtenerConteoYLista(row.Id_Insumos);
                 return (
                     <button 
                         className="btn btn-sm text-white fw-bold" 
-                        style={{ backgroundColor: '#4169E1', minWidth: '40px', borderRadius: '4px', border: 'none' }}
+                        style={{ backgroundColor: '#D1C661', minWidth: '40px', borderRadius: '4px', border: 'none' }}
                         onClick={() => {
-                            setInsumoSolicitudDetalle({ nombre: row.Nom_Insumo, lista });
+                            setInsumoSolicitudDetalle({ nombre: row.Nom_Insumo, datos: listaParaModal });
                             const modal = new bootstrap.Modal(document.getElementById('modalDetalleSolicitudes'));
                             modal.show();
                         }}
                     >
-                        {total}
+                        {acumuladoSolicitado}
                     </button>
                 );
             }
@@ -160,14 +155,7 @@ const CrudInsumos = () => {
             cell: row => (
                 <button
                     className="btn btn-sm"
-                    style={{
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        minWidth: '40px',
-                        borderRadius: '4px',
-                        padding: '4px 8px'
-                    }}
+                    style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', minWidth: '40px', borderRadius: '4px' }}
                     onClick={() => setVistaDetalle(row)}
                 >
                     <i className="fa-solid fa-eye"></i>
@@ -177,12 +165,7 @@ const CrudInsumos = () => {
         {
             name: "Actualizar",
             cell: row => (
-                <button
-                    className="btn btn-sm btn-dark"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalInsumos"
-                    onClick={() => setInsumoEditando(row)}
-                >
+                <button className="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#modalInsumos" onClick={() => setInsumoEditando(row)}>
                     <i className="fa-solid fa-pen-to-square"></i>
                 </button>
             )
@@ -190,10 +173,7 @@ const CrudInsumos = () => {
         {
             name: "Eliminar",
             cell: row => (
-                <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => eliminarInsumo(row.Id_Insumos, row.Nom_Insumo)}
-                >
+                <button className="btn btn-sm btn-danger" onClick={() => eliminarInsumo(row.Id_Insumos, row.Nom_Insumo)}>
                     <i className="fa-solid fa-trash"></i>
                 </button>
             )
@@ -202,84 +182,49 @@ const CrudInsumos = () => {
 
     const filteredInsumos = insumos.filter(insumo => {
         const textToSearch = filterText.toLowerCase();
-        return (
-            insumo.Nom_Insumo?.toLowerCase().includes(textToSearch) ||
-            insumo.Tip_Insumo?.toLowerCase().includes(textToSearch)
-        );
+        return insumo.Nom_Insumo?.toLowerCase().includes(textToSearch) || insumo.Tip_Insumo?.toLowerCase().includes(textToSearch);
     });
 
     const hideModal = () => {
-        document.getElementById('closeModalInsumos').click();
+        const closeModalBtn = document.getElementById('closeModalInsumos');
+        if (closeModalBtn) closeModalBtn.click();
         setInsumoEditando(null);
         getAllInsumos();
-        cargarSolicitudes();
     };
-
-    const lotesFiltrados = insumoDetalle?.entradas?.filter(ent => ent.Estado === 'STOCK') || [];
 
     return (
         <>
             <div className="container mt-5">
                 <div className="row d-flex justify-content-between align-items-center mb-3">
                     <div className="col-4">
-                        <input
-                            className="form-control"
-                            placeholder="Buscar por nombre o tipo..."
-                            value={filterText}
-                            onChange={(e) => setFilterText(e.target.value)}
-                        />
+                        <input className="form-control" placeholder="Buscar por nombre o tipo..." value={filterText} onChange={(e) => setFilterText(e.target.value)} />
                     </div>
                     <div className="col-2 text-end">
-                        <button
-                            type="button"
-                            className="btn btn-dark"
-                            data-bs-toggle="modal"
-                            data-bs-target="#modalInsumos"
-                            onClick={() => setInsumoEditando(null)}
-                        >
-                            Agregar Insumo
-                        </button>
+                        <button type="button" className="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalInsumos" onClick={() => setInsumoEditando(null)}>Agregar Insumo</button>
                     </div>
                 </div>
 
                 {!vistaDetalle ? (
-                    <DataTable
-                        title="Lista de Insumos"
-                        columns={columns}
-                        data={filteredInsumos}
-                        keyField="Id_Insumos"
-                        pagination
-                        highlightOnHover
-                        striped
-                        responsive
-                    />
+                    <DataTable title="Lista de Insumos" columns={columns} data={filteredInsumos} keyField="Id_Insumos" pagination highlightOnHover striped responsive />
                 ) : (
                     <div className="card shadow">
                         <div className="card-header bg-dark text-white d-flex justify-content-between">
-                            <span>Detalle de {vistaDetalle.Nom_Insumo}</span>
+                            <span>Detalle de lotes consumidos: {vistaDetalle.Nom_Insumo}</span>
                             <button className="btn btn-light btn-sm" onClick={() => setVistaDetalle(null)}>← Volver</button>
                         </div>
                         <div className="card-body">
                             {vistaDetalle.entradas?.filter(e => e.Estado !== 'STOCK').length === 0 ? (
-                                <div className="alert alert-info">No hay lotes no disponibles</div>
+                                <div className="alert alert-info text-center">No hay registros de lotes agotados o vencidos para este insumo.</div>
                             ) : (
-                                <table className="table table-bordered">
+                                <table className="table table-bordered table-hover">
                                     <thead className="table-dark">
-                                        <tr>
-                                            <th>Lote</th><th>Cantidad</th><th>Vence</th><th>Estado</th>
-                                        </tr>
+                                        <tr><th>ID Entrada</th><th>Lote</th><th>Cant. Restante</th><th>Vencimiento</th><th>Estado</th></tr>
                                     </thead>
                                     <tbody>
                                         {vistaDetalle.entradas.filter(e => e.Estado !== 'STOCK').map(l => (
                                             <tr key={l.Id_Entradas}>
-                                                <td>{l.Lote}</td>
-                                                <td>{l.Can_Inicial - l.Can_Salida}</td>
-                                                <td>{l.Fec_Ven_Entrada}</td>
-                                                <td>
-                                                    <span className={`badge ${l.Estado === 'AGOTADO' ? 'bg-danger' : 'bg-warning text-dark'}`}>
-                                                        {l.Estado}
-                                                    </span>
-                                                </td>
+                                                <td>{l.Id_Entradas}</td><td>{l.Lote}</td><td>{l.Can_Inicial - l.Can_Salida}</td><td>{l.Fec_Ven_Entrada || 'N/A'}</td>
+                                                <td><span className={`badge ${l.Estado === 'AGOTADO' ? 'bg-danger' : 'bg-warning text-dark'}`}>{l.Estado}</span></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -289,7 +234,7 @@ const CrudInsumos = () => {
                     </div>
                 )}
 
-                {/* MODAL EDITAR/AGREGAR */}
+                {/* MODAL FORMULARIO */}
                 <div className="modal fade" id="modalInsumos" tabIndex="-1" aria-hidden="true">
                     <div className="modal-dialog">
                         <div className="modal-content">
@@ -304,65 +249,74 @@ const CrudInsumos = () => {
                     </div>
                 </div>
 
-                {/* 🆕 MODAL DE SOLICITUDES */}
+                {/* 🆕 MODAL PARA VER DETALLE DE LAS SOLICITUDES (CONTEO) */}
                 <div className="modal fade" id="modalDetalleSolicitudes" tabIndex="-1" aria-hidden="true">
-                    <div className="modal-dialog modal-xl">
+                    <div className="modal-dialog modal-lg">
                         <div className="modal-content">
-                            <div className="modal-header" style={{ backgroundColor: '#4169E1', color: 'white' }}>
-                                <h5 className="modal-title">Solicitudes de: {insumoSolicitudDetalle?.nombre}</h5>
+                            <div className="modal-header" style={{ backgroundColor: 'black', color: 'white' }}>
+                                <h5 className="modal-title">Solicitudes Pendientes: {insumoSolicitudDetalle?.nombre}</h5>
                                 <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div className="modal-body">
-                                <table className="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th># Solicitud</th><th>Cantidad</th><th>Responsable</th><th>Estado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {insumoSolicitudDetalle?.lista.map((s, i) => (
-                                            <tr key={i}>
-                                                <td>{s.Id_solicitud}</td>
-                                                <td className="fw-bold">{s.cantEsp}</td>
-                                                <td>{s.responsable?.Nom_Responsable}</td>
-                                                <td><span className="badge bg-primary">{s.ultimoEstado}</span></td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                {insumoSolicitudDetalle?.datos.length > 0 ? (
+                                    <table className="table table-striped table-hover">
+                                        <thead>
+                                            <tr><th># Solicitud</th><th>Cantidad</th><th>Responsable</th><th>Estado</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            {insumoSolicitudDetalle.datos.map((s, i) => (
+                                                <tr key={i}>
+                                                    <td>{s.id}</td><td className="fw-bold">{s.cantidad}</td><td>{s.responsable}</td>
+                                                    <td><span className="badge bg-primary">{s.estado}</span></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                ) : (
+                                    <div className="alert alert-info">No hay solicitudes activas para este insumo.</div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* MODAL DETALLE LOTES DISPONIBLES */}
                 <div className="modal fade" id="modalDetalleLotes" tabIndex="-1" aria-hidden="true">
                     <div className="modal-dialog modal-lg">
                         <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Lotes disponibles de {insumoDetalle?.Nom_Insumo}</h5>
-                                <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+                            <div className="modal-header bg-primary text-white">
+                                <h5 className="modal-title">Lotes de: {insumoDetalle?.Nom_Insumo}</h5>
+                                <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div className="modal-body">
-                                <table className="table table-striped">
-                                    <thead>
-                                        <tr><th>Lote</th><th>Cantidad</th><th>Vencimiento</th><th>Estado</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        {lotesFiltrados.map(ent => (
-                                            <tr key={ent.Id_Entradas}>
-                                                <td>{ent.Lote}</td>
-                                                <td>{ent.Can_Inicial - ent.Can_Salida}</td>
-                                                <td>{ent.Fec_Ven_Entrada ? new Date(ent.Fec_Ven_Entrada).toLocaleDateString() : '—'}</td>
-                                                <td><span className="badge bg-success">Disponible</span></td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                {insumoDetalle?.entradas?.filter(ent => ent.Estado === 'STOCK').length > 0 ? (
+                                    <table className="table table-striped">
+                                        <thead>
+                                            <tr><th>ID Entrada</th><th>Lote</th><th>Cant. Disponible</th><th>Vencimiento</th><th>Estado</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            {insumoDetalle.entradas.filter(ent => ent.Estado === 'STOCK').map(ent => (
+                                                <tr key={ent.Id_Entradas}>
+                                                    <td>{ent.Id_Entradas}</td><td>{ent.Lote}</td><td>{ent.Can_Inicial - ent.Can_Salida}</td><td>{ent.Fec_Ven_Entrada || 'N/A'}</td>
+                                                    <td><span className="badge bg-success">En Stock</span></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                ) : (
+                                    <div className="alert alert-info">
+                                        {tipoDetalle === 'disponible'
+                                            ? 'No hay lotes disponibles para este insumo'
+                                            : 'No hay lotes no disponibles para este insumo'}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </>
     );
