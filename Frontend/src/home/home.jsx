@@ -1,5 +1,5 @@
-import { Outlet } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
     ClipboardPaste,
     ArchiveRestore,
@@ -10,29 +10,59 @@ import {
     Bell,
     Search,
     ChevronDown,
+    Warehouse,
+    ClockArrowUp,
+    Waypoints,
 } from "lucide-react";
 
 const navItems = [
-    { icon: ClipboardPaste, label: "Solicitudes", active: true },
-    { icon: ArchiveRestore, label: "Entradas" },
-    { icon: Wheat, label: "Insumos" },
-    { icon: UserRound, label: "Responsables" },
-    { icon: Package, label: "Proveedores" },
+    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas" },
+    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes" },
+    { icon: Wheat, label: "Insumos", path: "/Insumos" },
+    { icon: UserRound, label: "Responsables", path: "/Responsables" },
+    { icon: Package, label: "Proveedores", path: "/Proveedores" },
+    { icon: ClockArrowUp, label: "Historico de Solicitudes", path: "/Solicitudes" },
 ];
 
-const teams = [
-    { label: "lorem", initial: "L", color: "bg-primario-50" },
-    { label: "ipsum", initial: "I", color: "bg-primario-50" },
-    { label: "dolor", initial: "D", color: "bg-primario-50" },
+const Temporal = [
+    { icon: Warehouse, label: "Destinos", path: "/Destino" },
+    { icon: Waypoints, label: "Estados", path: "/Estados" },
+    { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud" },
+    { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva" },
+
 ];
 
 export default function Dashboard() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [openUserMenu, setOpenUserMenu] = useState(false);
+    const menuRef = useRef();
+
+    const logout = () => {
+        localStorage.removeItem('tokenFoodStocker');
+        localStorage.removeItem('userFoodStocker');
+        navigate('/login');
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setOpenUserMenu(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
     return (
         <div className="tw-flex tw-h-full tw-font-sans tw-bg-gray-100">
 
-            {/* ── SIDEBAR ──────────────────────────────── */}
+            {/* SIDEBAR */}
             <aside className="tw-w-64 tw-flex tw-flex-col tw-bg-gray-900 tw-border-r tw-border-gray-800 tw-shrink-0">
-
 
                 {/* Logo */}
                 <div className="tw-h-16 tw-flex tw-items-center tw-px-6 tw-border-b tw-border-gray-800 tw-bg-primario-900" >
@@ -124,54 +154,66 @@ export default function Dashboard() {
                     <p className="tw-text-white tw-text-lg tw-font-bold tw-mb-2 tw-pl-3 tw-pt-1">FoodStocker</p>
                 </div>
 
-                {/* Nav principal */}
+                {/* NAV */}
                 <nav className="tw-flex-1 tw-px-3 tw-py-4 tw-space-y-0.5 tw-overflow-y-auto tw-bg-primario-900">
-                    {navItems.map(({ icon: Icon, label, active }) => (
-                        <button
-                            key={label}
-                            className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150 tw-cursor-pointer
-              ${active
-                                    ? "tw-bg-gray-800 tw-text-white"
-                                    : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
-                                }`}
-                        >
-                            <Icon className="tw-w-5 tw-h-5 tw-shrink-0" />
-                            {label}
-                        </button>
-                    ))}
 
-                    {/* Sección de equipos */}
-                    <div className="tw-pt-6 tw-pb-2">
-                        <p className="tw-px-3 tw-text-xs tw-font-semibold tw-text-primario-50 tw-uppercase tw-tracking-wider tw-mb-2">
-                            Quizas lo usemos mas adelante
-                        </p>
-                        {teams.map(({ label, initial, color }) => (
+                    {navItems.map(({ icon: Icon, label, path }) => {
+                        const isActive = location.pathname === path;
+
+                        return (
                             <button
                                 key={label}
-                                className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white tw-transition-all tw-duration-150"
+                                onClick={() => navigate(path)}
+                                className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150
+                                ${isActive
+                                        ? "tw-bg-gray-800 tw-text-white"
+                                        : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
+                                    }`}
                             >
-                                <span
-                                    className={`tw-w-6 tw-h-6 tw-rounded ${color} tw-flex tw-items-center tw-justify-center tw-text-white tw-text-xs tw-font-bold tw-shrink-0`}
-                                >
-                                    {initial}
-                                </span>
+                                <Icon className="tw-w-5 tw-h-5" />
                                 {label}
                             </button>
-                        ))}
+                        );
+                    })}
+
+                    {/* TEMPORAL */}
+                    <div className="tw-pt-6 tw-pb-2">
+                        <p className="tw-px-3 tw-text-xs tw-font-semibold tw-text-primario-50 tw-uppercase tw-mb-2">
+                            Botones temporales
+                        </p>
+
+                        {Temporal.map(({ icon: Icon, label, path }) => {
+                            const isActive = location.pathname === path;
+
+                            return (
+                                <button
+                                    key={label}
+                                    onClick={() => navigate(path)}
+                                    className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium
+                                    ${isActive
+                                            ? "tw-bg-gray-800 tw-text-white"
+                                            : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
+                                        }`}
+                                >
+                                    <Icon className="tw-w-5 tw-h-5" />
+                                    {label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </nav>
 
-                {/* Settings al fondo */}
+                {/* SETTINGS */}
                 <div className="tw-px-3 tw-pb-4 tw-border-t tw-border-gray-800 tw-pt-4 tw-bg-primario-900">
-                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white tw-transition-all tw-duration-150">
-                        <Settings className="tw-w-5 tw-h-5 tw-shrink-0" />
+                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white">
+                        <Settings className="tw-w-5 tw-h-5" />
                         Settings
                     </button>
                 </div>
-            </aside >
+            </aside>
 
-            {/* ── CONTENIDO PRINCIPAL ──────────────────── */}
-            < div className="tw-flex-1 tw-flex tw-flex-col tw-overflow-hidden" >
+            {/* CONTENIDO */}
+            <div className="tw-flex-1 tw-flex tw-flex-col">
 
                 {/* Topbar */}
                 < header className="tw-h-16 tw-flex tw-items-center tw-justify-between tw-px-6 tw-border-b tw-border-gray-200 tw-bg-primario-900 tw-shrink-0" >
@@ -188,9 +230,6 @@ export default function Dashboard() {
                         <Search className="tw-size-6 tw-absolute tw-top-3 tw-right-3 tw-text-gray-500" />
                     </div>
 
-
-
-
                     {/* Acciones */}
                     < div className="tw-flex tw-items-center tw-gap-3" >
 
@@ -200,16 +239,35 @@ export default function Dashboard() {
                             <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-w-2 tw-h-2 tw-bg-indigo-500 tw-rounded-full" />
                         </button >
 
-                        {/* Avatar usuario */}
-                        < div className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer group" >
-                            <div className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gradient-to-br tw-from-orange-400 tw-to-rose-400 tw-flex tw-items-center tw-justify-center tw-text-white tw-text-sm tw-font-bold">
-                                U
+                        <div className="tw-relative">
+                            <div className="tw-relative" ref={menuRef}>
+                                {/* Avatar usuario */}
+                                <div
+                                    onClick={() => setOpenUserMenu(!openUserMenu)}
+                                    className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer group"
+                                >
+                                    <div className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gradient-to-br tw-from-orange-400 tw-to-rose-400 tw-flex tw-items-center tw-justify-center tw-text-white tw-text-sm tw-font-bold">
+                                        U
+                                    </div>
+                                    <span className="tw-text-sm tw-font-medium tw-text-primario-50 tw-hidden sm:tw-block">
+                                        Usuario
+                                    </span>
+                                    <ChevronDown className="tw-w-4 tw-h-4 tw-text-primario-50" />
+                                </div>
+
+                                {/* Dropdown */}
+                                {openUserMenu && (
+                                    <div className="tw-absolute tw-right-0 tw-mt-2 tw-w-40 tw-bg-white tw-rounded-lg tw-shadow-lg tw-border tw-border-gray-200 tw-z-50">
+                                        <button
+                                            onClick={logout}
+                                            className="tw-w-full tw-text-left tw-px-4 tw-py-2 tw-text-sm tw-text-gray-700 hover:tw-bg-gray-100 tw-rounded-lg"
+                                        >
+                                            Cerrar sesión
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <span className="tw-text-sm tw-font-medium tw-text-primario-50 tw-hidden sm:tw-block">
-                                Usuario
-                            </span>
-                            <ChevronDown className="tw-w-4 tw-h-4 tw-text-primario-50 group-hover:tw-text-gray-600 tw-transition-colors" />
-                        </div >
+                        </div>
                     </div >
                 </header >
 
@@ -223,4 +281,3 @@ export default function Dashboard() {
         </div >
     );
 }
-

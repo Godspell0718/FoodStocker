@@ -1,5 +1,4 @@
-import Barra from './barra.jsx'
-import { Routes, Route, Navigate, useNavigate, Outlet } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import CrudResponsables from './Responsables/crudResponsables'
 import CrudProveedores from './Proveedores/crudProveedores'
 import CrudDestino from './Destino/crudDestino'
@@ -13,29 +12,6 @@ import Home from './home/home.jsx'
 import { useState, useEffect } from 'react'
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx"
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx"
-
-
-
-// Layout para rutas que necesitan el navbar de Bootstrap
-function LayoutWithNavbar({ isAuth, logout }) {
-  return (
-    <>
-      <Barra isAuth={isAuth} logout={logout} />
-      <main className="container my-4">
-        <Outlet />
-      </main>
-    </>
-  );
-}
-
-// Layout para rutas SIN navbar (como Home)
-function LayoutWithoutNavbar() {
-  return (
-    <main className="container-fluid p-0 m-0"> {/* Sin container de Bootstrap */}
-      <Outlet />
-    </main>
-  );
-}
 
 function App() {
   const navigate = useNavigate()
@@ -61,22 +37,20 @@ function App() {
 
   return (
     <Routes>
-      {/* Rutas públicas SIN navbar */}
-      <Route path="/login" element={<Login setIsAuth={setIsAuth} />} />
-      <Route path="/home" element={<Home />} />
 
-      {/* Rutas protegidas CON navbar (Bootstrap) */}
+      {/* Ruta pública */}
+      <Route path="/login" element={<Login setIsAuth={setIsAuth} />} />
+
+      {/* Rutas protegidas con Home como layout */}
       <Route
         path="/"
         element={
-          isAuth ? (
-            <LayoutWithNavbar isAuth={isAuth} logout={logout} />
-          ) : (
-            <Navigate to="/login" />
-          )
+          isAuth ? <Home /> : <Navigate to="/login" />
         }
       >
-        <Route index element={<Navigate to="/home" />} />
+
+        <Route index element={<Navigate to="Entradas" />} />
+
         <Route path="Proveedores" element={<CrudProveedores />} />
         <Route path="Responsables" element={<CrudResponsables />} />
         <Route path="Destino" element={<CrudDestino />} />
@@ -84,7 +58,7 @@ function App() {
         <Route path="Entradas" element={<CrudEntradas />} />
         <Route path="Solicitudes" element={<SolicitudCrud />} />
         <Route path="Estados" element={<EstadoCrud />} />
-        <Route path="/solicitudes-pendientes" element={<SolicitudPendientes />} />
+        <Route path="solicitudes-pendientes" element={<SolicitudPendientes />} />
         <Route path="solicitud-nueva" element={<SolicitudConLotes />} />
         <Route path="Estado_solicitud" element={<Estados_solicitudCrud />} />
 
@@ -92,6 +66,7 @@ function App() {
 
       {/* Ruta por defecto */}
       <Route path="*" element={<Navigate to={isAuth ? "/" : "/login"} />} />
+
     </Routes>
   )
 }
