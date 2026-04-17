@@ -199,9 +199,7 @@ const Navbar = ({ isAuth, logout }) => {
                 </div>
             </div>
 
-            <main className="container my-4">
-                <Outlet />
-            </main>
+
         </>
     );
 }
