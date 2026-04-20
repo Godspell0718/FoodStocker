@@ -18,8 +18,11 @@ const SolicitudCrud = () => {
         { name: 'ID', selector: row => row.Id_solicitud },
         { name: 'Responsable', selector: row => row.responsable?.Nom_Responsable ?? "Sin responsable" },
         { name: 'Fecha Entrega', selector: row => row.Fec_entrega },
-        { name: 'motivo', selector: row => row.motivo },
+        { name: 'Motivo', selector: row => row.motivo },
+        { name: 'Descripción', selector: row => row.Descripcion ?? "Sin descripción" },
+        { name: 'Ficha', selector: row => row.Ficha ?? "-" },
         { name: 'Fecha de solicitud', selector: row => row.createdat?.slice(0, 19) },
+
         {
             name: 'Accion',
             cell: (row) => (

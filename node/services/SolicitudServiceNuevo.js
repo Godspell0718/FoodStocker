@@ -7,13 +7,19 @@ import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 
 class SolicitudServiceNuevo {
 
-    async crearCompleta({ Id_Responsable, Fec_entrega, motivo, insumos }) {
+    async crearCompleta({ Id_Responsable, Fec_entrega, motivo, Descripcion, Ficha, insumos }) {
 
         const t = await db.transaction();
 
         try {
             const nuevaSolicitud = await SolicitudModel.create(
-                { Id_Responsable, Fec_entrega, motivo },
+                { 
+                    Id_Responsable, 
+                    Fec_entrega, 
+                    motivo,
+                    Descripcion, // ✅ nuevo
+                    Ficha        // ✅ nuevo
+                },
                 { transaction: t }
             );
 
@@ -61,7 +67,7 @@ class SolicitudServiceNuevo {
                     {
                         Id_solicitud,
                         Id_insumos,
-                        Id_Entradas, // 🔥 CLAVE
+                        Id_Entradas,
                         cantidad_solicitada
                     },
                     { transaction: t }
@@ -105,7 +111,7 @@ class SolicitudServiceNuevo {
 
                     await entradasModel.update(
                         {
-                            Can_Salida: Math.max(nuevaSalida, 0), // evita negativos
+                            Can_Salida: Math.max(nuevaSalida, 0),
                             Estado: stockReal > 0 ? 'STOCK' : 'AGOTADO'
                         },
                         {

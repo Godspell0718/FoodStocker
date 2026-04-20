@@ -2,7 +2,7 @@ import solicitudServiceNuevo from "../services/SolicitudServiceNuevo.js";
 
 export const crearSolicitudCompleta = async (req, res) => {
     try {
-        const { Id_Responsable, Fec_entrega, motivo, insumos } = req.body;
+        const { Id_Responsable, Fec_entrega, motivo, descripcion, ficha, insumos } = req.body;
 
         if (!Id_Responsable || !Fec_entrega || !motivo || !insumos || insumos.length === 0) {
             return res.status(400).json({ message: "Faltan campos requeridos o no hay insumos" });
@@ -12,6 +12,8 @@ export const crearSolicitudCompleta = async (req, res) => {
             Id_Responsable,
             Fec_entrega,
             motivo,
+            Descripcion: descripcion,
+            Ficha: ficha,
             insumos
         });
 
@@ -22,8 +24,3 @@ export const crearSolicitudCompleta = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
-
-
-
-
-
