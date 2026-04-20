@@ -5,7 +5,11 @@ import Swal from "sweetalert2";
 const SolicitudConLotes = () => {
     const [paso, setPaso] = useState(1);
 
-    const [motivo, setMotivo] = useState("");
+    const [motivo] = useState("Practica de formacion");
+    const [descripcion, setDescripcion] = useState("");
+    const [ficha, setFicha] = useState("");
+    const [fichaConfirm, setFichaConfirm] = useState("");
+
     const [fechaEntrega, setFechaEntrega] = useState("");
 
     const [insumos, setInsumos] = useState([]);
@@ -31,10 +35,16 @@ const SolicitudConLotes = () => {
     };
 
     const handleSiguiente = () => {
-        if (!motivo.trim() || !fechaEntrega) {
-            Swal.fire("Campos requeridos", "Completa el motivo y la fecha", "warning");
+        if (!fechaEntrega || !descripcion.trim() || !ficha || !fichaConfirm) {
+            Swal.fire("Campos requeridos", "Completa todos los campos", "warning");
             return;
         }
+
+        if (ficha !== fichaConfirm) {
+            Swal.fire("Error", "Los números de ficha no coinciden", "error");
+            return;
+        }
+
         setPaso(2);
     };
 
@@ -110,16 +120,20 @@ const SolicitudConLotes = () => {
                 Id_Responsable: usuario.id,
                 Fec_entrega: fechaEntrega,
                 motivo,
+                descripcion,
+                ficha,
                 insumos: carrito.map(item => ({
                     Id_insumos: item.Id_Insumos,
-                    Id_Entradas: item.Id_Entradas, // 🔥 IMPORTANTE
+                    Id_Entradas: item.Id_Entradas,
                     cantidad_solicitada: item.cantidad
                 }))
             });
 
             Swal.fire("¡Solicitud creada!", "Tu solicitud fue registrada correctamente", "success");
 
-            setMotivo("");
+            setDescripcion("");
+            setFicha("");
+            setFichaConfirm("");
             setFechaEntrega("");
             setCarrito([]);
             setPaso(1);
@@ -137,18 +151,45 @@ const SolicitudConLotes = () => {
             <div className="card mb-4 shadow-sm">
                 <div className="card-body">
                     <div className="row g-3 align-items-end">
-                        <div className="col-md-4">
+
+                        <div className="col-md-3">
                             <label className="form-label fw-semibold">Motivo</label>
+                            <input className="form-control" value={motivo} disabled />
+                        </div>
+
+                        <div className="col-md-3">
+                            <label className="form-label fw-semibold">Descripción</label>
                             <input
-                                type="text"
                                 className="form-control"
-                                value={motivo}
-                                onChange={e => setMotivo(e.target.value)}
+                                value={descripcion}
+                                onChange={e => setDescripcion(e.target.value)}
                                 disabled={paso === 2}
                             />
                         </div>
 
-                        <div className="col-md-4">
+                        <div className="col-md-2">
+                            <label className="form-label fw-semibold">Ficha</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                value={ficha}
+                                onChange={e => setFicha(e.target.value)}
+                                disabled={paso === 2}
+                            />
+                        </div>
+
+                        <div className="col-md-2">
+                            <label className="form-label fw-semibold">Confirmar ficha</label>
+                            <input
+                                type="number"
+                                className="form-control"
+                                value={fichaConfirm}
+                                onChange={e => setFichaConfirm(e.target.value)}
+                                disabled={paso === 2}
+                            />
+                        </div>
+
+                        <div className="col-md-2">
                             <label className="form-label fw-semibold">Fecha para cuándo</label>
                             <input
                                 type="date"
@@ -159,7 +200,7 @@ const SolicitudConLotes = () => {
                             />
                         </div>
 
-                        <div className="col-md-4">
+                        <div className="col-md-12">
                             {paso === 1 ? (
                                 <button className="btn btn-dark w-100" onClick={handleSiguiente}>
                                     Siguiente →
@@ -174,12 +215,11 @@ const SolicitudConLotes = () => {
                 </div>
             </div>
 
-            {/* PASO 2 */}
+            {/* PASO 2 → EXACTAMENTE TU DISEÑO */}
             {paso === 2 && (
                 <div className="card shadow-sm">
                     <div className="card-body">
 
-                        {/* FILTRO */}
                         <div className="mb-3">
                             <input
                                 type="text"
@@ -190,7 +230,6 @@ const SolicitudConLotes = () => {
                             />
                         </div>
 
-                        {/* TABLA */}
                         <div style={{ maxHeight: 350, overflowY: "auto" }}>
                             <table className="table table-bordered table-hover table-sm mb-0">
                                 <thead className="table-dark sticky-top">
@@ -203,93 +242,81 @@ const SolicitudConLotes = () => {
                                 </thead>
 
                                 <tbody>
-                                    {insumosFiltrados.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={4} className="text-center text-muted">
-                                                No se encontraron insumos
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        insumosFiltrados.map(ins => {
+                                    {insumosFiltrados.map(ins => {
+                                        const hoy = new Date();
 
-                                            const hoy = new Date();
-
-                                            const lotes = (ins.entradas || []).filter(lote => {
+                                        const lotes = (ins.entradas || [])
+                                            .filter(lote => {
                                                 const disponible = lote.Can_Inicial - lote.Can_Salida;
                                                 const fechaVencimiento = new Date(lote.Fec_Ven_Entrada);
                                                 return disponible > 0 && fechaVencimiento >= hoy;
-                                            });
-
-                                            return (
-                                                <tr key={ins.Id_Insumos}>
-                                                    <td className="align-middle fw-semibold">
-                                                        {ins.Nom_Insumo}
-                                                        <br />
-                                                        <small className="text-muted">{ins.Uni_Med_Insumo}</small>
-                                                    </td>
-
-                                                    <td>
-                                                        {lotes.length === 0 ? (
-                                                            <span className="text-danger small">
-                                                                Sin stock disponible
-                                                            </span>
-                                                        ) : (
-                                                            lotes.map(lote => {
-                                                                const disponible = lote.Can_Inicial - lote.Can_Salida;
-                                                                const seleccionado =
-                                                                    loteSeleccionado[ins.Id_Insumos] === lote.Id_Entradas;
-
-                                                                return (
-                                                                    <div key={lote.Id_Entradas} className="form-check mb-1">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="form-check-input"
-                                                                            checked={seleccionado}
-                                                                            onChange={() =>
-                                                                                handleCheckbox(ins.Id_Insumos, lote.Id_Entradas)
-                                                                            }
-                                                                        />
-                                                                        <label className="form-check-label small">
-                                                                            <strong>{lote.Lote}</strong> — vence: {lote.Fec_Ven_Entrada} — disponible: <strong>{disponible}</strong>
-                                                                        </label>
-                                                                    </div>
-                                                                );
-                                                            })
-                                                        )}
-                                                    </td>
-
-                                                    <td className="align-middle">
-                                                        <input
-                                                            type="number"
-                                                            className="form-control form-control-sm"
-                                                            min={1}
-                                                            style={{ width: 80 }}
-                                                            value={cantidades[ins.Id_Insumos] || ""}
-                                                            onChange={e => setCantidades(prev => ({
-                                                                ...prev,
-                                                                [ins.Id_Insumos]: e.target.value
-                                                            }))}
-                                                        />
-                                                    </td>
-
-                                                    <td className="align-middle">
-                                                        <button
-                                                            className="btn btn-dark btn-sm"
-                                                            onClick={() => handleAgregar(ins)}
-                                                            disabled={lotes.length === 0}
-                                                        >
-                                                            Agregar
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                            })
+                                            .sort((a, b) =>
+                                                new Date(a.Fec_Ven_Entrada) - new Date(b.Fec_Ven_Entrada)
                                             );
-                                        })
-                                    )}
+
+                                        return (
+                                            <tr key={ins.Id_Insumos}>
+                                                <td className="align-middle fw-semibold">
+                                                    {ins.Nom_Insumo}
+                                                    <br />
+                                                    <small className="text-muted">{ins.Uni_Med_Insumo}</small>
+                                                </td>
+
+                                                <td>
+                                                    {lotes.map(lote => {
+                                                        const disponible = lote.Can_Inicial - lote.Can_Salida;
+                                                        const seleccionado =
+                                                            loteSeleccionado[ins.Id_Insumos] === lote.Id_Entradas;
+
+                                                        return (
+                                                            <div key={lote.Id_Entradas} className="form-check mb-1">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="form-check-input"
+                                                                    checked={seleccionado}
+                                                                    onChange={() =>
+                                                                        handleCheckbox(ins.Id_Insumos, lote.Id_Entradas)
+                                                                    }
+                                                                />
+                                                                <label className="form-check-label small">
+                                                                    <strong>{lote.Lote}</strong> — vence: {lote.Fec_Ven_Entrada} — disponible: <strong>{disponible}</strong>
+                                                                </label>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </td>
+
+                                                <td className="align-middle">
+                                                    <input
+                                                        type="number"
+                                                        className="form-control form-control-sm"
+                                                        min={1}
+                                                        style={{ width: 80 }}
+                                                        value={cantidades[ins.Id_Insumos] || ""}
+                                                        onChange={e => setCantidades(prev => ({
+                                                            ...prev,
+                                                            [ins.Id_Insumos]: e.target.value
+                                                        }))}
+                                                    />
+                                                </td>
+
+                                                <td className="align-middle">
+                                                    <button
+                                                        className="btn btn-dark btn-sm"
+                                                        onClick={() => handleAgregar(ins)}
+                                                        disabled={lotes.length === 0}
+                                                    >
+                                                        Agregar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
 
-                        {/* CARRITO */}
                         {carrito.length > 0 && (
                             <div className="mt-4">
                                 <h6 className="fw-bold">

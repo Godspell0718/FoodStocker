@@ -8,8 +8,7 @@ const SolicitudModel = sequelize.define(
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
-        }
-        ,
+        },
         Id_Responsable: {
             type: DataTypes.INTEGER,
             allowNull: false
@@ -22,6 +21,15 @@ const SolicitudModel = sequelize.define(
             type: DataTypes.STRING(255),
             allowNull: false
         },
+        Descripcion: {
+            type: DataTypes.STRING(255),
+            allowNull: true
+        },
+        Ficha: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+
         createdat: {
             type: DataTypes.DATE,
             allowNull: false,

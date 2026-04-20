@@ -90,21 +90,38 @@ const SolicitudPendientes = () => {
 
                         <div className="card-body">
                             <div className="row mb-3">
-                                <div className="col-md-4">
+                                <div className="col-md-3">
                                     <small className="text-muted">Motivo</small>
                                     <p className="fw-semibold mb-0">{sol.motivo}</p>
                                 </div>
-                                <div className="col-md-4">
+
+                                {/* ✅ NUEVO: DESCRIPCIÓN */}
+                                <div className="col-md-3">
+                                    <small className="text-muted">Descripción</small>
+                                    <p className="fw-semibold mb-0">
+                                        {sol.Descripcion || "Sin descripción"}
+                                    </p>
+                                </div>
+
+                                {/* ✅ NUEVO: FICHA */}
+                                <div className="col-md-2">
+                                    <small className="text-muted">Ficha</small>
+                                    <p className="fw-semibold mb-0">
+                                        {sol.Ficha || "N/A"}
+                                    </p>
+                                </div>
+
+                                <div className="col-md-2">
                                     <small className="text-muted">Fecha de entrega</small>
                                     <p className="fw-semibold mb-0">{sol.Fec_entrega}</p>
                                 </div>
-                                <div className="col-md-4">
+
+                                <div className="col-md-2">
                                     <small className="text-muted">Fecha de solicitud</small>
                                     <p className="fw-semibold mb-0">{sol.createdat?.slice(0, 10)}</p>
                                 </div>
                             </div>
 
-                            {/* Insumos solicitados */}
                             <h6 className="fw-bold mb-2">Insumos solicitados:</h6>
                             <table className="table table-sm table-bordered mb-3">
                                 <thead className="table-dark">
@@ -115,7 +132,11 @@ const SolicitudPendientes = () => {
                                 </thead>
                                 <tbody>
                                     {(sol.insumos || []).length === 0 ? (
-                                        <tr><td colSpan={2} className="text-muted text-center">Sin insumos</td></tr>
+                                        <tr>
+                                            <td colSpan={2} className="text-muted text-center">
+                                                Sin insumos
+                                            </td>
+                                        </tr>
                                     ) : (
                                         (sol.insumos || []).map(item => (
                                             <tr key={item.id_insumo_solicitud}>
@@ -127,34 +148,56 @@ const SolicitudPendientes = () => {
                                 </tbody>
                             </table>
 
-                            {/* Botones de acción */}
                             <div className="d-flex gap-2 flex-wrap">
-                                {/* Solo mostrar botones si NO está cancelado NI despachado */}
-                                {sol.ultimoEstado?.toLowerCase() !== "cancelado" && sol.ultimoEstado?.toLowerCase() !== "despachado" && (
+
+                                {sol.ultimoEstado?.toLowerCase() === "solicitado" && (
                                     <>
                                         <button
                                             className="btn btn-primary btn-sm"
                                             onClick={() => cambiarEstado(sol.Id_solicitud, 2, "proceso")}
                                         >
-                                            <i className="fa-solid fa-gears me-1"></i> En proceso
+                                            <i className="fa-solid fa-check me-1"></i> Aceptar
                                         </button>
+
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
+                                        >
+                                            <i className="fa-solid fa-ban me-1"></i> Cancelar
+                                        </button>
+                                    </>
+                                )}
+
+                                {sol.ultimoEstado?.toLowerCase() === "proceso" && (
+                                    <>
                                         <button
                                             className="btn btn-success btn-sm"
                                             onClick={() => cambiarEstado(sol.Id_solicitud, 3, "despachado")}
                                         >
                                             <i className="fa-solid fa-truck me-1"></i> Despachar
                                         </button>
+
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
+                                        >
+                                            <i className="fa-solid fa-ban me-1"></i> Cancelar
+                                        </button>
                                     </>
                                 )}
 
-                                {/* Botón Cancelar: mostrar siempre, pero deshabilitar si ya está cancelado o despachado */}
-                                <button
-                                    className="btn btn-danger btn-sm"
-                                    onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
-                                    disabled={sol.ultimoEstado?.toLowerCase() === "cancelado" || sol.ultimoEstado?.toLowerCase() === "despachado"}
-                                >
-                                    <i className="fa-solid fa-ban me-1"></i> Cancelar
-                                </button>
+                                {sol.ultimoEstado?.toLowerCase() === "despachado" && (
+                                    <button className="btn btn-success btn-sm" disabled>
+                                        <i className="fa-solid fa-check me-1"></i> Despachado
+                                    </button>
+                                )}
+
+                                {sol.ultimoEstado?.toLowerCase() === "cancelado" && (
+                                    <button className="btn btn-danger btn-sm" disabled>
+                                        <i className="fa-solid fa-ban me-1"></i> Cancelado
+                                    </button>
+                                )}
+
                             </div>
                         </div>
                     </div>
