@@ -207,7 +207,7 @@ export default function Dashboard() {
                 <div className="tw-px-3 tw-pb-4 tw-border-t tw-border-gray-800 tw-pt-4 tw-bg-primario-900">
                     <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white">
                         <Settings className="tw-w-5 tw-h-5" />
-                        Settings
+                        Configuración
                     </button>
                 </div>
             </aside>
@@ -221,7 +221,7 @@ export default function Dashboard() {
                     {/* Buscador */}
                     <div className="tw-relative">
                         <input
-                            placeholder="Search..."
+                            placeholder="Buscar..."
                             className="tw-input tw-shadow-lg focus:tw-border-2 tw-border-gray-300 tw-px-5 tw-py-3 tw-rounded-xl tw-w-56 tw-transition-all focus:tw-w-64 tw-outline-none"
                             name="search"
                             type="search"
@@ -247,10 +247,10 @@ export default function Dashboard() {
                                     className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer group"
                                 >
                                     <div className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gradient-to-br tw-from-orange-400 tw-to-rose-400 tw-flex tw-items-center tw-justify-center tw-text-white tw-text-sm tw-font-bold">
-                                        U
+                                        {JSON.parse(localStorage.getItem('userFoodStocker') || '{}').nombre?.[0]?.toUpperCase() || 'U'}
                                     </div>
                                     <span className="tw-text-sm tw-font-medium tw-text-primario-50 tw-hidden sm:tw-block">
-                                        Usuario
+                                        {JSON.parse(localStorage.getItem('userFoodStocker') || '{}').nombre || 'Usuario'}
                                     </span>
                                     <ChevronDown className="tw-w-4 tw-h-4 tw-text-primario-50" />
                                 </div>
