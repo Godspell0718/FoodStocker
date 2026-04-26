@@ -171,8 +171,8 @@ const SolicitudPendientes = () => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {(sol.insumos || []).map(item => (
-                                                    <tr key={item.id_insumo_solicitud} className="tw-border-t tw-border-gray-100 hover:tw-bg-gray-50 tw-transition-colors">
+                                                {(sol.insumos || []).map((item, index) => (
+                                                    <tr key={item.Id_insumo_solicitud || index} className="tw-border-t tw-border-gray-100 hover:tw-bg-gray-50 tw-transition-colors">
                                                         <td className="tw-px-4 tw-py-2.5 tw-text-gray-700">
                                                             {item.insumo?.Nom_Insumo ?? `Insumo #${item.Id_insumos}`}
                                                         </td>

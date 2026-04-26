@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import apiAxios from "../api/axiosConfig.js";
 import {
     ClipboardPaste,
     ArchiveRestore,
@@ -38,6 +39,21 @@ export default function Dashboard() {
     const [openUserMenu, setOpenUserMenu] = useState(false);
     const menuRef = useRef();
 
+    // Notificaciones
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const notifRef = useRef();
+
+    const cargarNotificaciones = async () => {
+        try {
+            const res = await apiAxios.get("/api/solicitudes/pendientes");
+            const nuevas = res.data.filter(sol => sol.ultimoEstado?.toLowerCase() === "solicitado");
+            setNotifications(nuevas);
+        } catch (error) {
+            console.error("Error cargando notificaciones:", error);
+        }
+    };
+
     const logout = () => {
         localStorage.removeItem('tokenFoodStocker');
         localStorage.removeItem('userFoodStocker');
@@ -45,9 +61,17 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
+        cargarNotificaciones();
+        
+        const handleNuevaSolicitud = () => cargarNotificaciones();
+        window.addEventListener("nuevaSolicitud", handleNuevaSolicitud);
+
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setOpenUserMenu(false);
+            }
+            if (notifRef.current && !notifRef.current.contains(event.target)) {
+                setShowNotifications(false);
             }
         };
 
@@ -55,6 +79,7 @@ export default function Dashboard() {
 
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
+            window.removeEventListener("nuevaSolicitud", handleNuevaSolicitud);
         };
     }, []);
 
@@ -234,10 +259,76 @@ export default function Dashboard() {
                     < div className="tw-flex tw-items-center tw-gap-3" >
 
                         {/* Notificaciones */}
-                        < button className="tw-w-9 tw-h-9 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200 tw-transition-all tw-duration-200 tw-relative" >
-                            <Bell className="tw-w-4 tw-h-4" />
-                            <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-w-2 tw-h-2 tw-bg-indigo-500 tw-rounded-full" />
-                        </button >
+                        <div className="tw-relative" ref={notifRef}>
+                            < button 
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                className="tw-w-9 tw-h-9 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200 tw-transition-all tw-duration-200 tw-relative" 
+                            >
+                                <Bell className="tw-w-4 tw-h-4" />
+                                {notifications.length > 0 && (
+                                    <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-w-2 tw-h-2 tw-bg-indigo-500 tw-rounded-full" />
+                                )}
+                            </button >
+
+                            {showNotifications && (
+                                <div className="tw-absolute tw-right-0 tw-mt-3 tw-w-80 tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-border tw-border-gray-100 tw-z-50 tw-overflow-hidden tw-animate-in tw-fade-in tw-slide-in-from-top-2">
+                                    <div className="tw-px-5 tw-py-4 tw-bg-gradient-to-r tw-from-indigo-600 tw-to-blue-500 tw-text-white tw-flex tw-items-center tw-justify-between">
+                                        <div className="tw-flex tw-items-center tw-gap-2">
+                                            <Bell className="tw-w-4 tw-h-4 tw-text-indigo-100" />
+                                            <span className="tw-font-bold tw-text-sm tw-tracking-wide">Notificaciones</span>
+                                        </div>
+                                        {notifications.length > 0 && (
+                                            <span className="tw-bg-white/20 tw-text-white tw-text-xs tw-font-bold tw-px-2.5 tw-py-1 tw-rounded-full tw-backdrop-blur-sm">
+                                                <span>{notifications.length} nuevas</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="tw-max-h-[320px] tw-overflow-y-auto tw-divide-y tw-divide-gray-50">
+                                        {notifications.length === 0 ? (
+                                            <div className="tw-px-6 tw-py-8 tw-flex tw-flex-col tw-items-center tw-justify-center tw-text-center">
+                                                <div className="tw-w-12 tw-h-12 tw-bg-gray-50 tw-rounded-full tw-flex tw-items-center tw-justify-center tw-mb-3">
+                                                    <Bell className="tw-w-5 tw-h-5 tw-text-gray-400" />
+                                                </div>
+                                                <p className="tw-text-sm tw-font-medium tw-text-gray-600"><span>Al día</span></p>
+                                                <p className="tw-text-xs tw-text-gray-400"><span>No tienes notificaciones nuevas</span></p>
+                                            </div>
+                                        ) : (
+                                            notifications.map(sol => (
+                                                <div 
+                                                    key={sol.Id_solicitud} 
+                                                    className="tw-p-4 hover:tw-bg-indigo-50/50 tw-cursor-pointer tw-transition-all tw-duration-200 tw-group"
+                                                    onClick={() => {
+                                                        setShowNotifications(false);
+                                                        navigate("/solicitudes-pendientes");
+                                                    }}
+                                                >
+                                                    <div className="tw-flex tw-items-start tw-gap-3">
+                                                        <div className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-indigo-100 tw-flex tw-items-center tw-justify-center tw-shrink-0 tw-mt-0.5 group-hover:tw-bg-indigo-200 tw-transition-colors">
+                                                            <span className="tw-text-indigo-600 tw-font-bold tw-text-xs">
+                                                                {sol.responsable?.Nom_Responsable?.[0]?.toUpperCase() || "U"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="tw-flex-1 tw-min-w-0">
+                                                            <p className="tw-text-sm tw-text-gray-700 tw-leading-snug">
+                                                                <span className="tw-font-bold tw-text-gray-900">{sol.responsable?.Nom_Responsable || "Usuario"}</span><span> ha solicitado insumos para el destino </span><span className="tw-font-bold tw-text-indigo-600">{sol.Ficha || "N/A"}</span><span>.</span>
+                                                            </p>
+                                                            <div className="tw-flex tw-items-center tw-gap-2 tw-mt-1.5">
+                                                                <span className="tw-text-[10px] tw-font-bold tw-text-indigo-500 tw-bg-indigo-50 tw-px-2 tw-py-0.5 tw-rounded-md">
+                                                                    #{sol.Id_solicitud}
+                                                                </span>
+                                                                <span className="tw-text-[11px] tw-font-medium tw-text-gray-400">
+                                                                    <span>Hace un momento</span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         <div className="tw-relative">
                             <div className="tw-relative" ref={menuRef}>

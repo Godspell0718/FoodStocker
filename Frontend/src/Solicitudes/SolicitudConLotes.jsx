@@ -152,6 +152,7 @@ const SolicitudConLotes = () => {
             Swal.fire({ title: "¡Solicitud creada!", text: "Tu solicitud fue registrada correctamente", icon: "success", timer: 1800, showConfirmButton: false });
             setDescripcion(""); setFicha(""); setFichaConfirm("");
             setFechaEntrega(""); setCarrito([]); setPaso(1);
+            window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
             Swal.fire("Error", error.response?.data?.message || "Error al crear", "error");
         }
@@ -181,7 +182,7 @@ const SolicitudConLotes = () => {
             {/* PASO 1 — Datos */}
             <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-p-5 tw-mb-4">
                 <p className="tw-text-sm tw-font-semibold tw-text-gray-600 tw-mb-4">
-                    {paso === 1 ? "Información de la solicitud" : "Resumen de la solicitud"}
+                    {paso === 1 ? <span>Información de la solicitud</span> : <span>Resumen de la solicitud</span>}
                 </p>
                 <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
                     <div>
@@ -208,11 +209,11 @@ const SolicitudConLotes = () => {
                 <div className="tw-mt-4">
                     {paso === 1 ? (
                         <button onClick={handleSiguiente} className="tw-flex tw-items-center tw-gap-2 tw-px-5 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-white tw-font-medium tw-text-sm hover:tw-bg-primario-700 tw-transition-all tw-shadow-md">
-                            Siguiente <ArrowRight className="tw-w-4 tw-h-4" />
+                            <span>Siguiente</span> <ArrowRight className="tw-w-4 tw-h-4" />
                         </button>
                     ) : (
                         <button onClick={() => setPaso(1)} className="tw-flex tw-items-center tw-gap-2 tw-px-5 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-gray-600 tw-text-sm hover:tw-bg-gray-50 tw-transition-all">
-                            <ArrowLeft className="tw-w-4 tw-h-4" /> Editar datos
+                            <ArrowLeft className="tw-w-4 tw-h-4" /> <span>Editar datos</span>
                         </button>
                     )}
                 </div>
@@ -242,7 +243,7 @@ const SolicitudConLotes = () => {
                                 </thead>
                                 <tbody>
                                     {insumosFiltrados.length === 0 ? (
-                                        <tr><td colSpan={4} className="tw-py-10 tw-text-center tw-text-gray-400 tw-text-sm">No se encontraron insumos</td></tr>
+                                        <tr><td colSpan={4} className="tw-py-10 tw-text-center tw-text-gray-400 tw-text-sm"><span>No se encontraron insumos</span></td></tr>
                                     ) : (
                                         insumosFiltrados.map(ins => {
                                             const stockTotal = calcularStockDisponible(ins);
@@ -255,7 +256,7 @@ const SolicitudConLotes = () => {
                                                     </td>
                                                     <td className="tw-px-4 tw-py-3">
                                                         <span className={`tw-inline-flex tw-items-center tw-px-2.5 tw-py-1 tw-rounded-lg tw-text-xs tw-font-bold ${sinStock ? "tw-bg-red-50 tw-text-red-500" : "tw-bg-green-50 tw-text-green-700"}`}>
-                                                            {sinStock ? "Sin stock" : `${stockTotal} ${ins.Uni_Med_Insumo}`}
+                                                            {sinStock ? <span>Sin stock</span> : <span>{stockTotal} {ins.Uni_Med_Insumo}</span>}
                                                         </span>
                                                     </td>
                                                     <td className="tw-px-4 tw-py-3">
@@ -276,7 +277,7 @@ const SolicitudConLotes = () => {
                                                             disabled={sinStock}
                                                             className="tw-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white tw-text-xs tw-font-medium hover:tw-bg-primario-700 tw-transition-all disabled:tw-opacity-40 disabled:tw-cursor-not-allowed"
                                                         >
-                                                            <Plus className="tw-w-3.5 tw-h-3.5" /> Agregar
+                                                            <Plus className="tw-w-3.5 tw-h-3.5" /> <span>Agregar</span>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -348,7 +349,7 @@ const SolicitudConLotes = () => {
                             </table>
                             <div className="tw-px-5 tw-py-4 tw-border-t tw-border-gray-100">
                                 <button onClick={handleEnviar} className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-white tw-font-medium tw-text-sm hover:tw-bg-primario-700 tw-transition-all tw-shadow-md">
-                                    <Send className="tw-w-4 tw-h-4" /> Crear Solicitud
+                                    <Send className="tw-w-4 tw-h-4" /> <span>Crear Solicitud</span>
                                 </button>
                             </div>
                         </div>
