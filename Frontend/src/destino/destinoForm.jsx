@@ -20,11 +20,15 @@ const DestinoForm = ({ hideModal, destinoSeleccionado }) => {
             setTipdestino(destinoSeleccionado.Tip_Destino)
             setTextFormButton('Actualizar')
         } else {
-            setNombres('')
-            setTipdestino('')
-            setTextFormButton('Enviar')
+            limpiarFormulario()
         }
     }, [destinoSeleccionado])
+
+    const limpiarFormulario = () => {
+        setNombres('')
+        setTipdestino('')
+        setTextFormButton('Enviar')
+    }
 
 
 
@@ -46,7 +50,7 @@ const DestinoForm = ({ hideModal, destinoSeleccionado }) => {
                     icon: "success"
                 })
 
-
+                limpiarFormulario()
                 hideModal()
 
 
@@ -69,6 +73,7 @@ const DestinoForm = ({ hideModal, destinoSeleccionado }) => {
                     icon: "success"
                 })
 
+                limpiarFormulario()
                 hideModal()
 
             } catch (error) {
