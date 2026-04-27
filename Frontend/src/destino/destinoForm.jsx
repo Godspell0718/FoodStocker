@@ -14,17 +14,62 @@ const DestinoForm = ({ hideModal, destinoSeleccionado }) => {
             setNombres(destinoSeleccionado.Nom_Destino)
             setTipdestino(destinoSeleccionado.Tip_Destino)
         } else {
+<<<<<<< HEAD
             setNombres('')
             setTipdestino('')
         }
     }, [destinoSeleccionado])
 
+=======
+            limpiarFormulario()
+        }
+    }, [destinoSeleccionado])
+
+    const limpiarFormulario = () => {
+        setNombres('')
+        setTipdestino('')
+        setTextFormButton('Enviar')
+    }
+
+
+
+>>>>>>> 752bb6008220f62e9832250a9847bebadbfe8942
     const gestionarForm = async (e) => {
         e.preventDefault()
         setLoading(true)
 
+<<<<<<< HEAD
         try {
             if (destinoSeleccionado) {
+=======
+        if (textFormButton == 'Enviar') {
+            try {
+
+                const response = await apiAxios.post('/api/destino', { //Se envian todos los datos como un objeto JSON 
+                    Nom_Destino: Nom_Destino,
+                    Tip_Destino: Tip_Destino
+
+                })
+
+                MySwal.fire({
+                    title: "Registro Exitoso",
+                    text: "Destino creado correctamente",
+                    icon: "success"
+                })
+
+                limpiarFormulario()
+                hideModal()
+
+
+            } catch (error) {
+
+                console.error("Error registrando Destino:", error.response ? error.response.data : error.message);
+                alert(error.message)
+            }
+
+        } else if (textFormButton == 'Actualizar') {
+            try {
+>>>>>>> 752bb6008220f62e9832250a9847bebadbfe8942
                 await apiAxios.put(`/api/destino/${destinoSeleccionado.Id_Destino}`, {
                     Nom_Destino,
                     Tip_Destino
@@ -48,6 +93,16 @@ const DestinoForm = ({ hideModal, destinoSeleccionado }) => {
                     timer: 1500,
                     showConfirmButton: false
                 })
+<<<<<<< HEAD
+=======
+
+                limpiarFormulario()
+                hideModal()
+
+            } catch (error) {
+                console.error("Error actualizando Destino:", error.response ? error.response.data : error.message);
+                alert("Error al actualizar")
+>>>>>>> 752bb6008220f62e9832250a9847bebadbfe8942
             }
             hideModal()
         } catch (error) {
