@@ -2,6 +2,11 @@ import { useState, useEffect } from "react"
 import apiAxios from '../api/axiosConfig.js'
 import DataTable from "react-data-table-component"
 import ResponsablesForm from "./ResponsablesForm.jsx"
+import Swal from "sweetalert2"
+import { 
+    Users, User, Mail, Phone, Shield, 
+    Plus, Search, Pencil, Trash2, X, Inbox 
+} from "lucide-react"
 
 const CrudResponsables = () => {
 
@@ -9,6 +14,7 @@ const CrudResponsables = () => {
     const [filterText, setFilterText] = useState("")
     const [loading, setLoading] = useState(false)
     const [responsableSeleccionado, setResponsableSeleccionado] = useState(null)
+    const [showModal, setShowModal] = useState(false)
 
     const columnsTable = [
         { 
@@ -19,7 +25,7 @@ const CrudResponsables = () => {
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-3">
                     <div className="tw-w-8 tw-h-8 tw-bg-gradient-to-br tw-from-blue-100 tw-to-amber-100 tw-rounded-full tw-flex tw-items-center tw-justify-center">
-                        <i className="fa-solid fa-user tw-text-blue-600 tw-text-sm"></i>
+                        <User className="tw-w-4 tw-h-4 tw-text-blue-600" />
                     </div>
                     <span className="tw-font-medium tw-text-slate-700">{row.Nom_Responsable}</span>
                 </div>
@@ -39,7 +45,7 @@ const CrudResponsables = () => {
             grow: 2,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <i className="fa-regular fa-envelope tw-text-amber-500"></i>
+                    <Mail className="tw-w-3.5 tw-h-3.5 tw-text-amber-500" />
                     <span className="tw-text-slate-600">{row.Cor_Responsable}</span>
                 </div>
             )
@@ -49,7 +55,7 @@ const CrudResponsables = () => {
             selector: row => row.Tel_Responsable,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <i className="fa-solid fa-phone tw-text-blue-400 tw-text-xs"></i>
+                    <Phone className="tw-w-3.5 tw-h-3.5 tw-text-blue-400" />
                     <span className="tw-text-slate-600">{row.Tel_Responsable}</span>
                 </div>
             )
@@ -70,15 +76,27 @@ const CrudResponsables = () => {
         {
             name: "Acciones",
             right: true,
+            width: "100px",
             cell: row => (
-                <button
-                    className="tw-p-2 tw-rounded-lg tw-bg-gradient-to-r tw-from-blue-500 tw-to-blue-600 hover:tw-from-blue-600 hover:tw-to-blue-700 tw-text-white tw-transition-all tw-duration-200 tw-shadow-md hover:tw-shadow-lg"
-                    data-bs-toggle="modal"
-                    data-bs-target="#responsablesModal"
-                    onClick={() => setResponsableSeleccionado(row)}
-                >
-                    <i className="fa-solid fa-pen tw-text-xs"></i>
-                </button>
+                <div className="tw-flex tw-gap-2">
+                    <button
+                        title="Editar"
+                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
+                        onClick={() => {
+                            setResponsableSeleccionado(row)
+                            setShowModal(true)
+                        }}
+                    >
+                        <Pencil className="tw-w-3.5 tw-h-3.5" />
+                    </button>
+                    <button
+                        title="Eliminar"
+                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
+                        onClick={() => deleteResponsable(row.Id_Responsable)}
+                    >
+                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                    </button>
+                </div>
             )
         }
     ]
@@ -87,11 +105,40 @@ const CrudResponsables = () => {
         getAllResponsables()
     }, [])
 
+    const deleteResponsable = async (id) => {
+        const confirm = await Swal.fire({
+            title: "¿Estás seguro?",
+            text: "Esta acción eliminará al responsable permanentemente",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#153753",
+        })
+
+        if (confirm.isConfirmed) {
+            try {
+                await apiAxios.delete(`/api/responsables/${id}`)
+                Swal.fire({
+                    title: "Eliminado",
+                    text: "El responsable ha sido eliminado correctamente",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                })
+                getAllResponsables()
+            } catch (error) {
+                Swal.fire("Error", error.response?.data?.message || "No se pudo eliminar al responsable", "error")
+            }
+        }
+    }
+
     const getAllResponsables = async () => {
         setLoading(true)
         try {
             const response = await apiAxios.get('/api/responsables/')
-            setResponsables(response.data)
+            setResponsables(Array.isArray(response.data) ? response.data : [])
         } catch (error) {
             console.error("Error al cargar responsables:", error)
         } finally {
@@ -110,7 +157,7 @@ const CrudResponsables = () => {
     })
 
     const hideModal = () => {
-        document.getElementById('closeModal')?.click()
+        setShowModal(false)
         setResponsableSeleccionado(null) 
         getAllResponsables() 
     }
@@ -159,8 +206,8 @@ const CrudResponsables = () => {
                 {/* Header */}
                 <div className="tw-mb-8">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                        <div className="tw-w-10 tw-h-10 tw-bg-gradient-to-br tw-from-blue-600 tw-to-indigo-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
-                            <i className="fa-solid fa-users tw-text-white tw-text-lg"></i>
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                            <Users className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
                         <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Usuarios</h1>
                     </div>
@@ -171,10 +218,10 @@ const CrudResponsables = () => {
                 <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
                     <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
                         <div className="tw-relative tw-w-full md:tw-w-96">
-                            <i className="fa-solid fa-magnifying-glass tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400"></i>
+                            <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
                             <input
                                 type="text"
-                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-amber-400 focus:tw-border-transparent tw-transition-all"
+                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
                                 placeholder="Buscar por nombre, correo o documento..."
                                 value={filterText}
                                 onChange={(e) => setFilterText(e.target.value)}
@@ -182,13 +229,13 @@ const CrudResponsables = () => {
                         </div>
                         <button
                             type="button"
-                            className="tw-px-5 tw-py-2.5 tw-bg-gradient-to-r tw-from-blue-600 tw-to-blue-700 hover:tw-from-blue-700 hover:tw-to-blue-800 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
-                            data-bs-toggle="modal"
-                            data-bs-target="#responsablesModal"
-                            id="closeModal"
-                            onClick={() => setResponsableSeleccionado(null)} 
+                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                            onClick={() => {
+                                setResponsableSeleccionado(null)
+                                setShowModal(true)
+                            }}
                         >
-                            <i className="fa-solid fa-plus"></i>
+                            <Plus className="tw-w-4 tw-h-4" />
                             <span>Nuevo Usuario</span>
                         </button>
                     </div>
@@ -216,7 +263,7 @@ const CrudResponsables = () => {
                         }
                         noDataComponent={
                             <div className="tw-py-12 tw-text-center">
-                                <i className="fa-solid fa-inbox tw-text-5xl tw-text-slate-300 tw-mb-3"></i>
+                                <Inbox className="tw-w-12 tw-h-12 tw-text-slate-300 tw-mx-auto tw-mb-3" />
                                 <p className="tw-text-slate-400">No se encontraron responsables</p>
                             </div>
                         }
@@ -230,25 +277,35 @@ const CrudResponsables = () => {
                     </p>
                 </div>
 
-                {/* Modal */}
-                <div className="modal fade" id="responsablesModal" tabIndex="-1" aria-hidden="true">
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content tw-rounded-2xl tw-overflow-hidden">
-                            <div className="tw-bg-gradient-to-r tw-from-blue-600 tw-to-indigo-600 tw-px-6 tw-py-4">
+                {/* Modal Custom Tailwind */}
+                {showModal && (
+                    <div 
+                        className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
+                        onClick={(e) => e.target === e.currentTarget && hideModal()}
+                    >
+                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-md tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
+                            {/* Modal Header */}
+                            <div className="tw-bg-primario-900 tw-px-6 tw-py-4">
                                 <div className="tw-flex tw-justify-between tw-items-center">
                                     <div className="tw-flex tw-items-center tw-gap-3">
                                         <div className="tw-w-8 tw-h-8 tw-bg-white/20 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
-                                            <i className="fa-solid fa-user-plus tw-text-white"></i>
+                                            <User className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                                         </div>
                                         <h5 className="tw-text-white tw-font-semibold tw-text-lg tw-m-0">
                                             {responsableSeleccionado ? 'Editar Responsable' : 'Nuevo Responsable'}
                                         </h5>
                                     </div>
-                                    <button type="button" className="tw-text-white/70 hover:tw-text-white tw-text-2xl tw-leading-none" data-bs-dismiss="modal">
-                                        X
+                                    <button
+                                        type="button"
+                                        className="tw-text-white/70 hover:tw-text-white tw-transition-colors"
+                                        onClick={hideModal}
+                                    >
+                                        <X className="tw-w-6 tw-h-6" />
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Modal Body */}
                             <div className="tw-p-6">
                                 <ResponsablesForm
                                     hideModal={hideModal}
@@ -257,7 +314,7 @@ const CrudResponsables = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )

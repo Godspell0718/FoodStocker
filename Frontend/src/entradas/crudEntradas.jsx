@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react"
 import apiNode from "../api/axiosConfig.js"
 import DataTable from "react-data-table-component"
-import EntradasForm from "./entradasForm.jsx"
+import { EntradasForm } from "./EntradasForm.jsx"
+import { 
+    Warehouse, Box, Calendar, Truck, UserRound, 
+    GraduationCap, Presentation, Pen, Plus, Search, 
+    Inbox, AlertCircle, X, Boxes, Trash2
+} from "lucide-react"
+import Swal from "sweetalert2"
 
-const CrudEntradas = () => {
+export const CrudEntradas = () => {
 
     const [entradas, setEntradas] = useState([])
     const [filterText, setFilterText] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const [entradaSeleccionada, setEntradaSeleccionada] = useState(null)
+    const [showModal, setShowModal] = useState(false)
 
     const columnsTable = [
         {
@@ -42,21 +49,20 @@ const CrudEntradas = () => {
                 const fechaVenc = row.Fec_Ven_Entrada ? new Date(row.Fec_Ven_Entrada) : null
                 const hoy = new Date()
                 const diasRestantes = fechaVenc ? Math.ceil((fechaVenc - hoy) / (1000 * 60 * 60 * 24)) : null
-                
+
                 let colorClase = "tw-text-slate-600"
                 if (diasRestantes !== null) {
                     if (diasRestantes < 0) colorClase = "tw-text-red-600 tw-font-medium"
                     else if (diasRestantes <= 30) colorClase = "tw-text-amber-600 tw-font-medium"
                     else colorClase = "tw-text-green-600"
                 }
-                
+
                 return (
                     <div className="tw-flex tw-items-center tw-gap-2">
-                        <i className={`fa-regular fa-calendar tw-text-xs ${
-                            diasRestantes !== null && diasRestantes < 0 ? 'tw-text-red-500' : 
-                            diasRestantes !== null && diasRestantes <= 30 ? 'tw-text-amber-500' : 
-                            'tw-text-slate-400'
-                        }`}></i>
+                        <Calendar className={`tw-w-3.5 tw-h-3.5 ${diasRestantes !== null && diasRestantes < 0 ? 'tw-text-red-500' :
+                            diasRestantes !== null && diasRestantes <= 30 ? 'tw-text-amber-500' :
+                                'tw-text-slate-400'
+                            }`} />
                         <span className={colorClase}>
                             {row.Fec_Ven_Entrada
                                 ? new Date(row.Fec_Ven_Entrada).toLocaleDateString("es-CO")
@@ -73,7 +79,7 @@ const CrudEntradas = () => {
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-3">
                     <div className="tw-w-8 tw-h-8 tw-bg-gradient-to-br tw-from-emerald-200 tw-to-teal-100 tw-rounded-full tw-flex tw-items-center tw-justify-center">
-                        <i className="fa-solid fa-box tw-text-emerald-700 tw-text-sm"></i>
+                        <Box className="tw-w-4 tw-h-4 tw-text-emerald-700" />
                     </div>
                     <span className="tw-font-medium tw-text-slate-800">
                         {row.insumo?.Nom_Insumo || `Insumo #${row.Id_Insumos}`}
@@ -98,7 +104,7 @@ const CrudEntradas = () => {
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <i className="fa-solid fa-truck tw-text-blue-400 tw-text-xs"></i>
+                    <Truck className="tw-w-3.5 tw-h-3.5 tw-text-blue-400" />
                     <span className="tw-text-slate-600">
                         {row.proveedor?.Nom_Proveedor || `Proveedor #${row.Id_Proveedor}`}
                     </span>
@@ -113,11 +119,11 @@ const CrudEntradas = () => {
             cell: row => {
                 const disponible = row.Can_Inicial - row.Can_Salida
                 const porcentaje = (disponible / row.Can_Inicial) * 100
-                
+
                 let colorBarra = "tw-bg-green-500"
                 if (porcentaje <= 25) colorBarra = "tw-bg-red-500"
                 else if (porcentaje <= 50) colorBarra = "tw-bg-amber-500"
-                
+
                 return (
                     <div className="tw-w-full">
                         <div className="tw-flex tw-justify-between tw-text-xs tw-mb-1">
@@ -125,7 +131,7 @@ const CrudEntradas = () => {
                             <span className="tw-text-slate-400">/ {row.Can_Inicial}</span>
                         </div>
                         <div className="tw-w-full tw-bg-slate-200 tw-rounded-full tw-h-1.5">
-                            <div 
+                            <div
                                 className={`${colorBarra} tw-h-1.5 tw-rounded-full tw-transition-all`}
                                 style={{ width: `${porcentaje}%` }}
                             ></div>
@@ -162,31 +168,31 @@ const CrudEntradas = () => {
             width: "130px",
             cell: row => {
                 const estadosConfig = {
-                    STOCK: { 
-                        color: "tw-bg-green-100 tw-text-green-700", 
+                    STOCK: {
+                        color: "tw-bg-green-100 tw-text-green-700",
                         icono: "fa-box",
                         label: "En Stock"
                     },
-                    AGOTADO: { 
-                        color: "tw-bg-red-100 tw-text-red-700", 
+                    AGOTADO: {
+                        color: "tw-bg-red-100 tw-text-red-700",
                         icono: "fa-box-open",
                         label: "Agotado"
                     },
-                    VENCIDO: { 
-                        color: "tw-bg-amber-100 tw-text-amber-700", 
+                    VENCIDO: {
+                        color: "tw-bg-amber-100 tw-text-amber-700",
                         icono: "fa-clock",
                         label: "Vencido"
                     }
                 }
-                const config = estadosConfig[row.Estado] || { 
-                    color: "tw-bg-slate-100 tw-text-slate-700", 
+                const config = estadosConfig[row.Estado] || {
+                    color: "tw-bg-slate-100 tw-text-slate-700",
                     icono: "fa-question",
-                    label: row.Estado 
+                    label: row.Estado
                 }
-                
+
                 return (
                     <span className={`tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium tw-flex tw-items-center tw-gap-1 tw-w-fit ${config.color}`}>
-                        <i className={`fa-solid ${config.icono} tw-text-xs`}></i>
+                        {row.Estado === 'VENCIDO' ? <AlertCircle className="tw-w-3 tw-h-3" /> : <Box className="tw-w-3 tw-h-3" />}
                         <span>{config.label}</span>
                     </span>
                 )
@@ -198,7 +204,7 @@ const CrudEntradas = () => {
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <i className="fa-solid fa-user-graduate tw-text-purple-400 tw-text-xs"></i>
+                    <GraduationCap className="tw-w-3.5 tw-h-3.5 tw-text-purple-400" />
                     <span className="tw-text-slate-600">
                         {row.pasante?.Nom_Responsable || `Pasante #${row.Id_Pasante}`}
                     </span>
@@ -211,7 +217,7 @@ const CrudEntradas = () => {
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <i className="fa-solid fa-chalkboard-user tw-text-indigo-400 tw-text-xs"></i>
+                    <Presentation className="tw-w-3.5 tw-h-3.5 tw-text-indigo-400" />
                     <span className="tw-text-slate-600">
                         {row.instructor?.Nom_Responsable || `Instructor #${row.Id_Instructor}`}
                     </span>
@@ -221,15 +227,27 @@ const CrudEntradas = () => {
         {
             name: "Acciones",
             right: true,
+            width: "100px",
             cell: row => (
-                <button
-                    className="tw-p-2 tw-rounded-lg tw-bg-gradient-to-r tw-from-amber-500 tw-to-orange-600 hover:tw-from-amber-600 hover:tw-to-orange-700 tw-text-white tw-transition-all tw-duration-200 tw-shadow-md hover:tw-shadow-lg"
-                    data-bs-toggle="modal"
-                    data-bs-target="#entradasModal"
-                    onClick={() => setEntradaSeleccionada(row)}
-                >
-                    <i className="fa-solid fa-pen tw-text-xs"></i>
-                </button>
+                <div className="tw-flex tw-gap-2">
+                    <button
+                        title="Editar"
+                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
+                        onClick={() => {
+                            setEntradaSeleccionada(row)
+                            setShowModal(true)
+                        }}
+                    >
+                        <Pen className="tw-w-3.5 tw-h-3.5" />
+                    </button>
+                    <button
+                        title="Eliminar"
+                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
+                        onClick={() => deleteEntrada(row.Id_Entradas)}
+                    >
+                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                    </button>
+                </div>
             ),
             ignoreRowClick: true,
             button: true
@@ -249,6 +267,35 @@ const CrudEntradas = () => {
         }
     }
 
+    const deleteEntrada = async (id) => {
+        const confirm = await Swal.fire({
+            title: "¿Estás seguro?",
+            text: "Esta acción eliminará la entrada permanentemente",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#153753",
+        })
+
+        if (confirm.isConfirmed) {
+            try {
+                await apiNode.delete(`/api/entradas/${id}`)
+                Swal.fire({
+                    title: "Eliminado",
+                    text: "La entrada ha sido eliminada correctamente",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                })
+                getAllEntradas()
+            } catch (error) {
+                Swal.fire("Error", error.response?.data?.message || "No se pudo eliminar la entrada", "error")
+            }
+        }
+    }
+
     useEffect(() => {
         getAllEntradas()
     }, [])
@@ -260,16 +307,16 @@ const CrudEntradas = () => {
         const proveedor = e.proveedor?.Nom_Proveedor?.toLowerCase() || ''
         const pasante = e.pasante?.Nom_Responsable?.toLowerCase() || ''
         const instructor = e.instructor?.Nom_Responsable?.toLowerCase() || ''
-        
-        return lote.includes(textToSearch) || 
-               insumo.includes(textToSearch) || 
-               proveedor.includes(textToSearch) ||
-               pasante.includes(textToSearch) ||
-               instructor.includes(textToSearch)
+
+        return lote.includes(textToSearch) ||
+            insumo.includes(textToSearch) ||
+            proveedor.includes(textToSearch) ||
+            pasante.includes(textToSearch) ||
+            instructor.includes(textToSearch)
     })
 
     const hideModal = () => {
-        document.getElementById("closeModal")?.click()
+        setShowModal(false)
         setEntradaSeleccionada(null)
         getAllEntradas()
     }
@@ -314,12 +361,12 @@ const CrudEntradas = () => {
 
     return (
         <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
-            <div className="tw-max-w-7x2 tw-mx-auto">
+            <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
                 <div className="tw-mb-8">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                        <div className="tw-w-10 tw-h-10 tw-bg-gradient-to-br tw-from-[#1d334a] tw-to-[#2a4a6a] tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
-                            <i className="fa-solid fa-warehouse tw-text-white tw-text-lg"></i>
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                            <Warehouse className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
                         <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Entradas</h1>
                     </div>
@@ -328,7 +375,7 @@ const CrudEntradas = () => {
 
                 {error && (
                     <div className="tw-mb-4 tw-p-4 tw-bg-red-50 tw-border tw-border-red-200 tw-rounded-xl tw-flex tw-items-center tw-gap-3">
-                        <i className="fa-solid fa-circle-exclamation tw-text-red-500"></i>
+                        <AlertCircle className="tw-w-5 tw-h-5 tw-text-red-500" />
                         <span className="tw-text-red-700">{error}</span>
                     </div>
                 )}
@@ -337,10 +384,10 @@ const CrudEntradas = () => {
                 <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
                     <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
                         <div className="tw-relative tw-w-full md:tw-w-96">
-                            <i className="fa-solid fa-magnifying-glass tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400"></i>
+                            <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
                             <input
                                 type="text"
-                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-[#1d334a]/30 focus:tw-border-transparent tw-transition-all"
+                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
                                 placeholder="Buscar por lote, insumo, proveedor o responsable..."
                                 value={filterText}
                                 onChange={e => setFilterText(e.target.value)}
@@ -348,12 +395,13 @@ const CrudEntradas = () => {
                         </div>
                         <button
                             type="button"
-                            className="tw-px-5 tw-py-2.5 tw-bg-gradient-to-r tw-from-[#1d334a] tw-to-[#2a4a6a] hover:tw-from-[#15273a] hover:tw-to-[#1d334a] tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
-                            data-bs-toggle="modal"
-                            data-bs-target="#entradasModal"
-                            onClick={() => setEntradaSeleccionada(null)}
+                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                            onClick={() => {
+                                setEntradaSeleccionada(null)
+                                setShowModal(true)
+                            }}
                         >
-                            <i className="fa-solid fa-plus"></i>
+                            <Plus className="tw-w-4 tw-h-4" />
                             <span>Nueva Entrada</span>
                         </button>
                     </div>
@@ -375,13 +423,13 @@ const CrudEntradas = () => {
                         progressPending={loading}
                         progressComponent={
                             <div className="tw-py-12 tw-text-center">
-                                <div className="tw-inline-block tw-w-8 tw-h-8 tw-border-4 tw-border-blue-200 tw-border-t-[#1d334a] tw-rounded-full tw-animate-spin"></div>
+                                <div className="tw-inline-block tw-w-8 tw-h-8 tw-border-4 tw-border-slate-200 tw-border-t-primario-900 tw-rounded-full tw-animate-spin"></div>
                                 <p className="tw-mt-3 tw-text-slate-500">Cargando entradas...</p>
                             </div>
                         }
                         noDataComponent={
                             <div className="tw-py-12 tw-text-center">
-                                <i className="fa-solid fa-inbox tw-text-5xl tw-text-slate-300 tw-mb-3"></i>
+                                <Inbox className="tw-w-12 tw-h-12 tw-text-slate-300 tw-mx-auto tw-mb-3" />
                                 <p className="tw-text-slate-400">No se encontraron entradas</p>
                             </div>
                         }
@@ -395,30 +443,35 @@ const CrudEntradas = () => {
                     </p>
                 </div>
 
-                {/* Modal */}
-                <div className="modal fade" id="entradasModal" tabIndex="-1" aria-hidden="true">
-                    <div className="modal-dialog modal-lg modal-dialog-centered">
-                        <div className="modal-content tw-rounded-2xl tw-overflow-hidden">
-                            <div className="tw-bg-gradient-to-r tw-from-[#1d334a] tw-to-[#2a4a6a] tw-px-6 tw-py-4">
+                {/* Modal Custom Tailwind */}
+                {showModal && (
+                    <div 
+                        className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
+                        onClick={(e) => e.target === e.currentTarget && hideModal()}
+                    >
+                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-2xl tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
+                            {/* Modal Header */}
+                            <div className="tw-bg-primario-900 tw-px-6 tw-py-4">
                                 <div className="tw-flex tw-justify-between tw-items-center">
                                     <div className="tw-flex tw-items-center tw-gap-3">
                                         <div className="tw-w-8 tw-h-8 tw-bg-white/20 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
-                                            <i className="fa-solid fa-boxes tw-text-white"></i>
+                                            <Boxes className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                                         </div>
                                         <h5 className="tw-text-white tw-font-semibold tw-text-lg tw-m-0">
                                             {entradaSeleccionada ? 'Editar Entrada' : 'Nueva Entrada'}
                                         </h5>
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        className="tw-text-white/70 hover:tw-text-white tw-text-2xl tw-leading-none" 
-                                        data-bs-dismiss="modal"
-                                        id="closeModal"
+                                    <button
+                                        type="button"
+                                        className="tw-text-white/70 hover:tw-text-white tw-transition-colors"
+                                        onClick={hideModal}
                                     >
-                                        X
+                                        <X className="tw-w-6 tw-h-6" />
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Modal Body */}
                             <div className="tw-p-6">
                                 <EntradasForm
                                     hideModal={hideModal}
@@ -428,10 +481,11 @@ const CrudEntradas = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )
 }
 
 export default CrudEntradas
+

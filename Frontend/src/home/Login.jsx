@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiNode from "../api/axiosConfig";
+import { Utensils, Mail, Lock, ShieldCheck, Server, AlertCircle, Loader2 } from "lucide-react";
 
 const Login = ({ setIsAuth }) => {
     const navigate = useNavigate()
@@ -31,7 +32,7 @@ const Login = ({ setIsAuth }) => {
             localStorage.setItem('tokenFoodStocker', token)
             localStorage.setItem('userFoodStocker', JSON.stringify(usuario))
             setIsAuth(true)
-            navigate('/home')
+            navigate('/Entradas')
 
         } catch (err) {
             setError(err.response?.data?.mensaje || 'Email o contraseña incorrecta')
@@ -40,143 +41,120 @@ const Login = ({ setIsAuth }) => {
     }
 
     return (
-        <div className="min-vh-100 d-flex align-items-center justify-content-center bg-dark">
-            <div className="container">
-                <div className="row justify-content-center">
-                    <div className="col-12 col-md-6 col-lg-4">
-                        
-                        {/* Tarjeta de login */}
-                        <div className="card bg-black text-white border-0 shadow-lg" 
-                             style={{ 
-                                 borderRadius: '15px',
-                                 background: 'linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%)'
-                             }}>
-                            
-                            {/* Header con ícono */}
-                            <div className="card-header bg-transparent border-0 text-center pt-4">
-                                <div className="mb-3">
-                                    <i className="fas fa-utensils fa-3x text-white opacity-75"></i>
-                                </div>
-                                <h2 className="fw-bold mb-1">FoodStocker</h2>
-                                <p className="text-white-50 small">Inicia sesión en tu cuenta</p>
-                            </div>
+        <div className="tw-min-h-screen tw-flex tw-items-center tw-justify-center tw-bg-slate-950 tw-relative tw-overflow-hidden">
+            {/* Background elements */}
+            <div className="tw-absolute tw-top-0 tw-left-0 tw-w-full tw-h-full tw-overflow-hidden tw-z-0">
+                <div className="tw-absolute -tw-top-24 -tw-left-24 tw-w-96 tw-h-96 tw-bg-primario-900/20 tw-rounded-full tw-blur-3xl"></div>
+                <div className="tw-absolute -tw-bottom-24 -tw-right-24 tw-w-96 tw-h-96 tw-bg-primario-500/10 tw-rounded-full tw-blur-3xl"></div>
+            </div>
 
-                            {/* Body del formulario */}
-                            <div className="card-body px-4 py-4">
-                                <form onSubmit={gestionarLogin}>
-                                    
-                                    {/* Campo de correo */}
-                                    <div className="mb-4">
-                                        <label className="form-label text-white-50 small fw-bold mb-1">
-                                            <i className="fas fa-envelope me-2"></i>
-                                            CORREO ELECTRÓNICO
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="form-control bg-black text-white border-secondary"
-                                            style={{ 
-                                                borderColor: '#333',
-                                                borderRadius: '10px',
-                                                padding: '12px 15px'
-                                            }}
-                                            value={Cor_Responsable}
-                                            onChange={(e) => setCorreo(e.target.value)}
-                                            placeholder="ejemplo@correo.com"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* Campo de contraseña */}
-                                    <div className="mb-4">
-                                        <label className="form-label text-white-50 small fw-bold mb-1">
-                                            <i className="fas fa-lock me-2"></i>
-                                            CONTRASEÑA
-                                        </label>
-                                        <input
-                                            type="password"
-                                            className="form-control bg-black text-white border-secondary"
-                                            style={{ 
-                                                borderColor: '#333',
-                                                borderRadius: '10px',
-                                                padding: '12px 15px'
-                                            }}
-                                            value={Contraseña}
-                                            onChange={(e) => setContraseña(e.target.value)}
-                                            placeholder="••••••••"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* Checkbox de recordar (opcional) */}
-                                    <div className="mb-4 d-flex justify-content-between align-items-center">
-                                        <div className="form-check">
-                                            <input 
-                                                type="checkbox" 
-                                                className="form-check-input bg-black border-secondary" 
-                                                id="remember"
-                                                style={{ cursor: 'pointer' }}
-                                            />
-                                            <label className="form-check-label text-white-50 small" htmlFor="remember">
-                                                Recordar sesión
-                                            </label>
-                                        </div>
-                                        <a href="#" className="text-white-50 small text-decoration-none">
-                                            ¿Olvidaste tu contraseña?
-                                        </a>
-                                    </div>
-
-                                    {/* Mensaje de error */}
-                                    {error && (
-                                        <div className="alert alert-danger bg-danger bg-opacity-10 text-white border-danger border-opacity-25 py-2 mb-4" 
-                                             style={{ borderRadius: '8px' }}>
-                                            <i className="fas fa-exclamation-circle me-2"></i>
-                                            <small>{error}</small>
-                                        </div>
-                                    )}
-
-                                    {/* Botón de login */}
-                                    <button 
-                                        type="submit" 
-                                        className="btn btn-light w-100 py-3 fw-bold mb-3"
-                                        disabled={loading}
-                                        style={{
-                                            borderRadius: '10px',
-                                            background: 'white',
-                                            color: 'black',
-                                            transition: 'all 0.3s ease'
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.background = '#f0f0f0'}
-                                        onMouseLeave={(e) => e.target.style.background = 'white'}
-                                    >
-                                        {loading ? (
-                                            <>
-                                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                Iniciando sesión...
-                                            </>
-                                        ) : (
-                                            'INICIAR SESIÓN'
-                                        )}
-                                    </button>
-
-                                    {/* Enlace de registro (opcional) */}
-                                    <p className="text-center text-white-50 small mb-0">
-                                        ¿No tienes una cuenta?{' '}
-                                        <a href="#" className="text-white text-decoration-none">
-                                            Contacta al administrador
-                                        </a>
-                                    </p>
-                                </form>
-                            </div>
-
-                            {/* Footer decorativo */}
-                            <div className="card-footer bg-transparent border-0 text-center pb-4">
-                                <div className="d-flex justify-content-center gap-3">
-                                    <i className="fas fa-shield-alt text-white-50"></i>
-                                    <i className="fas fa-lock text-white-50"></i>
-                                    <i className="fas fa-server text-white-50"></i>
-                                </div>
-                            </div>
+            <div className="tw-relative tw-z-10 tw-w-full tw-max-w-md tw-px-6">
+                <div className="tw-bg-slate-900/50 tw-backdrop-blur-xl tw-border tw-border-white/10 tw-rounded-3xl tw-shadow-2xl tw-overflow-hidden">
+                    
+                    {/* Header */}
+                    <div className="tw-px-8 tw-pt-10 tw-pb-6 tw-text-center">
+                        <div className="tw-inline-flex tw-items-center tw-justify-center tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-white/5 tw-border tw-border-white/10 tw-mb-6">
+                            <Utensils className="tw-w-8 tw-h-8 tw-text-white" />
                         </div>
+                        <h1 className="tw-text-3xl tw-font-bold tw-text-white tw-mb-2">FoodStocker</h1>
+                        <p className="tw-text-slate-400 tw-text-sm">Inicia sesión en tu cuenta</p>
+                    </div>
+
+                    {/* Form */}
+                    <div className="tw-px-8 tw-pb-10">
+                        <form onSubmit={gestionarLogin} className="tw-space-y-6">
+                            
+                            {/* Email */}
+                            <div className="tw-space-y-2">
+                                <label className="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-font-bold tw-text-slate-500 tw-uppercase tw-tracking-widest">
+                                    <Mail className="tw-w-3.5 tw-h-3.5" />
+                                    Correo Electrónico
+                                </label>
+                                <div className="tw-relative">
+                                    <input
+                                        type="email"
+                                        className="tw-w-full tw-bg-white/5 tw-border tw-border-white/10 tw-rounded-xl tw-px-4 tw-py-3 tw-text-white tw-placeholder-slate-600 focus:tw-outline-none focus:tw-border-white/20 focus:tw-ring-2 focus:tw-ring-white/5 tw-transition-all"
+                                        value={Cor_Responsable}
+                                        onChange={(e) => setCorreo(e.target.value)}
+                                        placeholder="ejemplo@correo.com"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Password */}
+                            <div className="tw-space-y-2">
+                                <div className="tw-flex tw-justify-between tw-items-center">
+                                    <label className="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-font-bold tw-text-slate-500 tw-uppercase tw-tracking-widest">
+                                        <Lock className="tw-w-3.5 tw-h-3.5" />
+                                        Contraseña
+                                    </label>
+                                    <a href="#" className="tw-text-xs tw-text-slate-500 hover:tw-text-white tw-transition-colors">¿Olvidaste tu contraseña?</a>
+                                </div>
+                                <div className="tw-relative">
+                                    <input
+                                        type="password"
+                                        className="tw-w-full tw-bg-white/5 tw-border tw-border-white/10 tw-rounded-xl tw-px-4 tw-py-3 tw-text-white tw-placeholder-slate-600 focus:tw-outline-none focus:tw-border-white/20 focus:tw-ring-2 focus:tw-ring-white/5 tw-transition-all"
+                                        value={Contraseña}
+                                        onChange={(e) => setContraseña(e.target.value)}
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Remember */}
+                            <div className="tw-flex tw-items-center">
+                                <label className="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer tw-group">
+                                    <div className="tw-relative">
+                                        <input type="checkbox" className="tw-peer tw-sr-only" />
+                                        <div className="tw-w-5 tw-h-5 tw-bg-white/5 tw-border tw-border-white/10 tw-rounded-md peer-checked:tw-bg-white peer-checked:tw-border-white tw-transition-all"></div>
+                                        <div className="tw-absolute tw-inset-0 tw-flex tw-items-center tw-justify-center tw-opacity-0 peer-checked:tw-opacity-100 tw-transition-opacity">
+                                            <svg className="tw-w-3 tw-h-3 tw-text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                                                <path d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <span className="tw-text-sm tw-text-slate-400 group-hover:tw-text-slate-300 tw-transition-colors">Recordar sesión</span>
+                                </label>
+                            </div>
+
+                            {/* Error */}
+                            {error && (
+                                <div className="tw-p-4 tw-bg-red-500/10 tw-border tw-border-red-500/20 tw-rounded-xl tw-flex tw-items-center tw-gap-3">
+                                    <AlertCircle className="tw-w-5 tw-h-5 tw-text-red-500" />
+                                    <p className="tw-text-sm tw-text-red-400 tw-m-0">{error}</p>
+                                </div>
+                            )}
+
+                            {/* Submit */}
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className="tw-w-full tw-py-4 tw-bg-white tw-text-slate-950 tw-font-bold tw-rounded-xl hover:tw-bg-slate-200 tw-transition-all tw-shadow-lg tw-shadow-white/5 tw-flex tw-items-center tw-justify-center tw-gap-2 disabled:tw-opacity-50"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="tw-w-5 tw-h-5 tw-animate-spin" />
+                                        <span>Iniciando sesión...</span>
+                                    </>
+                                ) : (
+                                    'INICIAR SESIÓN'
+                                )}
+                            </button>
+
+                            <p className="tw-text-center tw-text-sm tw-text-slate-500">
+                                ¿No tienes una cuenta?{' '}
+                                <a href="#" className="tw-text-white tw-font-medium hover:tw-underline">Contacta al administrador</a>
+                            </p>
+                        </form>
+                    </div>
+
+                    {/* Footer icons */}
+                    <div className="tw-px-8 tw-py-6 tw-bg-white/5 tw-border-t tw-border-white/5 tw-flex tw-justify-center tw-gap-8">
+                        <ShieldCheck className="tw-w-5 tw-h-5 tw-text-slate-600" />
+                        <Lock className="tw-w-5 tw-h-5 tw-text-slate-600" />
+                        <Server className="tw-w-5 tw-h-5 tw-text-slate-600" />
                     </div>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import CrudResponsables from './Responsables/crudResponsables'
 import CrudProveedores from './Proveedores/crudProveedores'
-import CrudDestino from './Destino/crudDestino'
+import CrudDestino from './destino/crudDestino'
 import CrudInsumos from './insumos/crudInsumos.jsx'
 import CrudEntradas from './entradas/crudEntradas.jsx'
 import SolicitudCrud from './Solicitudes/SolicitudCrud.jsx'

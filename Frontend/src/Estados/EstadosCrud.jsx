@@ -2,15 +2,16 @@ import apiAxios from "../api/axiosConfig.js"
 import { useEffect, useState } from "react"
 import DataTable from "react-data-table-component"
 import EstadoForm from "./EstadosForm.jsx"
-import { CircleDot, Plus, Pencil, X } from "lucide-react"
+import Swal from "sweetalert2"
+import { CircleDot, Plus, Pencil, X, Hash, Type, Trash2 } from "lucide-react"
 
 const customTableStyles = {
     table: { style: { backgroundColor: 'transparent', borderRadius: '0.75rem', overflow: 'hidden' } },
-    headRow: { style: { backgroundColor: '#153753', color: '#f2f8fd', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: 'none', minHeight: '48px' } },
-    headCells: { style: { color: '#f2f8fd', paddingLeft: '16px', paddingRight: '16px' } },
-    rows: { style: { backgroundColor: '#ffffff', fontSize: '14px', color: '#1f2937', borderBottom: '1px solid #f3f4f6', minHeight: '52px', transition: 'background-color 0.15s' }, highlightOnHoverStyle: { backgroundColor: '#f0f7ff', borderBottomColor: '#e0eeff', outline: 'none' } },
-    cells: { style: { paddingLeft: '16px', paddingRight: '16px' } },
-    pagination: { style: { backgroundColor: '#ffffff', borderTop: '1px solid #f3f4f6', color: '#374151' } },
+    headRow: { style: { backgroundColor: '#153753', color: '#f2f8fd', fontWeight: '600', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: 'none', minHeight: '40px' } },
+    headCells: { style: { color: '#f2f8fd', paddingLeft: '12px', paddingRight: '12px' } },
+    rows: { style: { backgroundColor: '#ffffff', fontSize: '13px', color: '#1f2937', borderBottom: '1px solid #f3f4f6', minHeight: '44px', transition: 'background-color 0.15s' }, highlightOnHoverStyle: { backgroundColor: '#f0f7ff', borderBottomColor: '#e0eeff', outline: 'none' } },
+    cells: { style: { paddingLeft: '12px', paddingRight: '12px' } },
+    pagination: { style: { backgroundColor: '#ffffff', borderTop: '1px solid #f3f4f6', color: '#374151', minHeight: '40px' } },
 }
 
 const EstadosCrud = () => {
@@ -21,28 +22,54 @@ const EstadosCrud = () => {
     const [refresh, setRefresh] = useState(false)
 
     const columnsTable = [
-        { name: 'ID', selector: row => row.Id_estado, sortable: true, width: '80px' },
+        { 
+            name: 'ID', 
+            selector: row => row.Id_estado, 
+            sortable: true, 
+            width: '65px',
+            cell: row => (
+                <div className="tw-flex tw-items-center tw-gap-1.5 tw-font-mono tw-text-gray-500">
+                    <Hash className="tw-w-3 tw-h-3" />
+                    <span>{row.Id_estado}</span>
+                </div>
+            )
+        },
         {
             name: 'Nombre',
             selector: row => row.nom_estado,
             sortable: true,
+            width: '250px',
             cell: row => (
-                <span className="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1 tw-rounded-full tw-bg-primario-50 tw-text-primario-800 tw-text-xs tw-font-semibold">
-                    <span className="tw-w-1.5 tw-h-1.5 tw-rounded-full tw-bg-primario-500" />
-                    {row.nom_estado}
-                </span>
+                <div className="tw-flex tw-items-center tw-gap-2">
+                    <Type className="tw-w-3.5 tw-h-3.5 tw-text-primario-600" />
+                    <span className="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-2.5 tw-py-0.5 tw-rounded-full tw-bg-primario-50 tw-text-primario-800 tw-text-[11px] tw-font-bold">
+                        <span className="tw-w-1 tw-h-1 tw-rounded-full tw-bg-primario-500" />
+                        {row.nom_estado}
+                    </span>
+                </div>
             )
         },
         {
             name: 'Acción',
+            width: '100px',
+            right: true,
             cell: (row) => (
-                <button
-                    title="Editar"
-                    className="tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-lg tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700 tw-transition-all tw-duration-150"
-                    onClick={() => updateEstado(row.Id_estado)}
-                >
-                    <Pencil className="tw-w-3.5 tw-h-3.5" />
-                </button>
+                <div className="tw-flex tw-gap-1.5">
+                    <button
+                        title="Editar"
+                        className="tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700 tw-transition-all tw-duration-150"
+                        onClick={() => updateEstado(row.Id_estado)}
+                    >
+                        <Pencil className="tw-w-3 tw-h-3" />
+                    </button>
+                    <button
+                        title="Eliminar"
+                        className="tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-150"
+                        onClick={() => deleteEstado(row.Id_estado)}
+                    >
+                        <Trash2 className="tw-w-3 tw-h-3" />
+                    </button>
+                </div>
             )
         }
     ]
@@ -55,6 +82,28 @@ const EstadosCrud = () => {
             setEstados(response.data)
         } catch (error) {
             console.error("Error al obtener Estados:", error)
+        }
+    }
+
+    const deleteEstado = async (Id_estado) => {
+        const confirm = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#153753',
+        })
+        if (confirm.isConfirmed) {
+            try {
+                await apiAxios.delete(`/api/Estados/${Id_estado}`)
+                Swal.fire({ title: 'Eliminado', text: 'El estado fue eliminado', icon: 'success', timer: 1500, showConfirmButton: false })
+                setRefresh(!refresh)
+            } catch (error) {
+                Swal.fire('Error', error.response?.data?.message || 'No se pudo eliminar el estado', 'error')
+            }
         }
     }
 
@@ -81,44 +130,45 @@ const EstadosCrud = () => {
     }
 
     return (
-        <div className="tw-p-2">
+        <div className="tw-p-6">
+            <div className="tw-max-w-3xl tw-mx-auto">
+                {/* Header */}
+                <div className="tw-flex tw-items-center tw-justify-between tw-mb-8">
+                    <div className="tw-flex tw-items-center tw-gap-3">
+                        <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md">
+                            <CircleDot className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+                        </div>
+                        <div>
+                            <h1 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Estados</h1>
+                            <p className="tw-text-sm tw-text-gray-500 tw-m-0">Gestiona los estados del sistema</p>
+                        </div>
+                    </div>
 
-            {/* Header */}
-            <div className="tw-flex tw-items-center tw-justify-between tw-mb-6">
-                <div className="tw-flex tw-items-center tw-gap-3">
-                    <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md">
-                        <CircleDot className="tw-w-5 tw-h-5 tw-text-secundario-400" />
-                    </div>
-                    <div>
-                        <h1 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Estados</h1>
-                        <p className="tw-text-sm tw-text-gray-500 tw-m-0">Gestiona los estados del sistema</p>
-                    </div>
+                    <button
+                        onClick={createEstado}
+                        className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-md tw-font-medium tw-text-sm"
+                    >
+                        <Plus className="tw-w-4 tw-h-4" />
+                        Nuevo Estado
+                    </button>
                 </div>
 
-                <button
-                    onClick={createEstado}
-                    className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-md tw-font-medium tw-text-sm"
-                >
-                    <Plus className="tw-w-4 tw-h-4" />
-                    Nuevo Estado
-                </button>
-            </div>
-
-            {/* Tabla */}
-            <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-hidden">
-                <DataTable
-                    columns={columnsTable}
-                    data={Estados}
-                    keyField="Id_estado"
-                    pagination
-                    highlightOnHover
-                    customStyles={customTableStyles}
-                    noDataComponent={
-                        <div className="tw-py-12 tw-text-center tw-text-gray-400 tw-text-sm">
-                            No hay estados registrados
-                        </div>
-                    }
-                />
+                {/* Tabla */}
+                <div className="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-border tw-border-gray-100 tw-overflow-hidden">
+                    <DataTable
+                        columns={columnsTable}
+                        data={Estados}
+                        keyField="Id_estado"
+                        pagination
+                        highlightOnHover
+                        customStyles={customTableStyles}
+                        noDataComponent={
+                            <div className="tw-py-12 tw-text-center tw-text-gray-400 tw-text-sm">
+                                No hay estados registrados
+                            </div>
+                        }
+                    />
+                </div>
             </div>
 
             {/* Modal */}
