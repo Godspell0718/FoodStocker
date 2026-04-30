@@ -12,6 +12,7 @@ import {
     Search,
     ChevronDown,
     ClockArrowUp,
+    TrendingUp,
 } from "lucide-react";
 
 const navSections = [
@@ -35,6 +36,7 @@ const navSections = [
         items: [
             { icon: UserRound, label: "Responsables", path: "/Responsables" },
             { icon: Package, label: "Proveedores", path: "/Proveedores" },
+            { icon: TrendingUp, label: "Reportes", path: "/Reportes" },
         ]
     },
 ];

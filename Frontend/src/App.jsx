@@ -12,6 +12,7 @@ import Home from './home/home.jsx'
 import { useState, useEffect } from 'react'
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx"
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx"
+import DashboardReportes from "./Reportes/DashboardReportes.jsx"
 
 function App() {
   const [isAuth, setIsAuth] = useState(false)
@@ -54,6 +55,7 @@ function App() {
         <Route path="Insumos" element={<CrudInsumos />} />
         <Route path="Entradas" element={<CrudEntradas />} />
         <Route path="Solicitudes" element={<SolicitudCrud />} />
+        <Route path="Reportes" element={<DashboardReportes />} />
         <Route path="Estados" element={<EstadoCrud />} />
         <Route path="solicitudes-pendientes" element={<SolicitudPendientes />} />
         <Route path="solicitud-nueva" element={<SolicitudConLotes />} />
