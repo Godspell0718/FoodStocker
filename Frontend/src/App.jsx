@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import CrudResponsables from './Responsables/crudResponsables'
 import CrudProveedores from './Proveedores/crudProveedores'
 import CrudDestino from './destino/crudDestino'
@@ -14,7 +14,6 @@ import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx"
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx"
 
 function App() {
-  const navigate = useNavigate()
   const [isAuth, setIsAuth] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -24,15 +23,13 @@ function App() {
     setIsLoading(false)
   }, [])
 
-  const logout = () => {
-    localStorage.removeItem('tokenFoodStocker')
-    localStorage.removeItem('userFoodStocker')
-    setIsAuth(false)
-    navigate('/login')
-  }
-
   if (isLoading) {
-    return <div className="text-center mt-5">Cargando...</div>
+    return (
+      <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-bg-slate-950 tw-gap-4">
+        <div className="tw-w-10 tw-h-10 tw-border-4 tw-border-slate-700 tw-border-t-white tw-rounded-full tw-animate-spin"></div>
+        <p className="tw-text-slate-400 tw-text-sm tw-font-medium">Cargando FoodStocker...</p>
+      </div>
+    )
   }
 
   return (

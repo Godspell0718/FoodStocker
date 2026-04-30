@@ -173,9 +173,13 @@ const SolicitudCrud = () => {
             cancelButtonColor: '#153753',
         })
         if (confirm.isConfirmed) {
-            await apiAxios.delete(`/api/solicitudes/${Id_solicitud}`)
-            Swal.fire({ title: 'Eliminado', text: 'La solicitud fue eliminada', icon: 'success', timer: 1500, showConfirmButton: false })
-            setRefresh(!refresh)
+            try {
+                await apiAxios.delete(`/api/solicitudes/${Id_solicitud}`)
+                Swal.fire({ title: 'Eliminado', text: 'La solicitud fue eliminada', icon: 'success', timer: 1500, showConfirmButton: false })
+                setRefresh(!refresh)
+            } catch (error) {
+                Swal.fire("Error", error.response?.data?.message || "No se pudo eliminar la solicitud", "error")
+            }
         }
     }
 
