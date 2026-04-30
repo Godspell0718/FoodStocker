@@ -24,6 +24,7 @@ const EstadoBadge = ({ estado }) => {
 const SolicitudPendientes = () => {
     const [solicitudes, setSolicitudes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filtroEstado, setFiltroEstado] = useState("solicitado");
 
     useEffect(() => { cargarSolicitudes(); }, []);
 
@@ -84,13 +85,41 @@ const SolicitudPendientes = () => {
                 </button>
             </div>
 
+            {/* Tabs de Filtro */}
+            <div className="tw-flex tw-gap-2 tw-mb-6 tw-bg-white tw-p-1.5 tw-rounded-xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-x-auto">
+                <button
+                    onClick={() => setFiltroEstado("solicitado")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "solicitado" ? "tw-bg-amber-100 tw-text-amber-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    Solicitadas
+                </button>
+                <button
+                    onClick={() => setFiltroEstado("proceso")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "proceso" ? "tw-bg-blue-100 tw-text-blue-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    En Proceso
+                </button>
+                <button
+                    onClick={() => setFiltroEstado("despachado")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "despachado" ? "tw-bg-emerald-100 tw-text-emerald-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    Despachadas
+                </button>
+                <button
+                    onClick={() => setFiltroEstado("cancelado")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "cancelado" ? "tw-bg-red-100 tw-text-red-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    Canceladas
+                </button>
+            </div>
+
             {/* Loading */}
             {loading ? (
                 <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-20 tw-gap-3">
                     <Loader2 className="tw-w-8 tw-h-8 tw-text-primario-500 tw-animate-spin" />
                     <p className="tw-text-gray-500 tw-text-sm">Cargando solicitudes...</p>
                 </div>
-            ) : solicitudes.length === 0 ? (
+            ) : solicitudes.filter(sol => sol.ultimoEstado?.toLowerCase() === filtroEstado.toLowerCase()).length === 0 ? (
                 <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-20 tw-gap-3">
                     <div className="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-gray-100 tw-flex tw-items-center tw-justify-center">
                         <ClipboardList className="tw-w-8 tw-h-8 tw-text-gray-400" />
@@ -100,7 +129,7 @@ const SolicitudPendientes = () => {
                 </div>
             ) : (
                 <div className="tw-flex tw-flex-col tw-gap-4">
-                    {solicitudes.map(sol => (
+                    {solicitudes.filter(sol => sol.ultimoEstado?.toLowerCase() === filtroEstado.toLowerCase()).map(sol => (
                         <div
                             key={sol.Id_solicitud}
                             className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-hidden hover:tw-shadow-md tw-transition-shadow tw-duration-200"
