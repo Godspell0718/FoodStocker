@@ -55,6 +55,7 @@ const SolicitudPendientes = () => {
             await apiAxios.post("/api/solicitudes/cambiar-estado", { Id_solicitud, Id_estado });
             Swal.fire({ icon: "success", title: "Estado actualizado", timer: 1200, showConfirmButton: false });
             cargarSolicitudes();
+            window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
             Swal.fire("Error", error.response?.data?.message || "No se pudo cambiar el estado", "error");
         }

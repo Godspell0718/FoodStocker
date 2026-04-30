@@ -40,6 +40,11 @@ const SolicitudFormNuevo = ({ hideModal }) => {
             Swal.fire("Campos requeridos", "Por favor completa el motivo y la fecha de entrega", "warning");
             return;
         }
+        const hoy = new Date().toISOString().split("T")[0];
+        if (formData.Fec_entrega < hoy) {
+            Swal.fire("Fecha inválida", "La fecha de entrega no puede ser anterior a hoy", "warning");
+            return;
+        }
         setPaso(2);
     };
 
@@ -132,6 +137,7 @@ const SolicitudFormNuevo = ({ hideModal }) => {
                             className={inputClass}
                             value={formData.Fec_entrega}
                             onChange={handleInputChange}
+                            min={new Date().toISOString().split("T")[0]}
                         />
                     </div>
 
