@@ -147,6 +147,17 @@ const CrudInsumos = () => {
                 </div>
             )
         },
+        { 
+            name: "Referencia", 
+            selector: row => row.Ref_Insumo, 
+            sortable: true,
+            cell: row => (
+                <div className="tw-flex tw-items-center tw-gap-2">
+                    <Layers className="tw-w-3.5 tw-h-3.5 tw-text-slate-400" />
+                    <span className="tw-text-slate-600">{row.Ref_Insumo || 'N/A'}</span>
+                </div>
+            )
+        },
         {
             name: "Stock Disponible",
             selector: row => {
