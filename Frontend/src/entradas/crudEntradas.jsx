@@ -199,7 +199,7 @@ export const CrudEntradas = () => {
             }
         },
         {
-            name: "Pasante",
+            name: "Pasante Agroindustria",
             selector: row => row.pasante?.Nom_Responsable || `ID ${row.Id_Pasante}`,
             sortable: true,
             cell: row => (
@@ -212,7 +212,7 @@ export const CrudEntradas = () => {
             )
         },
         {
-            name: "Instructor",
+            name: "Instructor Agroindustria",
             selector: row => row.instructor?.Nom_Responsable || `ID ${row.Id_Instructor}`,
             sortable: true,
             cell: row => (
@@ -361,7 +361,7 @@ export const CrudEntradas = () => {
 
     return (
         <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
-            <div className="tw-max-w-7xl tw-mx-auto">
+            <div className="tw-max-w-7x2 tw-mx-auto">
                 {/* Header */}
                 <div className="tw-mb-8">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
@@ -488,4 +488,4 @@ export const CrudEntradas = () => {
 }
 
 export default CrudEntradas
-
+
