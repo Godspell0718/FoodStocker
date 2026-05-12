@@ -13,6 +13,7 @@ import {
   Cell,
   Legend
 } from "recharts";
+import * as XLSX from "xlsx";
 import {
   PackageSearch,
   ClipboardList,
@@ -21,7 +22,8 @@ import {
   TrendingUp,
   PackageX,
   Clock,
-  Loader2
+  Loader2,
+  Download
 } from "lucide-react";
 
 export default function DashboardReportes() {
@@ -170,19 +172,77 @@ export default function DashboardReportes() {
     .sort((a, b) => b.cantidad - a.cantidad)
     .slice(0, 5); // top 5
 
+  // --- FUNCIÓN DE EXPORTACIÓN ---
+  const exportarAExcel = () => {
+    try {
+      // 1. Preparar datos de Insumos
+      const dataInsumos = insumos.map(ins => {
+        const stockReal = (ins.entradas || []).reduce((acc, lote) => acc + (lote.Can_Inicial - lote.Can_Salida), 0);
+        return {
+          'ID': ins.Id_Insumos,
+          'Nombre de Insumo': ins.Nom_Insumo,
+          'Unidad de Medida': ins.Uni_Med_Insumo,
+          'Stock Actual': stockReal
+        };
+      });
+
+      // 2. Preparar datos de Solicitudes
+      const dataSolicitudes = solicitudes.map(sol => {
+        return {
+          'ID Solicitud': sol.Id_solicitud,
+          'Responsable': sol.responsable?.Nom_Responsable || 'N/A',
+          'Motivo': sol.motivo,
+          'Fecha Creación': sol.createdat?.slice(0, 10) || '',
+          'Fecha Entrega': sol.Fec_entrega?.slice(0, 10) || '',
+          'Estado Actual': sol.ultimoEstado?.toUpperCase() || 'SOLICITADO'
+        };
+      });
+
+      // 3. Crear Libro y Hojas
+      const wb = XLSX.utils.book_new();
+      const wsInsumos = XLSX.utils.json_to_sheet(dataInsumos);
+      const wsSolicitudes = XLSX.utils.json_to_sheet(dataSolicitudes);
+
+      // Ajustar anchos de columna
+      wsInsumos['!cols'] = [{wch: 5}, {wch: 40}, {wch: 20}, {wch: 15}];
+      wsSolicitudes['!cols'] = [{wch: 12}, {wch: 35}, {wch: 30}, {wch: 18}, {wch: 18}, {wch: 15}];
+
+      XLSX.utils.book_append_sheet(wb, wsInsumos, "Stock Insumos");
+      XLSX.utils.book_append_sheet(wb, wsSolicitudes, "Historial Solicitudes");
+
+      // 4. Descargar archivo
+      const fecha = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `Reporte_FoodStocker_${fecha}.xlsx`);
+
+    } catch (error) {
+      console.error("Error al exportar a Excel", error);
+      alert("Hubo un error al generar el reporte de Excel.");
+    }
+  };
+
   return (
     <div className="tw-p-6">
       <div className="tw-max-w-7xl tw-mx-auto tw-space-y-6">
         
         {/* Header */}
-        <div className="tw-flex tw-items-center tw-gap-3 tw-mb-8">
-          <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-gradient-to-br tw-from-indigo-600 tw-to-blue-500 tw-flex tw-items-center tw-justify-center tw-shadow-lg tw-shadow-indigo-500/30">
-            <TrendingUp className="tw-w-5 tw-h-5 tw-text-white" />
+        <div className="tw-flex tw-items-center tw-justify-between tw-mb-8">
+          <div className="tw-flex tw-items-center tw-gap-3">
+            <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-gradient-to-br tw-from-indigo-600 tw-to-blue-500 tw-flex tw-items-center tw-justify-center tw-shadow-lg tw-shadow-indigo-500/30">
+              <TrendingUp className="tw-w-5 tw-h-5 tw-text-white" />
+            </div>
+            <div>
+              <h1 className="tw-text-xl tw-font-bold tw-text-slate-800 tw-m-0">Dashboard de Reportes</h1>
+              <p className="tw-text-sm tw-text-slate-500 tw-m-0">Resumen general y estadísticas del sistema</p>
+            </div>
           </div>
-          <div>
-            <h1 className="tw-text-xl tw-font-bold tw-text-slate-800 tw-m-0">Dashboard de Reportes</h1>
-            <p className="tw-text-sm tw-text-slate-500 tw-m-0">Resumen general y estadísticas del sistema</p>
-          </div>
+          
+          <button 
+            onClick={exportarAExcel}
+            className="tw-flex tw-items-center tw-gap-2 tw-bg-white tw-border tw-border-slate-200 tw-text-slate-700 tw-px-4 tw-py-2 tw-rounded-xl tw-text-sm tw-font-medium hover:tw-bg-slate-50 hover:tw-text-indigo-600 tw-transition-all tw-shadow-sm active:tw-scale-95"
+          >
+            <Download className="tw-w-4 tw-h-4" />
+            Exportar Excel
+          </button>
         </div>
 
         {/* KPIs Grid */}

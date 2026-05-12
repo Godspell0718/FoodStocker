@@ -83,14 +83,20 @@ class SolicitudServiceNuevo {
         }
     }
 
-    async cambiarEstado({ Id_solicitud, Id_estado }) {
+    async cambiarEstado({ Id_solicitud, Id_estado, motivo_cancelacion }) {
 
         const t = await db.transaction();
 
         try {
 
-            // 🔴 SI CANCELA → DEVOLVER STOCK
+            // 🔴 SI CANCELA → DEVOLVER STOCK Y GUARDAR MOTIVO
             if (Id_estado === 4) {
+
+                // Guardar motivo de cancelación en la solicitud
+                await SolicitudModel.update(
+                    { motivo_cancelacion: motivo_cancelacion },
+                    { where: { Id_solicitud }, transaction: t }
+                );
 
                 const insumos = await insumosSolicitudModel.findAll({
                     where: { Id_solicitud },
