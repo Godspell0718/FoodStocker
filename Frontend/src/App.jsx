@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from './context/authContext';
 
 // VISTAS
@@ -15,7 +15,7 @@ import Login from './home/Login';
 import Home from './home/home.jsx';
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx";
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx";
-
+import DashboardReportes from './Reportes/DashboardReportes.jsx';
 
 const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
   const { user } = useContext(AuthContext);
@@ -34,6 +34,31 @@ const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
 function App() {
   const { user } = useContext(AuthContext);
 
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('tokenFoodStocker');
+
+    // simulación de validación
+    if (stored) {
+      console.log("Token encontrado");
+    }
+
+    setIsLoading(false);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-bg-slate-950 tw-gap-4">
+        <div className="tw-w-10 tw-h-10 tw-border-4 tw-border-slate-700 tw-border-t-white tw-rounded-full tw-animate-spin"></div>
+
+        <p className="tw-text-slate-400 tw-text-sm tw-font-medium">
+          Cargando FoodStocker...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Routes>
 
@@ -47,48 +72,67 @@ function App() {
       >
 
         {/* ADMIN / IA */}
-        <Route path="Proveedores" element={
-          <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
-            <CrudProveedores />
-          </RutaProtegida>
-        } />
+        <Route
+          path="Proveedores"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+              <CrudProveedores />
+            </RutaProtegida>
+          }
+        />
 
-        <Route path="Responsables" element={
-          <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
-            <CrudResponsables />
-          </RutaProtegida>
-        } />
+        <Route
+          path="Responsables"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+              <CrudResponsables />
+            </RutaProtegida>
+          }
+        />
 
         {/* SOLO ADMIN */}
-        <Route path="Destino" element={
-          <RutaProtegida rolesPermitidos={["ADMIN"]}>
-            <CrudDestino />
-          </RutaProtegida>
-        } />
+        <Route
+          path="Destino"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+              <CrudDestino />
+            </RutaProtegida>
+          }
+        />
 
-        <Route path="Estados" element={
-          <RutaProtegida rolesPermitidos={["ADMIN"]}>
-            <EstadoCrud />
-          </RutaProtegida>
-        } />
+        <Route
+          path="Estados"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+              <EstadoCrud />
+            </RutaProtegida>
+          }
+        />
 
-        <Route path="Estado_solicitud" element={
-          <RutaProtegida rolesPermitidos={["ADMIN"]}>
-            <Estados_solicitudCrud />
-          </RutaProtegida>
-        } />
+        <Route
+          path="Estado_solicitud"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+              <Estados_solicitudCrud />
+            </RutaProtegida>
+          }
+        />
 
         {/* TODOS */}
         <Route path="Insumos" element={<CrudInsumos />} />
         <Route path="Entradas" element={<CrudEntradas />} />
         <Route path="Solicitudes" element={<SolicitudCrud />} />
+        <Route path="Reportes" element={<DashboardReportes />} />
         <Route path="solicitudes-pendientes" element={<SolicitudPendientes />} />
         <Route path="solicitud-nueva" element={<SolicitudConLotes />} />
 
       </Route>
 
       {/* FALLBACK */}
-      <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />
+      <Route
+        path="*"
+        element={<Navigate to={user ? "/" : "/login"} />}
+      />
 
     </Routes>
   );

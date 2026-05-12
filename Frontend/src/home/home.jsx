@@ -11,8 +11,9 @@ import {
     Bell,
     Search,
     ChevronDown,
-    Warehouse,
     ClockArrowUp,
+    TrendingUp,
+    Warehouse,
     Waypoints,
 } from "lucide-react";
 
@@ -37,6 +38,17 @@ export default function Dashboard() {
     const location = useLocation();
     const user = JSON.parse(localStorage.getItem('userFoodStocker') || '{}');
     const rol = user.rol?.trim();
+    const navSections = [
+        {
+            title: "Principal",
+            items: navItems.filter(item => item.roles.includes(rol))
+        },
+        {
+            title: "Temporal",
+            items: Temporal.filter(item => item.roles.includes(rol))
+        }
+    ];
+
     const [openUserMenu, setOpenUserMenu] = useState(false);
     const menuRef = useRef();
 
@@ -48,7 +60,10 @@ export default function Dashboard() {
     const cargarNotificaciones = async () => {
         try {
             const res = await apiAxios.get("/api/solicitudes/pendientes");
-            const nuevas = res.data.filter(sol => sol.ultimoEstado?.toLowerCase() === "solicitado");
+            const nuevas = res.data.filter(sol => {
+                const estado = sol.ultimoEstado?.toLowerCase();
+                return estado === "solicitado" || estado === "proceso";
+            });
             setNotifications(nuevas);
         } catch (error) {
             console.error("Error cargando notificaciones:", error);
@@ -67,6 +82,9 @@ export default function Dashboard() {
         const handleNuevaSolicitud = () => cargarNotificaciones();
         window.addEventListener("nuevaSolicitud", handleNuevaSolicitud);
 
+        // Polling cada 30 segundos para detectar solicitudes de otros usuarios
+        const pollingInterval = setInterval(cargarNotificaciones, 30000);
+
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setOpenUserMenu(false);
@@ -81,8 +99,15 @@ export default function Dashboard() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
             window.removeEventListener("nuevaSolicitud", handleNuevaSolicitud);
+            clearInterval(pollingInterval);
         };
     }, []);
+
+    // Cerrar dropdowns al cambiar de ruta
+    useEffect(() => {
+        setShowNotifications(false);
+        setOpenUserMenu(false);
+    }, [location.pathname]);
 
     return (
         <div className="tw-flex tw-h-full tw-font-sans tw-bg-gray-100">
@@ -183,45 +208,19 @@ export default function Dashboard() {
                 {/* NAV */}
                 <nav className="tw-flex-1 tw-px-3 tw-py-4 tw-space-y-0.5 tw-overflow-y-auto tw-bg-primario-900">
 
-                    {navItems
-                        .filter(item => item.roles.includes(rol))
-                        .map(({ icon: Icon, label, path }) => {
-                            const isActive = location.pathname === path;
-
-
-                            return (
-                                <button
-                                    key={label}
-                                    onClick={() => navigate(path)}
-                                    className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150
-                                ${isActive
-                                            ? "tw-bg-gray-800 tw-text-white"
-                                            : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
-                                        }`}
-                                >
-                                    <Icon className="tw-w-5 tw-h-5" />
-                                    {label}
-                                </button>
-                            );
-                        })}
-
-                    {/* TEMPORAL */}
-                    <div className="tw-pt-6 tw-pb-2">
-                        <p className="tw-px-3 tw-text-xs tw-font-semibold tw-text-primario-50 tw-uppercase tw-mb-2">
-                            Botones temporales
-                        </p>
-
-                        {Temporal
-                            .filter(item => item.roles.includes(rol))
-                            .map(({ icon: Icon, label, path }) => {
+                    {navSections.map((section) => (
+                        <div key={section.title} className="tw-mb-4">
+                            <p className="tw-px-3 tw-text-[10px] tw-font-bold tw-text-gray-500 tw-uppercase tw-tracking-widest tw-mb-1.5">
+                                {section.title}
+                            </p>
+                            {section.items.map(({ icon: Icon, label, path }) => {
                                 const isActive = location.pathname === path;
-
                                 return (
                                     <button
-                                        key={label}
+                                        key={path}
                                         onClick={() => navigate(path)}
-                                        className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium
-                                    ${isActive
+                                        className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150
+                                        ${isActive
                                                 ? "tw-bg-gray-800 tw-text-white"
                                                 : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
                                             }`}
@@ -231,7 +230,8 @@ export default function Dashboard() {
                                     </button>
                                 );
                             })}
-                    </div>
+                        </div>
+                    ))}
                 </nav>
 
                 {/* SETTINGS */}
@@ -265,7 +265,10 @@ export default function Dashboard() {
                             >
                                 <Bell className="tw-w-4 tw-h-4" />
                                 {notifications.length > 0 && (
-                                    <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-w-2 tw-h-2 tw-bg-indigo-500 tw-rounded-full" />
+                                    <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-flex tw-h-2 tw-w-2">
+                                        <span className="tw-animate-ping tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-indigo-400 tw-opacity-75" />
+                                        <span className="tw-relative tw-inline-flex tw-rounded-full tw-h-2 tw-w-2 tw-bg-indigo-500" />
+                                    </span>
                                 )}
                             </button >
 

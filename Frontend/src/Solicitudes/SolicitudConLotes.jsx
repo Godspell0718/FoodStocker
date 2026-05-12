@@ -45,6 +45,11 @@ const SolicitudConLotes = () => {
             Swal.fire("Error", "Los números de ficha no coinciden", "error");
             return;
         }
+        const hoy = new Date().toISOString().split("T")[0];
+        if (fechaEntrega < hoy) {
+            Swal.fire("Fecha inválida", "La fecha de entrega no puede ser anterior a hoy", "warning");
+            return;
+        }
         setPaso(2);
     };
 
@@ -203,7 +208,7 @@ const SolicitudConLotes = () => {
                     </div>
                     <div className="md:tw-col-span-2">
                         <label className={labelClass}><Calendar className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Fecha de entrega</label>
-                        <input type="date" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} disabled={paso === 2} />
+                        <input type="date" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} disabled={paso === 2} min={new Date().toISOString().split("T")[0]} />
                     </div>
                 </div>
                 <div className="tw-mt-4">
