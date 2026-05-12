@@ -1,74 +1,97 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
-import CrudResponsables from './Responsables/crudResponsables'
-import CrudProveedores from './Proveedores/crudProveedores'
-import CrudDestino from './Destino/crudDestino'
-import CrudInsumos from './insumos/crudInsumos.jsx'
-import CrudEntradas from './entradas/crudEntradas.jsx'
-import SolicitudCrud from './Solicitudes/SolicitudCrud.jsx'
-import EstadoCrud from './Estados/EstadosCrud.jsx'
-import Estados_solicitudCrud from './Estados_solicitud/Estado_solicitudCrud.jsx'
-import Login from './home/Login'
-import Home from './home/home.jsx'
-import { useState, useEffect } from 'react'
-import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx"
-import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx"
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { AuthContext } from './context/authContext';
+
+// VISTAS
+import CrudResponsables from './Responsables/crudResponsables';
+import CrudProveedores from './Proveedores/crudProveedores';
+import CrudDestino from './Destino/crudDestino';
+import CrudInsumos from './insumos/crudInsumos.jsx';
+import CrudEntradas from './entradas/crudEntradas.jsx';
+import SolicitudCrud from './Solicitudes/SolicitudCrud.jsx';
+import EstadoCrud from './Estados/EstadosCrud.jsx';
+import Estados_solicitudCrud from './Estados_solicitud/Estado_solicitudCrud.jsx';
+import Login from './home/Login';
+import Home from './home/home.jsx';
+import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx";
+import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx";
+
+
+const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
+  const { user } = useContext(AuthContext);
+
+  if (!user) return <Navigate to="/login" />;
+
+  const rol = user.rol?.trim();
+
+  if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(rol)) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
 
 function App() {
-  const navigate = useNavigate()
-  const [isAuth, setIsAuth] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const stored = localStorage.getItem('tokenFoodStocker')
-    setIsAuth(!!stored)
-    setIsLoading(false)
-  }, [])
-
-  const logout = () => {
-    localStorage.removeItem('tokenFoodStocker')
-    localStorage.removeItem('userFoodStocker')
-    setIsAuth(false)
-    navigate('/login')
-  }
-
-  if (isLoading) {
-    return <div className="text-center mt-5">Cargando...</div>
-  }
+  const { user } = useContext(AuthContext);
 
   return (
     <Routes>
 
-      {/* Ruta pública */}
-      <Route path="/login" element={<Login setIsAuth={setIsAuth} />} />
+      {/* LOGIN */}
+      <Route path="/login" element={<Login />} />
 
-      {/* Rutas protegidas con Home como layout */}
+      {/* LAYOUT */}
       <Route
         path="/"
-        element={
-          isAuth ? <Home /> : <Navigate to="/login" />
-        }
+        element={user ? <Home /> : <Navigate to="/login" />}
       >
 
-        <Route index element={<Navigate to="Entradas" />} />
+        {/* ADMIN / IA */}
+        <Route path="Proveedores" element={
+          <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+            <CrudProveedores />
+          </RutaProtegida>
+        } />
 
-        <Route path="Proveedores" element={<CrudProveedores />} />
-        <Route path="Responsables" element={<CrudResponsables />} />
-        <Route path="Destino" element={<CrudDestino />} />
+        <Route path="Responsables" element={
+          <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+            <CrudResponsables />
+          </RutaProtegida>
+        } />
+
+        {/* SOLO ADMIN */}
+        <Route path="Destino" element={
+          <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <CrudDestino />
+          </RutaProtegida>
+        } />
+
+        <Route path="Estados" element={
+          <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <EstadoCrud />
+          </RutaProtegida>
+        } />
+
+        <Route path="Estado_solicitud" element={
+          <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <Estados_solicitudCrud />
+          </RutaProtegida>
+        } />
+
+        {/* TODOS */}
         <Route path="Insumos" element={<CrudInsumos />} />
         <Route path="Entradas" element={<CrudEntradas />} />
         <Route path="Solicitudes" element={<SolicitudCrud />} />
-        <Route path="Estados" element={<EstadoCrud />} />
         <Route path="solicitudes-pendientes" element={<SolicitudPendientes />} />
         <Route path="solicitud-nueva" element={<SolicitudConLotes />} />
-        <Route path="Estado_solicitud" element={<Estados_solicitudCrud />} />
 
       </Route>
 
-      {/* Ruta por defecto */}
-      <Route path="*" element={<Navigate to={isAuth ? "/" : "/login"} />} />
+      {/* FALLBACK */}
+      <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />
 
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;

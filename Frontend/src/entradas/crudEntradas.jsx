@@ -2,6 +2,10 @@ import { useState, useEffect } from "react"
 import apiNode from "../api/axiosConfig.js"
 import DataTable from "react-data-table-component"
 import EntradasForm from "./entradasForm.jsx"
+import {
+    Truck,
+    Package
+} from 'lucide-react';
 
 const CrudEntradas = () => {
 
@@ -42,21 +46,20 @@ const CrudEntradas = () => {
                 const fechaVenc = row.Fec_Ven_Entrada ? new Date(row.Fec_Ven_Entrada) : null
                 const hoy = new Date()
                 const diasRestantes = fechaVenc ? Math.ceil((fechaVenc - hoy) / (1000 * 60 * 60 * 24)) : null
-                
+
                 let colorClase = "tw-text-slate-600"
                 if (diasRestantes !== null) {
                     if (diasRestantes < 0) colorClase = "tw-text-red-600 tw-font-medium"
                     else if (diasRestantes <= 30) colorClase = "tw-text-amber-600 tw-font-medium"
                     else colorClase = "tw-text-green-600"
                 }
-                
+
                 return (
                     <div className="tw-flex tw-items-center tw-gap-2">
-                        <i className={`fa-regular fa-calendar tw-text-xs ${
-                            diasRestantes !== null && diasRestantes < 0 ? 'tw-text-red-500' : 
-                            diasRestantes !== null && diasRestantes <= 30 ? 'tw-text-amber-500' : 
-                            'tw-text-slate-400'
-                        }`}></i>
+                        <i className={`fa-regular fa-calendar tw-text-xs ${diasRestantes !== null && diasRestantes < 0 ? 'tw-text-red-500' :
+                            diasRestantes !== null && diasRestantes <= 30 ? 'tw-text-amber-500' :
+                                'tw-text-slate-400'
+                            }`}></i>
                         <span className={colorClase}>
                             {row.Fec_Ven_Entrada
                                 ? new Date(row.Fec_Ven_Entrada).toLocaleDateString("es-CO")
@@ -72,8 +75,8 @@ const CrudEntradas = () => {
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-3">
-                    <div className="tw-w-8 tw-h-8 tw-bg-gradient-to-br tw-from-emerald-200 tw-to-teal-100 tw-rounded-full tw-flex tw-items-center tw-justify-center">
-                        <i className="fa-solid fa-box tw-text-emerald-700 tw-text-sm"></i>
+                    <div className="tw-flex tw-items-center tw-gap-2">
+                        <Package size={18}/>
                     </div>
                     <span className="tw-font-medium tw-text-slate-800">
                         {row.insumo?.Nom_Insumo || `Insumo #${row.Id_Insumos}`}
@@ -92,13 +95,15 @@ const CrudEntradas = () => {
                 </span>
             )
         },
+
+
         {
             name: "Proveedor",
             selector: row => row.proveedor?.Nom_Proveedor || `ID ${row.Id_Proveedor}`,
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <i className="fa-solid fa-truck tw-text-blue-400 tw-text-xs"></i>
+                    <Truck size={18} />
                     <span className="tw-text-slate-600">
                         {row.proveedor?.Nom_Proveedor || `Proveedor #${row.Id_Proveedor}`}
                     </span>
@@ -113,11 +118,11 @@ const CrudEntradas = () => {
             cell: row => {
                 const disponible = row.Can_Inicial - row.Can_Salida
                 const porcentaje = (disponible / row.Can_Inicial) * 100
-                
+
                 let colorBarra = "tw-bg-green-500"
                 if (porcentaje <= 25) colorBarra = "tw-bg-red-500"
                 else if (porcentaje <= 50) colorBarra = "tw-bg-amber-500"
-                
+
                 return (
                     <div className="tw-w-full">
                         <div className="tw-flex tw-justify-between tw-text-xs tw-mb-1">
@@ -125,7 +130,7 @@ const CrudEntradas = () => {
                             <span className="tw-text-slate-400">/ {row.Can_Inicial}</span>
                         </div>
                         <div className="tw-w-full tw-bg-slate-200 tw-rounded-full tw-h-1.5">
-                            <div 
+                            <div
                                 className={`${colorBarra} tw-h-1.5 tw-rounded-full tw-transition-all`}
                                 style={{ width: `${porcentaje}%` }}
                             ></div>
@@ -162,28 +167,28 @@ const CrudEntradas = () => {
             width: "130px",
             cell: row => {
                 const estadosConfig = {
-                    STOCK: { 
-                        color: "tw-bg-green-100 tw-text-green-700", 
+                    STOCK: {
+                        color: "tw-bg-green-100 tw-text-green-700",
                         icono: "fa-box",
                         label: "En Stock"
                     },
-                    AGOTADO: { 
-                        color: "tw-bg-red-100 tw-text-red-700", 
+                    AGOTADO: {
+                        color: "tw-bg-red-100 tw-text-red-700",
                         icono: "fa-box-open",
                         label: "Agotado"
                     },
-                    VENCIDO: { 
-                        color: "tw-bg-amber-100 tw-text-amber-700", 
+                    VENCIDO: {
+                        color: "tw-bg-amber-100 tw-text-amber-700",
                         icono: "fa-clock",
                         label: "Vencido"
                     }
                 }
-                const config = estadosConfig[row.Estado] || { 
-                    color: "tw-bg-slate-100 tw-text-slate-700", 
+                const config = estadosConfig[row.Estado] || {
+                    color: "tw-bg-slate-100 tw-text-slate-700",
                     icono: "fa-question",
-                    label: row.Estado 
+                    label: row.Estado
                 }
-                
+
                 return (
                     <span className={`tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium tw-flex tw-items-center tw-gap-1 tw-w-fit ${config.color}`}>
                         <i className={`fa-solid ${config.icono} tw-text-xs`}></i>
@@ -260,12 +265,12 @@ const CrudEntradas = () => {
         const proveedor = e.proveedor?.Nom_Proveedor?.toLowerCase() || ''
         const pasante = e.pasante?.Nom_Responsable?.toLowerCase() || ''
         const instructor = e.instructor?.Nom_Responsable?.toLowerCase() || ''
-        
-        return lote.includes(textToSearch) || 
-               insumo.includes(textToSearch) || 
-               proveedor.includes(textToSearch) ||
-               pasante.includes(textToSearch) ||
-               instructor.includes(textToSearch)
+
+        return lote.includes(textToSearch) ||
+            insumo.includes(textToSearch) ||
+            proveedor.includes(textToSearch) ||
+            pasante.includes(textToSearch) ||
+            instructor.includes(textToSearch)
     })
 
     const hideModal = () => {
@@ -409,9 +414,9 @@ const CrudEntradas = () => {
                                             {entradaSeleccionada ? 'Editar Entrada' : 'Nueva Entrada'}
                                         </h5>
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        className="tw-text-white/70 hover:tw-text-white tw-text-2xl tw-leading-none" 
+                                    <button
+                                        type="button"
+                                        className="tw-text-white/70 hover:tw-text-white tw-text-2xl tw-leading-none"
                                         data-bs-dismiss="modal"
                                         id="closeModal"
                                     >
@@ -435,3 +440,5 @@ const CrudEntradas = () => {
 }
 
 export default CrudEntradas
+
+
