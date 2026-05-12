@@ -100,6 +100,10 @@ insumosSolicitudModel.belongsTo(insumosModel, {
     foreignKey: 'Id_insumos',
     as: 'insumo'
 });
+insumosSolicitudModel.belongsTo(entradasModel, {
+    foreignKey: 'Id_Entradas',
+    as: 'entrada'
+});
 
 
 // ============================================
