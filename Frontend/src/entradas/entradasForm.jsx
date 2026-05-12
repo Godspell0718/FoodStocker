@@ -71,7 +71,8 @@ const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) => {
             Id_Proveedor,
             Id_Pasante,
             Id_Instructor,
-            Id_Insumos
+            Id_Insumos,
+            Estado: 'STOCK'
         }
 
         try {

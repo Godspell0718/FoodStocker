@@ -9,6 +9,7 @@ import EstadoCrud from './Estados/EstadosCrud.jsx'
 import Estados_solicitudCrud from './Estados_solicitud/Estado_solicitudCrud.jsx'
 import Login from './home/Login'
 import Home from './home/home.jsx'
+import Inicio from './home/inicio.jsx'
 import { useState, useEffect } from 'react'
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx"
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx"
@@ -49,8 +50,9 @@ function App() {
         }
       >
 
-        <Route index element={<Navigate to="Entradas" />} />
+        <Route index element={<Navigate to="Inicio" />} />
 
+        <Route path="Inicio" element={<Inicio />} />
         <Route path="Proveedores" element={<CrudProveedores />} />
         <Route path="Responsables" element={<CrudResponsables />} />
         <Route path="Destino" element={<CrudDestino />} />
