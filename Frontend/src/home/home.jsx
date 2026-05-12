@@ -15,6 +15,7 @@ import {
     TrendingUp,
     Warehouse,
     Waypoints,
+    ArrowUpRight,
 } from "lucide-react";
 
 const navItems = [
@@ -31,7 +32,7 @@ const Temporal = [
   { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN"] },
   { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN"] },
   { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "PDU"] },
-  { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "PDU", "IA"] },
+  { icon: TrendingUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "PDU", "IA"] },
 ];
 
 export default function Dashboard() {
