@@ -3,7 +3,8 @@ import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
 import {
     ClipboardList, Calendar, FileText, Hash, Search,
-    ArrowRight, ArrowLeft, Send, Plus, Trash2, ShoppingCart, Package
+    ArrowRight, ArrowLeft, Send, Plus, Trash2, ShoppingCart, Package,
+    CheckCircle, XCircle, Loader2, Truck, Eye
 } from "lucide-react";
 
 const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all";
@@ -20,12 +21,34 @@ const SolicitudConLotes = () => {
     const [filtro, setFiltro] = useState("");
     const [cantidades, setCantidades] = useState({});
     const [carrito, setCarrito] = useState([]);
+    const [misSolicitudes, setMisSolicitudes] = useState([]);
+    const [loadingSolicitudes, setLoadingSolicitudes] = useState(true);
 
     const usuario = JSON.parse(localStorage.getItem("userFoodStocker") || "{}");
 
     useEffect(() => {
         if (paso === 2) cargarInsumosConLotes();
     }, [paso]);
+
+    useEffect(() => {
+        cargarMisSolicitudes();
+        const handleRefresh = () => cargarMisSolicitudes();
+        window.addEventListener("nuevaSolicitud", handleRefresh);
+        return () => window.removeEventListener("nuevaSolicitud", handleRefresh);
+    }, []);
+
+    const cargarMisSolicitudes = async () => {
+        try {
+            setLoadingSolicitudes(true);
+            const res = await apiAxios.get("/api/solicitudes/pendientes");
+            const filtradas = res.data.filter(sol => sol.Id_Responsable === usuario.id);
+            setMisSolicitudes(filtradas);
+        } catch (error) {
+            console.error("Error cargando solicitudes:", error);
+        } finally {
+            setLoadingSolicitudes(false);
+        }
+    };
 
     const cargarInsumosConLotes = async () => {
         try {
@@ -157,6 +180,7 @@ const SolicitudConLotes = () => {
             Swal.fire({ title: "¡Solicitud creada!", text: "Tu solicitud fue registrada correctamente", icon: "success", timer: 1800, showConfirmButton: false });
             setDescripcion(""); setFicha(""); setFichaConfirm("");
             setFechaEntrega(""); setCarrito([]); setPaso(1);
+            cargarMisSolicitudes();
             window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
             Swal.fire("Error", error.response?.data?.message || "Error al crear", "error");
@@ -178,7 +202,7 @@ const SolicitudConLotes = () => {
             </div>
 
             {/* Stepper */}
-            <div className="tw-flex tw-items-center tw-mb-6">
+            <div className="tw-flex tw-items-center tw-mb-10">
                 <div className={`tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-full tw-text-sm tw-font-bold tw-shadow-sm ${paso >= 1 ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>1</div>
                 <div className={`tw-flex-1 tw-h-1 tw-mx-2 tw-rounded-full tw-transition-all ${paso >= 2 ? "tw-bg-primario-700" : "tw-bg-gray-200"}`} />
                 <div className={`tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-full tw-text-sm tw-font-bold tw-shadow-sm ${paso >= 2 ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>2</div>
@@ -361,6 +385,116 @@ const SolicitudConLotes = () => {
                     )}
                 </div>
             )}
+
+            {/* ============================================ */}
+            {/* SECCIÓN: MIS SOLICITUDES CON STEPPER DE ESTADOS */}
+            {/* ============================================ */}
+            <div className="tw-mt-10">
+                <div className="tw-flex tw-items-center tw-gap-3 tw-mb-6">
+                    <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md">
+                        <Eye className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+                    </div>
+                    <div>
+                        <h2 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Mis Solicitudes</h2>
+                        <p className="tw-text-sm tw-text-gray-500 tw-m-0">Seguimiento del estado de tus solicitudes</p>
+                    </div>
+                </div>
+
+                {loadingSolicitudes ? (
+                    <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-12 tw-gap-3">
+                        <Loader2 className="tw-w-7 tw-h-7 tw-text-primario-500 tw-animate-spin" />
+                        <p className="tw-text-gray-400 tw-text-sm">Cargando solicitudes...</p>
+                    </div>
+                ) : misSolicitudes.length === 0 ? (
+                    <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-py-12 tw-text-center">
+                        <ClipboardList className="tw-w-10 tw-h-10 tw-text-gray-300 tw-mx-auto tw-mb-3" />
+                        <p className="tw-text-gray-500 tw-font-medium tw-m-0">No tienes solicitudes registradas</p>
+                        <p className="tw-text-gray-400 tw-text-sm tw-m-0 tw-mt-1">Crea una solicitud para ver su seguimiento aquí</p>
+                    </div>
+                ) : (
+                    <div className="tw-flex tw-flex-col tw-gap-4">
+                        {misSolicitudes.map(sol => {
+                            const estado = sol.ultimoEstado?.toLowerCase() ?? "solicitado";
+                            const esCancelado = estado === "cancelado";
+                            const pasoActual = esCancelado ? 0 : estado === "solicitado" ? 1 : estado === "proceso" ? 2 : estado === "despachado" ? 3 : 1;
+
+                            const pasos = [
+                                { num: 1, label: "Solicitado", icon: ClipboardList },
+                                { num: 2, label: "En Proceso", icon: Loader2 },
+                                { num: 3, label: "Despachado", icon: Truck },
+                            ];
+
+                            return (
+                                <div key={sol.Id_solicitud} className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-overflow-hidden hover:tw-shadow-md tw-transition-shadow">
+                                    {/* Header de la tarjeta */}
+                                    <div className="tw-flex tw-items-center tw-justify-between tw-px-5 tw-py-3 tw-bg-primario-900">
+                                        <div className="tw-flex tw-items-center tw-gap-2">
+                                            <span className="tw-text-secundario-400 tw-font-bold tw-text-sm">#{sol.Id_solicitud}</span>
+                                            <span className="tw-text-primario-200 tw-text-sm">— {sol.Descripcion || sol.motivo}</span>
+                                        </div>
+                                        <span className="tw-text-primario-300 tw-text-xs">{sol.Fec_entrega}</span>
+                                    </div>
+
+                                    <div className="tw-px-5 tw-py-5">
+                                        {/* Stepper de estados */}
+                                        {esCancelado ? (
+                                            <div className="tw-flex tw-flex-col tw-items-center tw-gap-2 tw-py-2">
+                                                <div className="tw-flex tw-items-center tw-justify-center tw-w-12 tw-h-12 tw-rounded-full tw-bg-red-100">
+                                                    <XCircle className="tw-w-6 tw-h-6 tw-text-red-500" />
+                                                </div>
+                                                <span className="tw-text-red-600 tw-font-bold tw-text-sm">Cancelado</span>
+                                                {sol.motivo_cancelacion && (
+                                                    <p className="tw-text-red-500 tw-text-xs tw-text-center tw-m-0 tw-max-w-xs">
+                                                        "{sol.motivo_cancelacion}"
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="tw-flex tw-items-center tw-justify-between">
+                                                {pasos.map((p, idx) => {
+                                                    const completado = pasoActual >= p.num;
+                                                    const esActual = pasoActual === p.num;
+                                                    const IconComponent = p.icon;
+
+                                                    return (
+                                                        <div key={p.num} className="tw-flex tw-items-center tw-flex-1">
+                                                            <div className="tw-flex tw-flex-col tw-items-center tw-gap-1.5">
+                                                                <div className={`tw-flex tw-items-center tw-justify-center tw-w-10 tw-h-10 tw-rounded-full tw-transition-all tw-duration-300 ${
+                                                                    completado
+                                                                        ? esActual
+                                                                            ? "tw-bg-primario-900 tw-text-secundario-400 tw-shadow-lg tw-ring-4 tw-ring-primario-100"
+                                                                            : "tw-bg-green-500 tw-text-white tw-shadow-sm"
+                                                                        : "tw-bg-gray-200 tw-text-gray-400"
+                                                                }`}>
+                                                                    {completado && !esActual ? (
+                                                                        <CheckCircle className="tw-w-5 tw-h-5" />
+                                                                    ) : (
+                                                                        <IconComponent className={`tw-w-5 tw-h-5 ${esActual && p.num === 2 ? "" : ""}`} />
+                                                                    )}
+                                                                </div>
+                                                                <span className={`tw-text-xs tw-font-semibold tw-whitespace-nowrap ${
+                                                                    completado ? esActual ? "tw-text-primario-800" : "tw-text-green-600" : "tw-text-gray-400"
+                                                                }`}>
+                                                                    {p.label}
+                                                                </span>
+                                                            </div>
+                                                            {idx < pasos.length - 1 && (
+                                                                <div className={`tw-flex-1 tw-h-1 tw-mx-3 tw-rounded-full tw-transition-all tw-duration-300 ${
+                                                                    pasoActual > p.num ? "tw-bg-green-400" : "tw-bg-gray-200"
+                                                                }`} />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
