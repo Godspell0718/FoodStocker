@@ -29,6 +29,10 @@ const SolicitudModel = sequelize.define(
             type: DataTypes.INTEGER,
             allowNull: true
         },
+        motivo_cancelacion: {
+            type: DataTypes.STRING(255),
+            allowNull: true
+        },
 
         createdat: {
             type: DataTypes.DATE,
