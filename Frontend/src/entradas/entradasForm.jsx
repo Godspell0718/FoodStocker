@@ -119,8 +119,8 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
     }
 
     // ─── Filtrar pasantes e instructores ─────────────────────────
-    const pasantes = responsables.filter(r => r.Tip_Responsable === 'P')
-    const instructores = responsables.filter(r => r.Tip_Responsable === 'I')
+    const pasantes = responsables.filter(r => r.Tip_Responsable === 'PA')
+    const instructores = responsables.filter(r => r.Tip_Responsable === 'IA')
 
     return (
         <form onSubmit={gestionarForm} className="tw-space-y-6">
@@ -312,5 +312,3 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
 }
 
 export default EntradasForm
-
-

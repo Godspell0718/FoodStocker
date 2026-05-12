@@ -13,37 +13,43 @@ import {
     ChevronDown,
     ClockArrowUp,
     TrendingUp,
+    Warehouse,
+    Waypoints,
 } from "lucide-react";
 
-const navSections = [
-    {
-        title: "Inventario",
-        items: [
-            { icon: ArchiveRestore, label: "Entradas", path: "/Entradas" },
-            { icon: Wheat, label: "Insumos", path: "/Insumos" },
-        ]
-    },
-    {
-        title: "Solicitudes",
-        items: [
-            { icon: ClipboardPaste, label: "Pendientes", path: "/solicitudes-pendientes" },
-            { icon: ClipboardPaste, label: "Nueva Solicitud", path: "/solicitud-nueva" },
-            { icon: ClockArrowUp, label: "Histórico", path: "/Solicitudes" },
-        ]
-    },
-    {
-        title: "Gestión",
-        items: [
-            { icon: UserRound, label: "Responsables", path: "/Responsables" },
-            { icon: Package, label: "Proveedores", path: "/Proveedores" },
-            { icon: TrendingUp, label: "Reportes", path: "/Reportes" },
-        ]
-    },
+const navItems = [
+    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "IA"] },
+    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN"] },
+    { icon: Wheat, label: "Insumos", path: "/Insumos", roles: ["ADMIN"] },
+    { icon: UserRound, label: "Responsables", path: "/Responsables", roles: ["ADMIN", "IA"] },
+    { icon: Package, label: "Proveedores", path: "/Proveedores", roles: ["ADMIN", "IA"] },
+    { icon: ClockArrowUp, label: "Historico de Solicitudes", path: "/Solicitudes", roles: ["ADMIN", "PDU", "IA"] },
+];
+
+const Temporal = [
+  { icon: Warehouse, label: "Destinos", path: "/Destino", roles: ["ADMIN"] },
+  { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN"] },
+  { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN"] },
+  { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "PDU"] },
+  { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "PDU", "IA"] },
 ];
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const location = useLocation();
+    const user = JSON.parse(localStorage.getItem('userFoodStocker') || '{}');
+    const rol = user.rol?.trim();
+    const navSections = [
+        {
+            title: "Principal",
+            items: navItems.filter(item => item.roles.includes(rol))
+        },
+        {
+            title: "Temporal",
+            items: Temporal.filter(item => item.roles.includes(rol))
+        }
+    ];
+
     const [openUserMenu, setOpenUserMenu] = useState(false);
     const menuRef = useRef();
 
@@ -73,7 +79,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         cargarNotificaciones();
-        
+
         const handleNuevaSolicitud = () => cargarNotificaciones();
         window.addEventListener("nuevaSolicitud", handleNuevaSolicitud);
 
@@ -246,14 +252,7 @@ export default function Dashboard() {
 
                     {/* Buscador */}
                     <div className="tw-relative">
-                        <input
-                            placeholder="Buscar..."
-                            className="tw-input tw-shadow-lg focus:tw-border-2 tw-border-gray-300 tw-px-5 tw-py-3 tw-rounded-xl tw-w-56 tw-transition-all focus:tw-w-64 tw-outline-none"
-                            name="search"
-                            type="search"
-                        />
 
-                        <Search className="tw-size-6 tw-absolute tw-top-3 tw-right-3 tw-text-gray-500" />
                     </div>
 
                     {/* Acciones */}
@@ -261,9 +260,9 @@ export default function Dashboard() {
 
                         {/* Notificaciones */}
                         <div className="tw-relative" ref={notifRef}>
-                            < button 
+                            < button
                                 onClick={() => setShowNotifications(!showNotifications)}
-                                className="tw-w-9 tw-h-9 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200 tw-transition-all tw-duration-200 tw-relative" 
+                                className="tw-w-9 tw-h-9 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200 tw-transition-all tw-duration-200 tw-relative"
                             >
                                 <Bell className="tw-w-4 tw-h-4" />
                                 {notifications.length > 0 && (
@@ -298,8 +297,8 @@ export default function Dashboard() {
                                             </div>
                                         ) : (
                                             notifications.map(sol => (
-                                                <div 
-                                                    key={sol.Id_solicitud} 
+                                                <div
+                                                    key={sol.Id_solicitud}
                                                     className="tw-p-4 hover:tw-bg-indigo-50/50 tw-cursor-pointer tw-transition-all tw-duration-200 tw-group"
                                                     onClick={() => {
                                                         setShowNotifications(false);
