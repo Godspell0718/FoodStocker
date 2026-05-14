@@ -32,6 +32,7 @@ const Temporal = [
   { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN"] },
   { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "PDU"] },
   { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "PDU", "IA"] },
+  { icon: ArchiveRestore, label: "Pérdidas", path: "/perdidas", roles: ["ADMIN", "PDU", "IA"] },
 ];
 
 export default function Dashboard() {

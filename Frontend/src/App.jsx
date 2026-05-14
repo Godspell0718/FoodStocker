@@ -3,9 +3,9 @@ import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from './context/authContext';
 
 // VISTAS
-import CrudResponsables from './Responsables/crudResponsables';
-import CrudProveedores from './Proveedores/crudProveedores';
-import CrudDestino from './Destino/crudDestino';
+import CrudResponsables from './Responsables/crudResponsables.jsx';
+import CrudProveedores from './Proveedores/crudProveedores.jsx';
+import CrudDestino from './destino/crudDestino.jsx';
 import CrudInsumos from './insumos/crudInsumos.jsx';
 import CrudEntradas from './entradas/crudEntradas.jsx';
 import SolicitudCrud from './Solicitudes/SolicitudCrud.jsx';
@@ -16,7 +16,8 @@ import Home from './home/home.jsx';
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx";
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx";
 import DashboardReportes from './Reportes/DashboardReportes.jsx';
-
+import PerdidasCrud from './Reportes/PerdidasCrud.jsx';
+import PerdidasForm from './Reportes/PerdidasForm.jsx';
 const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
   const { user } = useContext(AuthContext);
 
@@ -123,6 +124,9 @@ function App() {
         <Route path="Entradas" element={<CrudEntradas />} />
         <Route path="Solicitudes" element={<SolicitudCrud />} />
         <Route path="Reportes" element={<DashboardReportes />} />
+        <Route path="perdidas" element={<PerdidasCrud />} />
+        <Route path="perdidas/nuevo" element={<PerdidasForm />} />
+        <Route path="perdidas/editar/:id" element={<PerdidasForm />} />
         <Route path="solicitudes-pendientes" element={<SolicitudPendientes />} />
         <Route path="solicitud-nueva" element={<SolicitudConLotes />} />
 

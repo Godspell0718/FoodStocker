@@ -19,6 +19,8 @@ import insumosModel from "./models/insumosModel.js"
 import proveedoresModel from "./models/proveedoresModel.js"
 import responsablesModel from "./models/responsableModel.js"
 import insumosSolicitudModel from "./models/insumosSolicitudModel.js"
+import perdidasRoutes from "./routes/perdidasRoutes.js"
+import perdidaModel from "./models/perdidasModel.js"
 
 
 dotenv.config();
@@ -119,6 +121,7 @@ app.use("/api/proveedores", proveedoresRouters)
 app.use("/api/solicitudes", SolicitudRoutes)
 app.use("/api/estados", EstadosRoutes)
 app.use("/api/estado_solicitud", Estado_solicitudRoutes)
+app.use("/api/perdidas", perdidasRoutes)
 
 // ============================================
 // CONEXIÓN A BASE DE DATOS
