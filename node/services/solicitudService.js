@@ -1,16 +1,24 @@
 import SolicitudModel from "../models/SolicitudModel.js";
 import responsablesModel from "../models/responsableModel.js";
 import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
+import DestinoModel from "../models/destinoModel.js";
 
 class SolicitudService {
 
   async getAll() {
     return await SolicitudModel.findAll({
-      include: [{
-        model: responsablesModel,
-        as: 'responsable',
-        attributes: ['Nom_Responsable']
-      }],
+      include: [
+        {
+          model: responsablesModel,
+          as: 'responsable',
+          attributes: ['Nom_Responsable']
+        },
+        {
+          model: DestinoModel,
+          as: 'destino',
+          attributes: ['Nom_Destino', 'Tip_Destino']
+        }
+      ],
       order: [['Id_solicitud', 'DESC']]
     });
   }

@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import {
     ClipboardList, Calendar, FileText, Hash, Search,
     ArrowRight, ArrowLeft, Send, Plus, Trash2, ShoppingCart, Package,
-    CheckCircle, XCircle, Loader2, Truck, Eye
+    CheckCircle, XCircle, Loader2, Truck, Eye, MapPin, ChevronDown
 } from "lucide-react";
 
 const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all";
@@ -17,7 +17,9 @@ const SolicitudConLotes = () => {
     const [ficha, setFicha] = useState("");
     const [fichaConfirm, setFichaConfirm] = useState("");
     const [fechaEntrega, setFechaEntrega] = useState("");
+    const [Id_Destino, setId_Destino] = useState("");
     const [insumos, setInsumos] = useState([]);
+    const [destinos, setDestinos] = useState([]);
     const [filtro, setFiltro] = useState("");
     const [cantidades, setCantidades] = useState({});
     const [carrito, setCarrito] = useState([]);
@@ -31,11 +33,21 @@ const SolicitudConLotes = () => {
     }, [paso]);
 
     useEffect(() => {
+        cargarDestinos();
         cargarMisSolicitudes();
         const handleRefresh = () => cargarMisSolicitudes();
         window.addEventListener("nuevaSolicitud", handleRefresh);
         return () => window.removeEventListener("nuevaSolicitud", handleRefresh);
     }, []);
+
+    const cargarDestinos = async () => {
+        try {
+            const res = await apiAxios.get("/api/destino");
+            setDestinos(res.data);
+        } catch (error) {
+            console.error("Error cargando destinos:", error);
+        }
+    };
 
     const cargarMisSolicitudes = async () => {
         try {
@@ -171,6 +183,7 @@ const SolicitudConLotes = () => {
                 Id_Responsable: usuario.id,
                 Fec_entrega: fechaEntrega,
                 motivo, descripcion, ficha,
+                Id_Destino: Id_Destino || null,
                 insumos: carrito.map(item => ({
                     Id_insumos: item.Id_Insumos,
                     Id_Entradas: item.Id_Entradas,
@@ -179,7 +192,7 @@ const SolicitudConLotes = () => {
             });
             Swal.fire({ title: "¡Solicitud creada!", text: "Tu solicitud fue registrada correctamente", icon: "success", timer: 1800, showConfirmButton: false });
             setDescripcion(""); setFicha(""); setFichaConfirm("");
-            setFechaEntrega(""); setCarrito([]); setPaso(1);
+            setFechaEntrega(""); setId_Destino(""); setCarrito([]); setPaso(1);
             cargarMisSolicitudes();
             window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
@@ -230,9 +243,28 @@ const SolicitudConLotes = () => {
                         <label className={labelClass}><Hash className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Confirmar Ficha</label>
                         <input type="number" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={fichaConfirm} onChange={e => setFichaConfirm(e.target.value)} placeholder="Repite el número" disabled={paso === 2} />
                     </div>
-                    <div className="md:tw-col-span-2">
+                    <div>
                         <label className={labelClass}><Calendar className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Fecha de entrega</label>
                         <input type="date" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={fechaEntrega} onChange={e => setFechaEntrega(e.target.value)} disabled={paso === 2} min={new Date().toISOString().split("T")[0]} />
+                    </div>
+                    <div>
+                        <label className={labelClass}><MapPin className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Destino</label>
+                        <div className="tw-relative">
+                            <select
+                                className={paso === 2 ? `${inputClass} tw-appearance-none tw-opacity-60 tw-cursor-not-allowed` : `${inputClass} tw-appearance-none`}
+                                value={Id_Destino}
+                                onChange={e => setId_Destino(e.target.value)}
+                                disabled={paso === 2}
+                            >
+                                <option value="">Seleccione un destino...</option>
+                                {destinos.map(d => (
+                                    <option key={d.Id_Destino} value={d.Id_Destino}>
+                                        {d.Nom_Destino} — {d.Tip_Destino}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
+                        </div>
                     </div>
                 </div>
                 <div className="tw-mt-4">

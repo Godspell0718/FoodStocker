@@ -7,7 +7,7 @@ import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 
 class SolicitudServiceNuevo {
 
-    async crearCompleta({ Id_Responsable, Fec_entrega, motivo, Descripcion, Ficha, insumos }) {
+    async crearCompleta({ Id_Responsable, Fec_entrega, motivo, Descripcion, Ficha, Id_Destino, insumos }) {
 
         const t = await db.transaction();
 
@@ -17,8 +17,9 @@ class SolicitudServiceNuevo {
                     Id_Responsable, 
                     Fec_entrega, 
                     motivo,
-                    Descripcion, // ✅ nuevo
-                    Ficha        // ✅ nuevo
+                    Descripcion,
+                    Ficha,
+                    Id_Destino
                 },
                 { transaction: t }
             );

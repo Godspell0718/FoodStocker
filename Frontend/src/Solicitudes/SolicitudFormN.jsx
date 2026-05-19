@@ -3,14 +3,16 @@ import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
 import {
     FileText, Calendar, User, Search, ShoppingCart,
-    Plus, Trash2, ArrowRight, ArrowLeft, Send, X, Package
+    Plus, Trash2, ArrowRight, ArrowLeft, Send, X, Package,
+    MapPin, ChevronDown
 } from "lucide-react";
 
 const SolicitudFormNuevo = ({ hideModal }) => {
     const [paso, setPaso] = useState(1);
 
-    const [formData, setFormData] = useState({ motivo: "", Fec_entrega: "" });
+    const [formData, setFormData] = useState({ motivo: "", Fec_entrega: "", Id_Destino: "" });
     const [insumos, setInsumos] = useState([]);
+    const [destinos, setDestinos] = useState([]);
     const [filtro, setFiltro] = useState("");
     const [cantidades, setCantidades] = useState({});
     const [carrito, setCarrito] = useState([]);
@@ -18,8 +20,21 @@ const SolicitudFormNuevo = ({ hideModal }) => {
     const usuario = JSON.parse(localStorage.getItem("userFoodStocker") || "{}");
 
     useEffect(() => {
+        cargarDestinos();
+    }, []);
+
+    useEffect(() => {
         if (paso === 2) cargarInsumos();
     }, [paso]);
+
+    const cargarDestinos = async () => {
+        try {
+            const res = await apiAxios.get("/api/destino");
+            setDestinos(res.data);
+        } catch (error) {
+            console.error("Error al cargar destinos:", error);
+        }
+    };
 
     const cargarInsumos = async () => {
         try {
@@ -87,6 +102,7 @@ const SolicitudFormNuevo = ({ hideModal }) => {
                 Id_Responsable: usuario.id,
                 Fec_entrega: formData.Fec_entrega,
                 motivo: formData.motivo,
+                Id_Destino: formData.Id_Destino || null,
                 insumos: carrito.map(item => ({ Id_insumos: item.Id_Insumos, cantidad_solicitada: item.cantidad }))
             });
             Swal.fire({ title: "¡Solicitud creada!", text: "Tu solicitud fue registrada correctamente", icon: "success", timer: 1800, showConfirmButton: false });
@@ -146,6 +162,29 @@ const SolicitudFormNuevo = ({ hideModal }) => {
                         <span className="tw-text-sm tw-text-primario-800">
                             Solicitante: <strong>{usuario.nombre || "No identificado"}</strong>
                         </span>
+                    </div>
+
+                    {/* Destino */}
+                    <div>
+                        <label className={labelClass}>
+                            <MapPin className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" /> Destino
+                        </label>
+                        <div className="tw-relative">
+                            <select
+                                id="Id_Destino"
+                                className={`${inputClass} tw-appearance-none`}
+                                value={formData.Id_Destino}
+                                onChange={handleInputChange}
+                            >
+                                <option value="">Seleccione un destino...</option>
+                                {destinos.map(d => (
+                                    <option key={d.Id_Destino} value={d.Id_Destino}>
+                                        {d.Nom_Destino} — {d.Tip_Destino}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
+                        </div>
                     </div>
 
                     <div className="tw-flex tw-gap-2 tw-mt-2">

@@ -21,6 +21,7 @@ import responsablesModel from "./models/responsableModel.js"
 import insumosSolicitudModel from "./models/insumosSolicitudModel.js"
 import perdidasRoutes from "./routes/perdidasRoutes.js"
 import perdidaModel from "./models/perdidasModel.js"
+import DestinoModel from "./models/destinoModel.js"
 
 
 dotenv.config();
@@ -88,6 +89,16 @@ SolicitudModel.belongsTo(responsablesModel, {
 });
 responsablesModel.hasMany(SolicitudModel, {
     foreignKey: 'Id_Responsable',
+    as: 'solicitudes'
+});
+
+// Solicitud -> Destino
+SolicitudModel.belongsTo(DestinoModel, {
+    foreignKey: 'Id_Destino',
+    as: 'destino'
+});
+DestinoModel.hasMany(SolicitudModel, {
+    foreignKey: 'Id_Destino',
     as: 'solicitudes'
 });
 Estado_solicitudModel.belongsTo(EstadosModel, {
