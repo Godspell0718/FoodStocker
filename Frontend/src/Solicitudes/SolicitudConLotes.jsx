@@ -23,6 +23,7 @@ const SolicitudConLotes = () => {
     const [filtro, setFiltro] = useState("");
     const [cantidades, setCantidades] = useState({});
     const [carrito, setCarrito] = useState([]);
+    const [enviando, setEnviando] = useState(false);
     const [misSolicitudes, setMisSolicitudes] = useState([]);
     const [loadingSolicitudes, setLoadingSolicitudes] = useState(true);
 
@@ -178,6 +179,60 @@ const SolicitudConLotes = () => {
             Swal.fire("Carrito vacío", "Agrega al menos un insumo", "warning");
             return;
         }
+
+        // Agrupar carrito por insumo para el resumen
+        const agrupado = carrito.reduce((acc, item) => {
+            if (!acc[item.Nom_Insumo]) {
+                acc[item.Nom_Insumo] = { total: 0, lotes: [] };
+            }
+            acc[item.Nom_Insumo].total += item.cantidad;
+            acc[item.Nom_Insumo].lotes.push({ lote: item.Lote, cantidad: item.cantidad, vence: item.Fec_Ven });
+            return acc;
+        }, {});
+
+        let resumenHTML = `
+            <div style="text-align: left;">
+                <p><strong>Motivo:</strong> ${motivo}</p>
+                <p><strong>Descripción:</strong> ${descripcion}</p>
+                <p><strong>Ficha:</strong> ${ficha}</p>
+                <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
+                ${Id_Destino ? `<p><strong>Destino:</strong> ${destinos.find(d => d.Id_Destino == Id_Destino)?.Nom_Destino || Id_Destino}</p>` : ""}
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
+                <p style="font-weight: 600; margin-bottom: 8px;">Insumos solicitados (${carrito.length} lote(s)):</p>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    ${Object.entries(agrupado).map(([nombre, info]) => `
+                        <li style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>${nombre}</span>
+                                <span style="font-weight: 600;">${info.total} ${carrito.find(i => i.Nom_Insumo === nombre)?.Uni_Med || "unidad"}</span>
+                            </div>
+                            ${info.lotes.length > 0 ? `
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+                                    ${info.lotes.map(l => `Lote ${l.lote} (${l.cantidad} uds, vence: ${l.vence})`).join(" · ")}
+                                </div>
+                            ` : ""}
+                        </li>
+                    `).join("")}
+                </ul>
+            </div>
+        `;
+
+        const confirmacion = await Swal.fire({
+            title: "¿Confirmar solicitud?",
+            html: resumenHTML,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#1e3a5f",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "Sí, enviar solicitud",
+            cancelButtonText: "Cancelar",
+            reverseButtons: true,
+            focusConfirm: false
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        setEnviando(true);
         try {
             await apiAxios.post("/api/solicitudes/completa", {
                 Id_Responsable: usuario.id,
@@ -190,12 +245,14 @@ const SolicitudConLotes = () => {
                     cantidad_solicitada: item.cantidad
                 }))
             });
+            setEnviando(false);
             Swal.fire({ title: "¡Solicitud creada!", text: "Tu solicitud fue registrada correctamente", icon: "success", timer: 1800, showConfirmButton: false });
             setDescripcion(""); setFicha(""); setFichaConfirm("");
             setFechaEntrega(""); setId_Destino(""); setCarrito([]); setPaso(1);
             cargarMisSolicitudes();
             window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
+            setEnviando(false);
             Swal.fire("Error", error.response?.data?.message || "Error al crear", "error");
         }
     };
@@ -409,8 +466,12 @@ const SolicitudConLotes = () => {
                                 </tbody>
                             </table>
                             <div className="tw-px-5 tw-py-4 tw-border-t tw-border-gray-100">
-                                <button onClick={handleEnviar} className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-white tw-font-medium tw-text-sm hover:tw-bg-primario-700 tw-transition-all tw-shadow-md">
-                                    <Send className="tw-w-4 tw-h-4" /> <span>Crear Solicitud</span>
+                                <button onClick={handleEnviar} disabled={enviando} className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-white tw-font-medium tw-text-sm hover:tw-bg-primario-700 tw-transition-all tw-shadow-md disabled:tw-opacity-60 disabled:tw-cursor-not-allowed">
+                                    {enviando ? (
+                                        <><Loader2 className="tw-w-4 tw-h-4 tw-animate-spin" /> Enviando...</>
+                                    ) : (
+                                        <><Send className="tw-w-4 tw-h-4" /> <span>Crear Solicitud</span></>
+                                    )}
                                 </button>
                             </div>
                         </div>
