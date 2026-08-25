@@ -158,4 +158,22 @@ export const cambiarEstadoSolicitud = async (req, res) => {
     }
 };
 
+// POST /api/solicitudes/novedad
+export const guardarNovedad = async (req, res) => {
+    try {
+        const { Id_solicitud, novedad } = req.body;
+        if (!Id_solicitud) {
+            return res.status(400).json({ message: "Id_solicitud es requerido" });
+        }
+        await SolicitudModel.update(
+            { novedad: novedad ?? null },
+            { where: { Id_solicitud } }
+        );
+        res.status(200).json({ message: "Novedad guardada correctamente" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
 

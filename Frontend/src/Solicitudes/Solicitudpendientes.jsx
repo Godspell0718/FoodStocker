@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
-import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin } from "lucide-react";
+import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin, AlertTriangle } from "lucide-react";
 
 const ESTADO_CONFIG = {
     solicitado: { label: "Solicitado", bg: "tw-bg-secundario-100 tw-text-secundario-800", dot: "tw-bg-secundario-400" },
@@ -88,6 +88,31 @@ const SolicitudPendientes = () => {
             window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
             Swal.fire("Error", error.response?.data?.message || "No se pudo cambiar el estado", "error");
+        }
+    };
+
+    const guardarNovedad = async (Id_solicitud, novedadActual) => {
+        const { value: nuevaNovedad, isConfirmed } = await Swal.fire({
+            title: 'Novedad de entrega',
+            html: '<p style="font-size:13px;color:#6b7280;margin-bottom:8px">Describe qué se entregó o la diferencia respecto a lo solicitado</p>',
+            input: 'textarea',
+            inputValue: novedadActual || '',
+            inputPlaceholder: 'Ej: Se solicitaron 10 huevos pero solo se entregaron 8...',
+            inputAttributes: { 'aria-label': 'Novedad', style: 'min-height:100px; font-size:13px;' },
+            showCancelButton: true,
+            confirmButtonText: 'Guardar novedad',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#153753',
+            cancelButtonColor: '#6b7280',
+        });
+        if (!isConfirmed) return;
+        try {
+            await apiAxios.post('/api/solicitudes/novedad', { Id_solicitud, novedad: nuevaNovedad || null });
+            Swal.fire({ icon: 'success', title: 'Novedad guardada', timer: 1200, showConfirmButton: false });
+            cargarSolicitudes();
+            window.dispatchEvent(new Event('nuevaSolicitud'));
+        } catch (error) {
+            Swal.fire('Error', error.response?.data?.message || 'No se pudo guardar la novedad', 'error');
         }
     };
 
@@ -262,7 +287,8 @@ const SolicitudPendientes = () => {
                                 )}
 
                                 {/* Botones de acción */}
-                                <div className="tw-flex tw-flex-wrap tw-gap-2">
+                                <div className="tw-flex tw-flex-wrap tw-items-center tw-gap-2 tw-justify-between">
+                                    <div className="tw-flex tw-flex-wrap tw-gap-2">
                                     {sol.ultimoEstado?.toLowerCase() === "solicitado" && (
                                         <>
                                             <button
@@ -301,7 +327,7 @@ const SolicitudPendientes = () => {
                                         </span>
                                     )}
                                     {sol.ultimoEstado?.toLowerCase() === "cancelado" && (
-                                        <div className="tw-flex tw-flex-col tw-gap-2 tw-w-full">
+                                        <div className="tw-flex tw-flex-col tw-gap-2">
                                             <span className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-50 tw-text-red-600 tw-text-sm tw-font-medium tw-border tw-border-red-200">
                                                 <XCircle className="tw-w-4 tw-h-4" /> Cancelado
                                             </span>
@@ -316,6 +342,24 @@ const SolicitudPendientes = () => {
                                             )}
                                         </div>
                                     )}
+                                    </div>
+
+                                    {/* Botón Novedad — siempre visible */}
+                                    <button
+                                        onClick={() => guardarNovedad(sol.Id_solicitud, sol.novedad)}
+                                        className={`tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-shadow-sm tw-border ${
+                                            sol.novedad
+                                                ? "tw-bg-amber-50 tw-text-amber-700 tw-border-amber-200 hover:tw-bg-amber-100"
+                                                : "tw-bg-gray-50 tw-text-gray-600 tw-border-gray-200 hover:tw-bg-gray-100"
+                                        }`}
+                                        title={sol.novedad ? `Novedad: ${sol.novedad}` : "Agregar novedad de entrega"}
+                                    >
+                                        <AlertTriangle className="tw-w-4 tw-h-4" />
+                                        Novedad
+                                        {sol.novedad && (
+                                            <span className="tw-w-2 tw-h-2 tw-rounded-full tw-bg-amber-500 tw-inline-block" />
+                                        )}
+                                    </button>
                                 </div>
                             </div>
                         </div>
