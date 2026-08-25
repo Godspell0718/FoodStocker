@@ -6,9 +6,10 @@ import withReactContent from "sweetalert2-react-content";
 const InsumosForm = ({ hideModal, insumoParaEditar }) => {
     const MySwal = withReactContent(Swal);
 
-    const [Nom_Insumo, setNombre]     = useState('');
-    const [Tip_Insumo, setTipo]       = useState('');
+    const [Nom_Insumo, setNombre] = useState('');
+    const [Tip_Insumo, setTipo] = useState('');
     const [Ref_Insumo, setReferencia] = useState('');
+    const [Descripcion, setDescripcion] = useState('');
     const [textFormButton, setTextFormButton] = useState("Enviar");
 
     useEffect(() => {
@@ -16,6 +17,7 @@ const InsumosForm = ({ hideModal, insumoParaEditar }) => {
             setNombre(insumoParaEditar.Nom_Insumo || '');
             setTipo(insumoParaEditar.Tip_Insumo || '');
             setReferencia(insumoParaEditar.Ref_Insumo || '');
+            setDescripcion(insumoParaEditar.Descripcion || '');
             setTextFormButton("Actualizar");
         } else {
             limpiarFormulario();
@@ -26,6 +28,7 @@ const InsumosForm = ({ hideModal, insumoParaEditar }) => {
         setNombre('');
         setTipo('');
         setReferencia('');
+        setDescripcion('');
         setTextFormButton("Enviar");
     };
 
@@ -41,7 +44,8 @@ const InsumosForm = ({ hideModal, insumoParaEditar }) => {
         const data = {
             Nom_Insumo,
             Tip_Insumo,
-            Ref_Insumo
+            Ref_Insumo,
+            Descripcion
         };
 
         try {
@@ -131,8 +135,19 @@ const InsumosForm = ({ hideModal, insumoParaEditar }) => {
                     <option value="MP">Materia Prima</option>
                 </select>
             </div>
-
-            <button 
+            <div>
+                <label className="tw-block tw-text-sm tw-font-medium tw-text-slate-700 tw-mb-1.5">
+                    Descripción
+                </label>
+                <textarea
+                    className="tw-w-full tw-px-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                    placeholder="Detalles adicionales del insumo (opcional)"
+                    rows="3"
+                    value={Descripcion}
+                    onChange={(e) => setDescripcion(e.target.value)}
+                />
+            </div>
+            <button
                 className="tw-w-full tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200"
                 type="submit"
             >
