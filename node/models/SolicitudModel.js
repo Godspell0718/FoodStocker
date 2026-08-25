@@ -33,6 +33,10 @@ const SolicitudModel = sequelize.define(
             type: DataTypes.STRING(255),
             allowNull: true
         },
+        Id_Destino: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
 
         createdat: {
             type: DataTypes.DATE,

@@ -7,6 +7,7 @@ import insumosModel from "../models/insumosModel.js";
 import entradasModel from "../models/entradasModel.js";
 import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 import EstadosModel from "../models/EstadosModel.js";
+import DestinoModel from "../models/destinoModel.js";
 
 export const getAll = async (req, res) => {
     try {
@@ -93,6 +94,11 @@ export const getSolicitudesPendientes = async (req, res) => {
                     model: responsablesModel,
                     as: 'responsable',
                     attributes: ['Nom_Responsable', 'Tip_Responsable']
+                },
+                {
+                    model: DestinoModel,
+                    as: 'destino',
+                    attributes: ['Nom_Destino', 'Tip_Destino']
                 },
                 {
                     model: insumosSolicitudModel,

@@ -23,13 +23,15 @@ import {
   PackageX,
   Clock,
   Loader2,
-  Download
+  Download,
+  TrendingDown
 } from "lucide-react";
 
 export default function DashboardReportes() {
   const [loading, setLoading] = useState(true);
   const [insumos, setInsumos] = useState([]);
   const [solicitudes, setSolicitudes] = useState([]);
+  const [perdidas, setPerdidas] = useState([]);
 
   useEffect(() => {
     cargarDatos();
@@ -38,12 +40,14 @@ export default function DashboardReportes() {
   const cargarDatos = async () => {
     try {
       setLoading(true);
-      const [resInsumos, resSolicitudes] = await Promise.all([
+      const [resInsumos, resSolicitudes, resPerdidas] = await Promise.all([
         apiNode.get("/api/insumos/con-lotes"),
-        apiNode.get("/api/solicitudes/pendientes")
+        apiNode.get("/api/solicitudes/pendientes"),
+        apiNode.get("/api/perdidas")
       ]);
       setInsumos(resInsumos.data || []);
       setSolicitudes(resSolicitudes.data || []);
+      setPerdidas(resPerdidas.data || []);
     } catch (error) {
       console.error("Error al cargar datos para el dashboard", error);
     } finally {
@@ -149,6 +153,10 @@ export default function DashboardReportes() {
   const solDespachadas = solicitudes.filter(s => s.ultimoEstado?.toLowerCase() === "despachado").length;
   const solCanceladas = solicitudes.filter(s => s.ultimoEstado?.toLowerCase() === "cancelado").length;
 
+  // KPIs Pérdidas
+  const totalPerdidas = perdidas.length;
+  const cantPerdidaTotal = perdidas.reduce((acc, p) => acc + parseInt(p.Cantidad || 0), 0);
+
   // Data para gráficos
   const dataEstados = [
     { name: "Pendientes", value: solPendientes, color: "#f59e0b" }, // amber-500
@@ -198,17 +206,33 @@ export default function DashboardReportes() {
         };
       });
 
-      // 3. Crear Libro y Hojas
+      // 3. Preparar datos de Pérdidas
+      const dataPerdidas = perdidas.map(p => {
+        return {
+          'ID Pérdida': p.Id_Perdida,
+          'Insumo': p.insumo?.Nom_Insumo || 'N/A',
+          'Lote': p.entrada?.Lote || 'N/A',
+          'Cantidad': p.Cantidad,
+          'Motivo': p.Motivo,
+          'Responsable': p.responsable?.Nom_Responsable || 'N/A',
+          'Fecha': p.createdAt?.slice(0, 10) || ''
+        };
+      });
+
+      // 4. Crear Libro y Hojas
       const wb = XLSX.utils.book_new();
       const wsInsumos = XLSX.utils.json_to_sheet(dataInsumos);
       const wsSolicitudes = XLSX.utils.json_to_sheet(dataSolicitudes);
+      const wsPerdidas = XLSX.utils.json_to_sheet(dataPerdidas);
 
       // Ajustar anchos de columna
       wsInsumos['!cols'] = [{wch: 5}, {wch: 40}, {wch: 20}, {wch: 15}];
       wsSolicitudes['!cols'] = [{wch: 12}, {wch: 35}, {wch: 30}, {wch: 18}, {wch: 18}, {wch: 15}];
+      wsPerdidas['!cols'] = [{wch: 12}, {wch: 35}, {wch: 20}, {wch: 10}, {wch: 20}, {wch: 25}, {wch: 15}];
 
       XLSX.utils.book_append_sheet(wb, wsInsumos, "Stock Insumos");
       XLSX.utils.book_append_sheet(wb, wsSolicitudes, "Historial Solicitudes");
+      XLSX.utils.book_append_sheet(wb, wsPerdidas, "Registro de Pérdidas");
 
       // 4. Descargar archivo
       const fecha = new Date().toISOString().slice(0, 10);
@@ -246,7 +270,7 @@ export default function DashboardReportes() {
         </div>
 
         {/* KPIs Grid */}
-        <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-4">
+        <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-3 lg:tw-grid-cols-5 tw-gap-4">
           
           {/* KPI 1 */}
           <div className="tw-bg-white tw-rounded-2xl tw-p-5 tw-shadow-sm tw-border tw-border-slate-100 tw-flex tw-items-center tw-gap-4 tw-transition-all hover:tw-shadow-md">
@@ -289,6 +313,18 @@ export default function DashboardReportes() {
             <div>
               <p className="tw-text-sm tw-font-medium tw-text-slate-500 tw-m-0">Insumos Agotados</p>
               <h3 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-m-0">{insumosSinStock.length}</h3>
+            </div>
+          </div>
+
+          {/* KPI 5: Pérdidas */}
+          <div className="tw-bg-white tw-rounded-2xl tw-p-5 tw-shadow-sm tw-border tw-border-slate-100 tw-flex tw-items-center tw-gap-4 tw-transition-all hover:tw-shadow-md">
+            <div className="tw-w-12 tw-h-12 tw-rounded-full tw-bg-rose-50 tw-flex tw-items-center tw-justify-center tw-shrink-0">
+              <TrendingDown className="tw-w-6 tw-h-6 tw-text-rose-600" />
+            </div>
+            <div>
+              <p className="tw-text-sm tw-font-medium tw-text-slate-500 tw-m-0">Unidades Perdidas</p>
+              <h3 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-m-0">{cantPerdidaTotal}</h3>
+              <p className="tw-text-xs tw-text-slate-400 tw-m-0 tw-mt-0.5">En {totalPerdidas} reportes</p>
             </div>
           </div>
 

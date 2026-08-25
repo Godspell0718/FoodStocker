@@ -42,3 +42,19 @@ export default async function authMiddleware(req, res, next) {
         return res.status(401).json({ message: 'Token invalido o expirado' });
     }
 }
+
+export async function optionalAuthMiddleware(req, res, next) {
+    try {
+        const authHeader = req.get('Authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.split(' ')[1];
+            if (token) {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                req.user = decoded;
+            }
+        }
+    } catch (err) {
+        // Ignorar si el token es opcional
+    }
+    next();
+}

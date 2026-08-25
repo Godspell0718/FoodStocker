@@ -43,19 +43,28 @@ export const updateInsumo = async (req, res) => {
 // 🆕 FUNCIÓN ELIMINAR (NUEVA)
 export const deletedInsumo = async (req, res) => {
     try {
+        const insumo = await Insumo.findByPk(req.params.id);
+        if (!insumo) {
+            return res.status(404).json({ error: 'Insumo no encontrado' });
+        }
+
         // Verificar si tiene entradas asociadas
         const entradasAsociadas = await entradasModel.count({
             where: { Id_Insumos: req.params.id }
         });
         
-        if (entradasAsociadas > 0) {
-            return res.status(400).json({ 
-                error: 'No se puede eliminar porque tiene entradas asociadas' 
+        if (entradasAsociadas > 0 || insumo.Estado === 'ACTIVO') {
+            const nuevoEstado = insumo.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+            await insumo.update({ Estado: nuevoEstado });
+            return res.status(200).json({ 
+                Message: `Insumo ${nuevoEstado === 'ACTIVO' ? 'activado' : 'inactivado'} correctamente`,
+                inactived: true,
+                nuevoEstado
             });
+        } else {
+            await ServInsumos.delete(req.params.id);
+            return res.status(200).json({ Message: 'Insumo eliminado correctamente', deleted: true });
         }
-        
-        await ServInsumos.delete(req.params.id);
-        res.status(200).json({ Message: 'Insumo eliminado correctamente' });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -65,6 +74,7 @@ export const deletedInsumo = async (req, res) => {
 export const getInsumosConLotes = async (req, res) => {
     try {
         const insumos = await Insumo.findAll({
+            where: { Estado: 'ACTIVO' },
             include: [{
                 model: entradasModel,
                 as: 'entradas',
@@ -89,6 +99,7 @@ export const getInsumosConLotes = async (req, res) => {
 export const getInsumosConStock = async (req, res) => {
     try {
         const insumos = await Insumo.findAll({
+            where: { Estado: 'ACTIVO' },
             order: [['Id_Insumos', 'DESC']],
             include: [{
                 model: entradasModel,

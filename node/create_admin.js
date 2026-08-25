@@ -11,7 +11,7 @@ async function createAdmin() {
     
     const adminData = {
       Nom_Responsable: "Admin FoodStocker",
-      Tip_Responsable: "I",
+      Tip_Responsable: "ADMIN",
       Tel_Responsable: "0000000000",
       Doc_Responsable: "123456789",
       Cor_Responsable: "admin@foodstocker.com",

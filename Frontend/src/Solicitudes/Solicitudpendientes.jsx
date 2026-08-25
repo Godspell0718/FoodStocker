@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
-import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare } from "lucide-react";
+import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin } from "lucide-react";
 
 const ESTADO_CONFIG = {
     solicitado: { label: "Solicitado", bg: "tw-bg-secundario-100 tw-text-secundario-800", dot: "tw-bg-secundario-400" },
@@ -178,7 +178,7 @@ const SolicitudPendientes = () => {
                             <div className="tw-px-5 tw-py-4">
 
                                 {/* Info grid */}
-                                <div className="tw-grid tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4 tw-mb-4">
+                                <div className="tw-grid tw-grid-cols-2 md:tw-grid-cols-5 tw-gap-4 tw-mb-4">
                                     <div>
                                         <div className="tw-flex tw-items-center tw-gap-1.5 tw-mb-0.5">
                                             <FileText className="tw-w-3.5 tw-h-3.5 tw-text-gray-400" />
@@ -199,6 +199,13 @@ const SolicitudPendientes = () => {
                                             <span className="tw-text-xs tw-text-gray-500 tw-font-medium">Ficha</span>
                                         </div>
                                         <p className="tw-text-sm tw-font-semibold tw-text-gray-700 tw-m-0">{sol.Ficha || "N/A"}</p>
+                                    </div>
+                                    <div>
+                                        <div className="tw-flex tw-items-center tw-gap-1.5 tw-mb-0.5">
+                                            <MapPin className="tw-w-3.5 tw-h-3.5 tw-text-gray-400" />
+                                            <span className="tw-text-xs tw-text-gray-500 tw-font-medium">Destino</span>
+                                        </div>
+                                        <p className="tw-text-sm tw-font-semibold tw-text-gray-700 tw-m-0">{sol.destino?.Nom_Destino || "N/A"}</p>
                                     </div>
                                     <div>
                                         <div className="tw-flex tw-items-center tw-gap-1.5 tw-mb-0.5">

@@ -209,6 +209,14 @@ class EntradasService {
   }
 
   async update(id, data) {
+    const entradaExistente = await entradasModel.findByPk(id);
+    if (!entradaExistente) throw new Error("Entrada no encontrada");
+
+    // 🚫 Requerimiento 8: Bloquear edición si ya fue utilizada
+    if (entradaExistente.Can_Salida > 0) {
+      throw new Error("No es posible editar esta entrada porque ya presenta consumos o salidas registradas.");
+    }
+
     // Eliminar Vlr_Total y Estado si vienen en los datos
     const { Vlr_Total, Estado, ...dataToUpdate } = data;
 

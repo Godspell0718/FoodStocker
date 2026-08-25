@@ -8,6 +8,8 @@ import {
   deleteResponsable
 } from "../controllers/responsableController.js";
 
+import { optionalAuthMiddleware } from "../middleware/usersmiddleware.js";
+
 const router = express.Router();
 
 // ======================
@@ -15,9 +17,9 @@ const router = express.Router();
 // ======================
 router.get("/", getAllResponsables);
 router.get("/:id", getResponsableById);
-router.post("/", registerResponsable); // 🔥 CAMBIO CLAVE
-router.put("/:id", updateResponsable);
-router.delete("/:id", deleteResponsable);
+router.post("/", registerResponsable);
+router.put("/:id", optionalAuthMiddleware, updateResponsable);
+router.delete("/:id", optionalAuthMiddleware, deleteResponsable);
 
 // ======================
 // AUTENTICACIÓN

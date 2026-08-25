@@ -18,7 +18,7 @@ import {
 const router = express.Router();
 
 //proteccion de rutas en el backend
-router.get('/', authMiddleware,getAllEntradas)
+router.get('/', authMiddleware, getAllEntradas)
 router.get('/:id', authMiddleware, getEntradas)
 router.post('/', authMiddleware, createEntradas)
 router.put('/:id',authMiddleware, updateEntradas)

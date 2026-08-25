@@ -47,31 +47,52 @@ const CrudDestino = () => {
                 </div>
             )
         },
+        { 
+            name: "Estado", 
+            selector: row => row.Estado || 'ACTIVO',
+            sortable: true,
+            cell: row => (
+                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${
+                    (row.Estado || 'ACTIVO') === 'ACTIVO'
+                        ? 'tw-bg-emerald-100 tw-text-emerald-800' 
+                        : 'tw-bg-rose-100 tw-text-rose-800'
+                }`}>
+                    {row.Estado || 'ACTIVO'}
+                </span>
+            )
+        },
         {
             name: 'Acciones',
             right: true,
-            width: "100px",
-            cell: row => (
-                <div className="tw-flex tw-gap-2">
-                    <button
-                        title="Editar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => {
-                            setDestinoSeleccionado(row)
-                            setShowModal(true)
-                        }}
-                    >
-                        <Pencil className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                    <button
-                        title="Eliminar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => deleteDestino(row.Id_Destino)}
-                    >
-                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                </div>
-            )
+            width: "120px",
+            cell: row => {
+                const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+                return (
+                    <div className="tw-flex tw-gap-2">
+                        <button
+                            title="Editar"
+                            className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
+                            onClick={() => {
+                                setDestinoSeleccionado(row)
+                                setShowModal(true)
+                            }}
+                        >
+                            <Pencil className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                        <button
+                            title={isActivo ? "Inactivar Destino" : "Activar Destino"}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
+                                isActivo 
+                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white" 
+                                    : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
+                            }`}
+                            onClick={() => toggleEstadoDestino(row)}
+                        >
+                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                    </div>
+                );
+            }
         }
     ]
 
@@ -80,31 +101,35 @@ const CrudDestino = () => {
   }, [])
 
   //Crear una función para la consulta
-    const deleteDestino = async (id) => {
+    const toggleEstadoDestino = async (row) => {
+        const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+        const accion = isActivo ? "Inactivar" : "Activar";
         const confirm = await Swal.fire({
-            title: "¿Estás seguro?",
-            text: "Esta acción eliminará el destino permanentemente",
+            title: `¿${accion} destino?`,
+            text: isActivo 
+                ? "El destino pasará a estado INACTIVO (no se mostrará para nuevas solicitudes de insumos)"
+                : "El destino pasará a estado ACTIVO",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Sí, eliminar",
+            confirmButtonText: `Sí, ${accion.toLowerCase()}`,
             cancelButtonText: "Cancelar",
-            confirmButtonColor: "#ef4444",
+            confirmButtonColor: isActivo ? "#f59e0b" : "#10b981",
             cancelButtonColor: "#153753",
         })
 
         if (confirm.isConfirmed) {
             try {
-                await apiAxios.delete(`/api/destino/${id}`)
+                await apiAxios.delete(`/api/destino/${row.Id_Destino}`)
                 Swal.fire({
-                    title: "Eliminado",
-                    text: "El destino ha sido eliminado correctamente",
+                    title: "Completado",
+                    text: `El destino ahora está ${isActivo ? 'INACTIVO' : 'ACTIVO'}`,
                     icon: "success",
                     timer: 1500,
                     showConfirmButton: false
                 })
                 getAlldestino()
             } catch (error) {
-                Swal.fire("Error", error.response?.data?.message || "No se pudo eliminar el destino", "error")
+                Swal.fire("Error", error.response?.data?.message || "No se pudo cambiar el estado del destino", "error")
             }
         }
     }

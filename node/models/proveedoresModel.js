@@ -25,6 +25,11 @@ const ProveedorModel = db.define("proveedores", {
   Dir_Proveedor: {
     type: DataTypes.STRING,
   },
+  Estado: {
+    type: DataTypes.ENUM("ACTIVO", "INACTIVO"),
+    defaultValue: "ACTIVO",
+    allowNull: false
+  },
   createdAt: {
     type: DataTypes.DATE,
     field: "createdat"

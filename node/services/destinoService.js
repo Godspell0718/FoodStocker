@@ -1,4 +1,5 @@
 import DestinoModel from "../models/destinoModel.js";
+import SolicitudModel from "../models/SolicitudModel.js";
 
 class DestinoService {
     async getAll() {
@@ -29,10 +30,20 @@ class DestinoService {
     }
 
     async delete(id) {
-        const deleted = await DestinoModel.destroy({ where: { Id_Destino: id } })
+        const destino = await DestinoModel.findByPk(id);
+        if (!destino) throw new Error("Destino no encontrado");
 
-        if (!deleted) throw new Error("Destino no encontrado")
-        return true
+        // Verificar si tiene solicitudes asociadas
+        const count = await SolicitudModel.count({ where: { Id_Destino: id } });
+
+        if (count > 0 || destino.Estado === 'ACTIVO') {
+            const nuevoEstado = destino.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+            await destino.update({ Estado: nuevoEstado });
+            return { inactived: true, nuevoEstado };
+        } else {
+            await destino.destroy();
+            return { deleted: true };
+        }
     }
 }
 

@@ -70,31 +70,52 @@ const CrudProveedores = () => {
                 </div>
             )
         },
+        { 
+            name: "Estado", 
+            selector: row => row.Estado || 'ACTIVO',
+            sortable: true,
+            cell: row => (
+                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${
+                    (row.Estado || 'ACTIVO') === 'ACTIVO'
+                        ? 'tw-bg-emerald-100 tw-text-emerald-800' 
+                        : 'tw-bg-rose-100 tw-text-rose-800'
+                }`}>
+                    {row.Estado || 'ACTIVO'}
+                </span>
+            )
+        },
         {
             name: "Acciones",
             right: true,
-            width: "100px",
-            cell: row => (
-                <div className="tw-flex tw-gap-2">
-                    <button
-                        title="Editar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => {
-                            setProveedorSeleccionado(row)
-                            setShowModal(true)
-                        }}
-                    >
-                        <Pencil className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                    <button
-                        title="Eliminar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => deleteProveedor(row.Id_Proveedor)}
-                    >
-                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                </div>
-            )
+            width: "120px",
+            cell: row => {
+                const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+                return (
+                    <div className="tw-flex tw-gap-2">
+                        <button
+                            title="Editar"
+                            className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
+                            onClick={() => {
+                                setProveedorSeleccionado(row)
+                                setShowModal(true)
+                            }}
+                        >
+                            <Pencil className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                        <button
+                            title={isActivo ? "Inactivar Proveedor" : "Activar Proveedor"}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
+                                isActivo 
+                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white" 
+                                    : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
+                            }`}
+                            onClick={() => toggleEstadoProveedor(row)}
+                        >
+                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                    </div>
+                );
+            }
         }
     ];
 
@@ -102,31 +123,35 @@ const CrudProveedores = () => {
         getAllProveedores()
     }, [])
 
-    const deleteProveedor = async (id) => {
+    const toggleEstadoProveedor = async (row) => {
+        const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+        const accion = isActivo ? "Inactivar" : "Activar";
         const confirm = await Swal.fire({
-            title: "¿Estás seguro?",
-            text: "Esta acción eliminará al proveedor permanentemente",
+            title: `¿${accion} proveedor?`,
+            text: isActivo 
+                ? "El proveedor pasará a estado INACTIVO (no se mostrará para nuevas entradas de insumos)"
+                : "El proveedor pasará a estado ACTIVO",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Sí, eliminar",
+            confirmButtonText: `Sí, ${accion.toLowerCase()}`,
             cancelButtonText: "Cancelar",
-            confirmButtonColor: "#ef4444",
+            confirmButtonColor: isActivo ? "#f59e0b" : "#10b981",
             cancelButtonColor: "#153753",
         })
 
         if (confirm.isConfirmed) {
             try {
-                await apiAxios.delete(`/api/proveedores/${id}`)
+                await apiAxios.delete(`/api/proveedores/${row.Id_Proveedor}`)
                 Swal.fire({
-                    title: "Eliminado",
-                    text: "El proveedor ha sido eliminado correctamente",
+                    title: "Completado",
+                    text: `El proveedor ahora está ${isActivo ? 'INACTIVO' : 'ACTIVO'}`,
                     icon: "success",
                     timer: 1500,
                     showConfirmButton: false
                 })
                 getAllProveedores()
             } catch (error) {
-                Swal.fire("Error", error.response?.data?.message || "No se pudo eliminar al proveedor", "error")
+                Swal.fire("Error", error.response?.data?.message || "No se pudo cambiar el estado del proveedor", "error")
             }
         }
     }

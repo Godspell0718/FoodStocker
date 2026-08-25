@@ -3,9 +3,9 @@ import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from './context/authContext';
 
 // VISTAS
-import CrudResponsables from './Responsables/crudResponsables';
-import CrudProveedores from './Proveedores/crudProveedores';
-import CrudDestino from './Destino/crudDestino';
+import CrudResponsables from './Responsables/crudResponsables.jsx';
+import CrudProveedores from './Proveedores/crudProveedores.jsx';
+import CrudDestino from './destino/crudDestino.jsx';
 import CrudInsumos from './insumos/crudInsumos.jsx';
 import CrudEntradas from './entradas/crudEntradas.jsx';
 import SolicitudCrud from './Solicitudes/SolicitudCrud.jsx';
@@ -16,7 +16,8 @@ import Home from './home/home.jsx';
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx";
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx";
 import DashboardReportes from './Reportes/DashboardReportes.jsx';
-
+import PerdidasCrud from './Reportes/PerdidasCrud.jsx';
+import PerdidasForm from './Reportes/PerdidasForm.jsx';
 const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
   const { user } = useContext(AuthContext);
 
@@ -71,11 +72,11 @@ function App() {
         element={user ? <Home /> : <Navigate to="/login" />}
       >
 
-        {/* ADMIN / IA */}
+        {/* ACCESOS CONFIGURADOS SEGÚN EL ENTORNO DE ROLES NUEVOS */}
         <Route
           path="Proveedores"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN"]}>
               <CrudProveedores />
             </RutaProtegida>
           }
@@ -84,17 +85,16 @@ function App() {
         <Route
           path="Responsables"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN"]}>
               <CrudResponsables />
             </RutaProtegida>
           }
         />
 
-        {/* SOLO ADMIN */}
         <Route
           path="Destino"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <CrudDestino />
             </RutaProtegida>
           }
@@ -103,7 +103,7 @@ function App() {
         <Route
           path="Estados"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <EstadoCrud />
             </RutaProtegida>
           }
@@ -112,19 +112,92 @@ function App() {
         <Route
           path="Estado_solicitud"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <Estados_solicitudCrud />
             </RutaProtegida>
           }
         />
 
-        {/* TODOS */}
-        <Route path="Insumos" element={<CrudInsumos />} />
-        <Route path="Entradas" element={<CrudEntradas />} />
-        <Route path="Solicitudes" element={<SolicitudCrud />} />
-        <Route path="Reportes" element={<DashboardReportes />} />
-        <Route path="solicitudes-pendientes" element={<SolicitudPendientes />} />
-        <Route path="solicitud-nueva" element={<SolicitudConLotes />} />
+        <Route
+          path="Insumos"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <CrudInsumos />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="Entradas"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <CrudEntradas />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="Solicitudes"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <SolicitudCrud />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="Reportes"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <DashboardReportes />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="perdidas"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <PerdidasCrud />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="perdidas/nuevo"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <PerdidasForm />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="perdidas/editar/:id"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <PerdidasForm />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="solicitudes-pendientes"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <SolicitudPendientes />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="solicitud-nueva"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"]}>
+              <SolicitudConLotes />
+            </RutaProtegida>
+          }
+        />
 
       </Route>
 
