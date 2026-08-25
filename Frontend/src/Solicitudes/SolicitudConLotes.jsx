@@ -12,7 +12,7 @@ const labelClass = "tw-block tw-text-xs tw-font-semibold tw-text-gray-500 tw-upp
 
 const SolicitudConLotes = () => {
     const [paso, setPaso] = useState(1);
-    const [motivo] = useState("Practica de formacion");
+    const [motivo, setMotivo] = useState("");
     const [descripcion, setDescripcion] = useState("");
     const [ficha, setFicha] = useState("");
     const [fichaConfirm, setFichaConfirm] = useState("");
@@ -23,13 +23,25 @@ const SolicitudConLotes = () => {
     const [filtro, setFiltro] = useState("");
     const [cantidades, setCantidades] = useState({});
     const [carrito, setCarrito] = useState([]);
+    const [enviando, setEnviando] = useState(false);
     const [misSolicitudes, setMisSolicitudes] = useState([]);
     const [loadingSolicitudes, setLoadingSolicitudes] = useState(true);
+
+    // Motivos disponibles
+    const MOTIVOS = [
+        "Elaboración de productos SENA empresa",
+        "Producción por práctica de formación",
+        "Producción por institución educativa",
+        "Institución externa",
+    ];
 
     const usuario = JSON.parse(localStorage.getItem("userFoodStocker") || "{}");
 
     useEffect(() => {
-        if (paso === 2) cargarInsumosConLotes();
+        if (paso === 2) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            cargarInsumosConLotes();
+        }
     }, [paso]);
 
     useEffect(() => {
@@ -72,11 +84,12 @@ const SolicitudConLotes = () => {
     };
 
     const handleSiguiente = () => {
-        if (!fechaEntrega || !descripcion.trim() || !ficha || !fichaConfirm) {
-            Swal.fire("Campos requeridos", "Completa todos los campos", "warning");
+        if (!motivo || !fechaEntrega || !descripcion.trim()) {
+            Swal.fire("Campos requeridos", "Completa el motivo, la descripción y la fecha de entrega", "warning");
             return;
         }
-        if (ficha !== fichaConfirm) {
+        // Ficha: si se ingresó algo, debe coincidir con la confirmación
+        if (ficha && ficha !== fichaConfirm) {
             Swal.fire("Error", "Los números de ficha no coinciden", "error");
             return;
         }
@@ -178,11 +191,67 @@ const SolicitudConLotes = () => {
             Swal.fire("Carrito vacío", "Agrega al menos un insumo", "warning");
             return;
         }
+
+        // Agrupar carrito por insumo para el resumen
+        const agrupado = carrito.reduce((acc, item) => {
+            if (!acc[item.Nom_Insumo]) {
+                acc[item.Nom_Insumo] = { total: 0, lotes: [] };
+            }
+            acc[item.Nom_Insumo].total += item.cantidad;
+            acc[item.Nom_Insumo].lotes.push({ lote: item.Lote, cantidad: item.cantidad, vence: item.Fec_Ven });
+            return acc;
+        }, {});
+
+        let resumenHTML = `
+            <div style="text-align: left;">
+                <p><strong>Motivo:</strong> ${motivo}</p>
+                <p><strong>Descripción:</strong> ${descripcion}</p>
+                <p><strong>Ficha:</strong> ${ficha}</p>
+                <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
+                ${Id_Destino ? `<p><strong>Destino:</strong> ${destinos.find(d => d.Id_Destino == Id_Destino)?.Nom_Destino || Id_Destino}</p>` : ""}
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
+                <p style="font-weight: 600; margin-bottom: 8px;">Insumos solicitados (${carrito.length} lote(s)):</p>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    ${Object.entries(agrupado).map(([nombre, info]) => `
+                        <li style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>${nombre}</span>
+                                <span style="font-weight: 600;">${info.total} ${carrito.find(i => i.Nom_Insumo === nombre)?.Uni_Med || "unidad"}</span>
+                            </div>
+                            ${info.lotes.length > 0 ? `
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+                                    ${info.lotes.map(l => `Lote ${l.lote} (${l.cantidad} uds, vence: ${l.vence})`).join(" · ")}
+                                </div>
+                            ` : ""}
+                        </li>
+                    `).join("")}
+                </ul>
+            </div>
+        `;
+
+        const confirmacion = await Swal.fire({
+            title: "¿Confirmar solicitud?",
+            html: resumenHTML,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#1e3a5f",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "Sí, enviar solicitud",
+            cancelButtonText: "Cancelar",
+            reverseButtons: true,
+            focusConfirm: false
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        setEnviando(true);
         try {
             await apiAxios.post("/api/solicitudes/completa", {
                 Id_Responsable: usuario.id,
                 Fec_entrega: fechaEntrega,
-                motivo, descripcion, ficha,
+                motivo, 
+                descripcion, 
+                ficha: ficha || null,
                 Id_Destino: Id_Destino || null,
                 insumos: carrito.map(item => ({
                     Id_insumos: item.Id_Insumos,
@@ -190,12 +259,14 @@ const SolicitudConLotes = () => {
                     cantidad_solicitada: item.cantidad
                 }))
             });
+            setEnviando(false);
             Swal.fire({ title: "¡Solicitud creada!", text: "Tu solicitud fue registrada correctamente", icon: "success", timer: 1800, showConfirmButton: false });
-            setDescripcion(""); setFicha(""); setFichaConfirm("");
+            setMotivo(""); setDescripcion(""); setFicha(""); setFichaConfirm("");
             setFechaEntrega(""); setId_Destino(""); setCarrito([]); setPaso(1);
             cargarMisSolicitudes();
             window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
+            setEnviando(false);
             Swal.fire("Error", error.response?.data?.message || "Error al crear", "error");
         }
     };
@@ -229,19 +300,32 @@ const SolicitudConLotes = () => {
                 <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
                     <div>
                         <label className={labelClass}><FileText className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Motivo</label>
-                        <input className={`${inputClass} tw-opacity-60 tw-cursor-not-allowed`} value={motivo} disabled />
+                        <div className="tw-relative">
+                            <select
+                                className={paso === 2 ? `${inputClass} tw-appearance-none tw-opacity-60 tw-cursor-not-allowed` : `${inputClass} tw-appearance-none`}
+                                value={motivo}
+                                onChange={e => setMotivo(e.target.value)}
+                                disabled={paso === 2}
+                            >
+                                <option value="">Seleccione el tipo de solicitud...</option>
+                                {MOTIVOS.map(m => (
+                                    <option key={m} value={m}>{m}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
+                        </div>
                     </div>
                     <div>
                         <label className={labelClass}><FileText className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Descripción</label>
                         <input className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Descripción de la práctica..." disabled={paso === 2} />
                     </div>
                     <div>
-                        <label className={labelClass}><Hash className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Ficha</label>
-                        <input type="number" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={ficha} onChange={e => setFicha(e.target.value)} placeholder="Número de ficha" disabled={paso === 2} />
+                        <label className={labelClass}><Hash className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Ficha <span className="tw-text-gray-400 tw-normal-case">(opcional)</span></label>
+                        <input type="number" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={ficha} onChange={e => setFicha(e.target.value)} placeholder="Número de ficha (si aplica)" disabled={paso === 2} />
                     </div>
                     <div>
-                        <label className={labelClass}><Hash className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Confirmar Ficha</label>
-                        <input type="number" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={fichaConfirm} onChange={e => setFichaConfirm(e.target.value)} placeholder="Repite el número" disabled={paso === 2} />
+                        <label className={labelClass}><Hash className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Confirmar Ficha <span className="tw-text-gray-400 tw-normal-case">(opcional)</span></label>
+                        <input type="number" className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass} value={fichaConfirm} onChange={e => setFichaConfirm(e.target.value)} placeholder="Repite el número (si aplica)" disabled={paso === 2 || !ficha} />
                     </div>
                     <div>
                         <label className={labelClass}><Calendar className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />Fecha de entrega</label>
@@ -409,8 +493,12 @@ const SolicitudConLotes = () => {
                                 </tbody>
                             </table>
                             <div className="tw-px-5 tw-py-4 tw-border-t tw-border-gray-100">
-                                <button onClick={handleEnviar} className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-white tw-font-medium tw-text-sm hover:tw-bg-primario-700 tw-transition-all tw-shadow-md">
-                                    <Send className="tw-w-4 tw-h-4" /> <span>Crear Solicitud</span>
+                                <button onClick={handleEnviar} disabled={enviando} className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-white tw-font-medium tw-text-sm hover:tw-bg-primario-700 tw-transition-all tw-shadow-md disabled:tw-opacity-60 disabled:tw-cursor-not-allowed">
+                                    {enviando ? (
+                                        <><Loader2 className="tw-w-4 tw-h-4 tw-animate-spin" /> Enviando...</>
+                                    ) : (
+                                        <><Send className="tw-w-4 tw-h-4" /> <span>Crear Solicitud</span></>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -521,6 +609,17 @@ const SolicitudConLotes = () => {
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* Novedad — si el admin la registró */}
+                                    {sol.novedad && (
+                                        <div className="tw-mt-4 tw-flex tw-items-start tw-gap-2 tw-px-4 tw-py-3 tw-rounded-xl tw-bg-amber-50 tw-border tw-border-amber-200">
+                                            <span className="tw-text-amber-500 tw-text-lg tw-leading-none tw-shrink-0">⚠️</span>
+                                            <div>
+                                                <p className="tw-text-xs tw-font-bold tw-text-amber-700 tw-m-0 tw-mb-0.5 tw-uppercase tw-tracking-wide">Novedad en tu solicitud</p>
+                                                <p className="tw-text-sm tw-text-amber-900 tw-m-0">{sol.novedad}</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}

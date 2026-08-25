@@ -13,9 +13,9 @@ class SolicitudServiceNuevo {
 
         try {
             const nuevaSolicitud = await SolicitudModel.create(
-                { 
-                    Id_Responsable, 
-                    Fec_entrega, 
+                {
+                    Id_Responsable,
+                    Fec_entrega,
                     motivo,
                     Descripcion,
                     Ficha,
@@ -30,7 +30,7 @@ class SolicitudServiceNuevo {
 
                 const { Id_insumos, cantidad_solicitada, Id_Entradas } = item;
 
-                // 🔥 USAR EL LOTE SELECCIONADO (NO FEFO AUTOMÁTICO)
+                // USAR EL LOTE SELECCIONADO (NO FEFO AUTOMÁTICO)
                 const lote = await entradasModel.findOne({
                     where: {
                         Id_Entradas: Id_Entradas,
