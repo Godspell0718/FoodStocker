@@ -8,12 +8,15 @@ import './index.css'
 //import CrudProveedores from './Proveedores/crudProveedores.jsx'
 //import CrudResponsables from './Responsables/crudResponsables.jsx'
 
-import {BrowserRouter} from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from './context/authContext.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-    <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )

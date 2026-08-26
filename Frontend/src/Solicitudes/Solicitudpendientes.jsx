@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
-import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw } from "lucide-react";
+import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare } from "lucide-react";
 
 const ESTADO_CONFIG = {
     solicitado: { label: "Solicitado", bg: "tw-bg-secundario-100 tw-text-secundario-800", dot: "tw-bg-secundario-400" },
@@ -24,6 +24,7 @@ const EstadoBadge = ({ estado }) => {
 const SolicitudPendientes = () => {
     const [solicitudes, setSolicitudes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filtroEstado, setFiltroEstado] = useState("solicitado");
 
     useEffect(() => { cargarSolicitudes(); }, []);
 
@@ -40,6 +41,35 @@ const SolicitudPendientes = () => {
     };
 
     const cambiarEstado = async (Id_solicitud, Id_estado, nombreEstado) => {
+        // Si es cancelación, pedir motivo obligatorio
+        if (Id_estado === 4) {
+            const { value: motivo_cancelacion, isConfirmed } = await Swal.fire({
+                title: '¿Cancelar esta solicitud?',
+                html: '<p style="margin-bottom:8px;color:#6b7280;font-size:14px">Escribe el motivo de la cancelación <strong>(obligatorio)</strong></p>',
+                input: 'textarea',
+                inputPlaceholder: 'Escribe el motivo de cancelación...',
+                inputAttributes: { 'aria-label': 'Motivo de cancelación', style: 'min-height:80px' },
+                showCancelButton: true,
+                confirmButtonText: 'Sí, cancelar solicitud',
+                cancelButtonText: 'Volver',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                inputValidator: (value) => {
+                    if (!value || !value.trim()) return '¡Debes escribir un motivo de cancelación!';
+                },
+            });
+            if (!isConfirmed) return;
+            try {
+                await apiAxios.post("/api/solicitudes/cambiar-estado", { Id_solicitud, Id_estado, motivo_cancelacion });
+                Swal.fire({ icon: "success", title: "Solicitud cancelada", timer: 1200, showConfirmButton: false });
+                cargarSolicitudes();
+                window.dispatchEvent(new Event("nuevaSolicitud"));
+            } catch (error) {
+                Swal.fire("Error", error.response?.data?.message || "No se pudo cancelar la solicitud", "error");
+            }
+            return;
+        }
+
         const confirm = await Swal.fire({
             title: `¿Cambiar a "${nombreEstado}"?`,
             text: "Esta acción quedará registrada",
@@ -47,7 +77,7 @@ const SolicitudPendientes = () => {
             showCancelButton: true,
             confirmButtonText: "Sí, confirmar",
             cancelButtonText: "Cancelar",
-            confirmButtonColor: Id_estado === 4 ? "#ef4444" : "#153753",
+            confirmButtonColor: "#153753",
             cancelButtonColor: "#6b7280",
         });
         if (!confirm.isConfirmed) return;
@@ -55,6 +85,7 @@ const SolicitudPendientes = () => {
             await apiAxios.post("/api/solicitudes/cambiar-estado", { Id_solicitud, Id_estado });
             Swal.fire({ icon: "success", title: "Estado actualizado", timer: 1200, showConfirmButton: false });
             cargarSolicitudes();
+            window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
             Swal.fire("Error", error.response?.data?.message || "No se pudo cambiar el estado", "error");
         }
@@ -83,13 +114,41 @@ const SolicitudPendientes = () => {
                 </button>
             </div>
 
+            {/* Tabs de Filtro */}
+            <div className="tw-flex tw-gap-2 tw-mb-6 tw-bg-white tw-p-1.5 tw-rounded-xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-x-auto">
+                <button
+                    onClick={() => setFiltroEstado("solicitado")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "solicitado" ? "tw-bg-amber-100 tw-text-amber-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    Solicitadas
+                </button>
+                <button
+                    onClick={() => setFiltroEstado("proceso")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "proceso" ? "tw-bg-blue-100 tw-text-blue-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    En Proceso
+                </button>
+                <button
+                    onClick={() => setFiltroEstado("despachado")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "despachado" ? "tw-bg-emerald-100 tw-text-emerald-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    Despachadas
+                </button>
+                <button
+                    onClick={() => setFiltroEstado("cancelado")}
+                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "cancelado" ? "tw-bg-red-100 tw-text-red-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                >
+                    Canceladas
+                </button>
+            </div>
+
             {/* Loading */}
             {loading ? (
                 <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-20 tw-gap-3">
                     <Loader2 className="tw-w-8 tw-h-8 tw-text-primario-500 tw-animate-spin" />
                     <p className="tw-text-gray-500 tw-text-sm">Cargando solicitudes...</p>
                 </div>
-            ) : solicitudes.length === 0 ? (
+            ) : solicitudes.filter(sol => sol.ultimoEstado?.toLowerCase() === filtroEstado.toLowerCase()).length === 0 ? (
                 <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-20 tw-gap-3">
                     <div className="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-gray-100 tw-flex tw-items-center tw-justify-center">
                         <ClipboardList className="tw-w-8 tw-h-8 tw-text-gray-400" />
@@ -99,7 +158,7 @@ const SolicitudPendientes = () => {
                 </div>
             ) : (
                 <div className="tw-flex tw-flex-col tw-gap-4">
-                    {solicitudes.map(sol => (
+                    {solicitudes.filter(sol => sol.ultimoEstado?.toLowerCase() === filtroEstado.toLowerCase()).map(sol => (
                         <div
                             key={sol.Id_solicitud}
                             className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-hidden hover:tw-shadow-md tw-transition-shadow tw-duration-200"
@@ -167,6 +226,7 @@ const SolicitudPendientes = () => {
                                             <thead>
                                                 <tr className="tw-bg-gray-50">
                                                     <th className="tw-text-left tw-px-4 tw-py-2.5 tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wide">Insumo</th>
+                                                    <th className="tw-text-left tw-px-4 tw-py-2.5 tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wide">Lote</th>
                                                     <th className="tw-text-left tw-px-4 tw-py-2.5 tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wide">Cantidad</th>
                                                 </tr>
                                             </thead>
@@ -175,6 +235,12 @@ const SolicitudPendientes = () => {
                                                     <tr key={item.Id_insumo_solicitud || index} className="tw-border-t tw-border-gray-100 hover:tw-bg-gray-50 tw-transition-colors">
                                                         <td className="tw-px-4 tw-py-2.5 tw-text-gray-700">
                                                             {item.insumo?.Nom_Insumo ?? `Insumo #${item.Id_insumos}`}
+                                                        </td>
+                                                        <td className="tw-px-4 tw-py-2.5">
+                                                            <span className="tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-md tw-bg-gray-100 tw-text-gray-600 tw-text-xs tw-font-medium">
+                                                                <Package className="tw-w-3 tw-h-3" />
+                                                                {item.entrada?.Lote ?? "—"}
+                                                            </span>
                                                         </td>
                                                         <td className="tw-px-4 tw-py-2.5">
                                                             <span className="tw-inline-flex tw-items-center tw-px-2.5 tw-py-0.5 tw-rounded-md tw-bg-primario-50 tw-text-primario-800 tw-font-bold tw-text-xs">
@@ -228,9 +294,20 @@ const SolicitudPendientes = () => {
                                         </span>
                                     )}
                                     {sol.ultimoEstado?.toLowerCase() === "cancelado" && (
-                                        <span className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-50 tw-text-red-600 tw-text-sm tw-font-medium tw-border tw-border-red-200">
-                                            <XCircle className="tw-w-4 tw-h-4" /> Cancelado
-                                        </span>
+                                        <div className="tw-flex tw-flex-col tw-gap-2 tw-w-full">
+                                            <span className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-50 tw-text-red-600 tw-text-sm tw-font-medium tw-border tw-border-red-200">
+                                                <XCircle className="tw-w-4 tw-h-4" /> Cancelado
+                                            </span>
+                                            {sol.motivo_cancelacion && (
+                                                <div className="tw-flex tw-items-start tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-bg-red-50 tw-border tw-border-red-100">
+                                                    <MessageSquare className="tw-w-4 tw-h-4 tw-text-red-400 tw-mt-0.5 tw-shrink-0" />
+                                                    <div>
+                                                        <p className="tw-text-xs tw-font-semibold tw-text-red-500 tw-m-0 tw-mb-0.5">Motivo de cancelación</p>
+                                                        <p className="tw-text-sm tw-text-red-700 tw-m-0">{sol.motivo_cancelacion}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>

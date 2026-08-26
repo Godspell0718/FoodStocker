@@ -1,187 +1,272 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import apiNode from "../api/axiosConfig";
+import { AuthContext } from "../context/authContext";
+
+import {
+    Mail,
+    Lock,
+    AlertCircle,
+    Loader2,
+    ShieldCheck,
+    Server
+} from "lucide-react";
 
 const Login = ({ setIsAuth }) => {
-    const navigate = useNavigate()
-    const [Cor_Responsable, setCorreo] = useState('')
-    const [Contraseña, setContraseña] = useState('')
-    const [error, setError] = useState('')
-    const [loading, setLoading] = useState(false)
+    const navigate = useNavigate();
+    const { login } = useContext(AuthContext);
+
+    const [Cor_Responsable, setCorreo] = useState('');
+    const [Contraseña, setContraseña] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const gestionarLogin = async (e) => {
-        e.preventDefault()
-        setLoading(true)
-        setError('')
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
         try {
             const res = await apiNode.post('/api/responsables/login', {
-                Cor_Responsable: Cor_Responsable,
-                Contraseña: Contraseña
-            })
+                Cor_Responsable,
+                Contraseña
+            });
 
-            const { token, usuario } = res.data
+            const { token, usuario } = res.data;
 
             if (!token) {
-                setError('No se recibió token del servidor')
-                setLoading(false)
-                return
+                setError('No se recibió token del servidor');
+                setLoading(false);
+                return;
             }
 
-            localStorage.setItem('tokenFoodStocker', token)
-            localStorage.setItem('userFoodStocker', JSON.stringify(usuario))
-            setIsAuth(true)
-            navigate('/home')
+            login(usuario, token);
+            navigate('/home');
 
         } catch (err) {
-            setError(err.response?.data?.mensaje || 'Email o contraseña incorrecta')
-            setLoading(false)
+            setError(err.response?.data?.mensaje || 'Email o contraseña incorrecta');
+            setLoading(false);
         }
-    }
+    };
 
     return (
-        <div className="min-vh-100 d-flex align-items-center justify-content-center bg-dark">
-            <div className="container">
-                <div className="row justify-content-center">
-                    <div className="col-12 col-md-6 col-lg-4">
-                        
-                        {/* Tarjeta de login */}
-                        <div className="card bg-black text-white border-0 shadow-lg" 
-                             style={{ 
-                                 borderRadius: '15px',
-                                 background: 'linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%)'
-                             }}>
-                            
-                            {/* Header con ícono */}
-                            <div className="card-header bg-transparent border-0 text-center pt-4">
-                                <div className="mb-3">
-                                    <i className="fas fa-utensils fa-3x text-white opacity-75"></i>
-                                </div>
-                                <h2 className="fw-bold mb-1">FoodStocker</h2>
-                                <p className="text-white-50 small">Inicia sesión en tu cuenta</p>
-                            </div>
+        <div className="tw-min-h-screen tw-bg-slate-50 tw-flex tw-items-center tw-justify-center tw-p-6">
 
-                            {/* Body del formulario */}
-                            <div className="card-body px-4 py-4">
-                                <form onSubmit={gestionarLogin}>
-                                    
-                                    {/* Campo de correo */}
-                                    <div className="mb-4">
-                                        <label className="form-label text-white-50 small fw-bold mb-1">
-                                            <i className="fas fa-envelope me-2"></i>
-                                            CORREO ELECTRÓNICO
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="form-control bg-black text-white border-secondary"
-                                            style={{ 
-                                                borderColor: '#333',
-                                                borderRadius: '10px',
-                                                padding: '12px 15px'
-                                            }}
-                                            value={Cor_Responsable}
-                                            onChange={(e) => setCorreo(e.target.value)}
-                                            placeholder="ejemplo@correo.com"
-                                            required
-                                        />
-                                    </div>
+            {/* La tarjeta ahora es blanca sólida con una sombra suave */}
+            <div className="tw-w-full tw-max-w-md tw-bg-white tw-border tw-border-slate-200 tw-rounded-3xl tw-overflow-hidden tw-shadow-xl">
 
-                                    {/* Campo de contraseña */}
-                                    <div className="mb-4">
-                                        <label className="form-label text-white-50 small fw-bold mb-1">
-                                            <i className="fas fa-lock me-2"></i>
-                                            CONTRASEÑA
-                                        </label>
-                                        <input
-                                            type="password"
-                                            className="form-control bg-black text-white border-secondary"
-                                            style={{ 
-                                                borderColor: '#333',
-                                                borderRadius: '10px',
-                                                padding: '12px 15px'
-                                            }}
-                                            value={Contraseña}
-                                            onChange={(e) => setContraseña(e.target.value)}
-                                            placeholder="••••••••"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* Checkbox de recordar (opcional) */}
-                                    <div className="mb-4 d-flex justify-content-between align-items-center">
-                                        <div className="form-check">
-                                            <input 
-                                                type="checkbox" 
-                                                className="form-check-input bg-black border-secondary" 
-                                                id="remember"
-                                                style={{ cursor: 'pointer' }}
-                                            />
-                                            <label className="form-check-label text-white-50 small" htmlFor="remember">
-                                                Recordar sesión
-                                            </label>
-                                        </div>
-                                        <a href="#" className="text-white-50 small text-decoration-none">
-                                            ¿Olvidaste tu contraseña?
-                                        </a>
-                                    </div>
-
-                                    {/* Mensaje de error */}
-                                    {error && (
-                                        <div className="alert alert-danger bg-danger bg-opacity-10 text-white border-danger border-opacity-25 py-2 mb-4" 
-                                             style={{ borderRadius: '8px' }}>
-                                            <i className="fas fa-exclamation-circle me-2"></i>
-                                            <small>{error}</small>
-                                        </div>
-                                    )}
-
-                                    {/* Botón de login */}
-                                    <button 
-                                        type="submit" 
-                                        className="btn btn-light w-100 py-3 fw-bold mb-3"
-                                        disabled={loading}
-                                        style={{
-                                            borderRadius: '10px',
-                                            background: 'white',
-                                            color: 'black',
-                                            transition: 'all 0.3s ease'
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.background = '#f0f0f0'}
-                                        onMouseLeave={(e) => e.target.style.background = 'white'}
-                                    >
-                                        {loading ? (
-                                            <>
-                                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                Iniciando sesión...
-                                            </>
-                                        ) : (
-                                            'INICIAR SESIÓN'
-                                        )}
-                                    </button>
-
-                                    {/* Enlace de registro (opcional) */}
-                                    <p className="text-center text-white-50 small mb-0">
-                                        ¿No tienes una cuenta?{' '}
-                                        <a href="#" className="text-white text-decoration-none">
-                                            Contacta al administrador
-                                        </a>
-                                    </p>
-                                </form>
-                            </div>
-
-                            {/* Footer decorativo */}
-                            <div className="card-footer bg-transparent border-0 text-center pb-4">
-                                <div className="d-flex justify-content-center gap-3">
-                                    <i className="fas fa-shield-alt text-white-50"></i>
-                                    <i className="fas fa-lock text-white-50"></i>
-                                    <i className="fas fa-server text-white-50"></i>
-                                </div>
-                            </div>
+                {/* Header */}
+                <div className="tw-px-8 tw-pt-10 tw-text-center">
+                    <div className="tw-flex tw-justify-center tw-mb-4">
+                        <div className="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-shadow-md tw-shadow-slate-300">
+                            {/* Ajusté el color del logo para que contraste con el fondo oscuro del ícono */}
+                            <svg width="592.000000pt" height="589.000000pt" viewBox="0 0 592.000000 589.000000" xmlns="http://www.w3.org/2000/svg">
+                                <g transform="translate(0.000000,589.000000) scale(0.100000,-0.100000)" fill="#fdfef9" stroke="none">
+                                    <path d="M0 2945 c0 -2945 0 -2945 2960 -2945 2960 0 2960 0 2960 2945 0 2945
+0 2945 -2960 2945 -2960 0 -2960 0 -2960 -2945z m3013 2628 c12 -15 16 -52 19
+-198 3 -180 3 -180 36 -245 89 -173 120 -303 101 -421 -9 -58 -30 -107 -110
+-259 -32 -60 -42 -244 -14 -238 10 2 24 25 36 58 58 167 157 286 344 413 148
+100 159 94 156 -81 -4 -303 -91 -466 -339 -634 -166 -112 -205 -180 -210 -365
+-5 -158 15 -172 63 -45 63 169 167 278 386 405 107 63 130 4 94 -234 -32 -216
+-116 -352 -303 -491 -197 -145 -235 -207 -240 -385 -5 -158 15 -172 63 -46 50
+129 125 222 268 328 198 148 232 140 224 -54 -12 -281 -101 -448 -321 -603
+-190 -135 -228 -195 -234 -376 -4 -119 14 -156 40 -82 58 167 156 284 345 410
+162 109 180 95 163 -127 -22 -295 -125 -451 -390 -592 -79 -41 -96 -55 -104
+-80 -6 -20 -15 -31 -27 -31 -11 0 -19 -7 -19 -15 0 -21 143 -20 240 0 730 153
+1211 940 1026 1675 -79 312 -285 620 -520 775 -31 21 -56 41 -56 44 0 3 7 38
+15 76 8 39 15 102 15 141 0 72 0 72 142 189 206 172 191 169 324 49 44 -40
+122 -109 174 -154 148 -129 148 -128 40 -288 -95 -141 -95 -142 -29 -252 49
+-81 108 -205 159 -333 29 -74 45 -81 210 -102 222 -27 217 -22 236 -232 41
+-454 68 -409 -291 -490 -49 -10 -64 -36 -99 -163 -19 -69 -57 -178 -85 -244
+-72 -168 -75 -154 72 -334 125 -154 126 -145 -37 -312 -67 -69 -153 -159 -191
+-200 -112 -123 -109 -123 -251 -26 -175 117 -197 124 -264 76 -64 -45 -247
+-131 -365 -170 -145 -48 -136 -38 -160 -188 -40 -252 -17 -237 -370 -237 -354
+0 -331 -16 -374 257 -21 129 -7 116 -184 175 -141 48 -191 71 -313 144 -114
+68 -105 70 -294 -55 -63 -42 -121 -76 -128 -76 -24 0 -69 29 -86 55 -9 14 -90
+101 -180 193 -217 224 -213 201 -61 387 114 140 120 155 86 223 -39 78 -92
+224 -121 333 -38 145 -37 144 -212 185 -233 54 -231 49 -189 456 23 228 21
+226 266 248 159 15 165 19 218 161 29 76 101 221 151 304 45 75 45 77 -10 155
+-140 199 -147 220 -91 273 75 74 344 302 369 315 38 19 64 1 334 -223 21 -18
+24 -29 24 -90 1 -39 7 -106 15 -150 14 -78 14 -80 -6 -95 -757 -551 -796
+-1623 -80 -2198 218 -176 458 -277 684 -289 94 -5 136 10 83 30 -9 4 -12 14
+-9 25 6 23 2 26 -102 72 -271 121 -399 316 -412 624 -9 216 6 222 217 77 137
+-94 232 -214 279 -354 33 -95 51 -77 51 52 0 177 -46 252 -237 388 -208 147
+-296 310 -310 569 -10 192 7 218 105 163 204 -115 323 -241 387 -409 42 -110
+57 -97 53 48 -5 178 -40 234 -243 387 -191 145 -270 276 -295 492 -20 180 -8
+263 39 263 14 0 159 -98 231 -156 103 -83 206 -231 233 -334 3 -11 13 -20 22
+-20 15 0 16 13 13 123 -5 181 -38 238 -215 365 -208 149 -301 295 -323 505
+-30 284 -8 317 147 221 160 -100 292 -258 344 -413 31 -92 49 -82 49 27 0 92
+-14 135 -73 229 -95 151 -90 311 16 537 52 111 52 111 57 287 4 156 7 180 24
+198 23 26 67 27 89 4z" />
+                                </g>
+                                <g transform="translate(0.000000,589.000000) scale(0.100000,-0.100000)" fill="#183751" stroke="none">
+                                    <path d="M1804 4623 c-17 -10 -98 -76 -180 -148 -274 -239 -267 -200 -85 -462
+44 -63 44 -63 3 -130 -55 -94 -120 -226 -149 -302 -53 -142 -59 -146 -218
+-161 -245 -22 -243 -20 -266 -248 -44 -422 -44 -422 189 -476 175 -41 174 -40
+212 -185 29 -109 82 -255 121 -333 29 -58 26 -67 -80 -196 -169 -205 -173
+-180 65 -423 83 -86 160 -169 169 -183 51 -78 95 -72 250 29 166 109 156 108
+257 47 124 -75 174 -97 315 -145 177 -59 163 -46 184 -175 43 -274 18 -257
+384 -257 365 0 340 -15 380 237 24 150 15 140 160 188 116 39 300 124 364 169
+63 44 72 41 245 -75 156 -106 148 -108 328 86 69 74 156 164 192 200 102 100
+100 122 -21 272 -146 179 -141 154 -72 314 28 66 66 175 85 244 35 127 50 153
+99 163 359 81 334 38 291 510 -19 210 -14 205 -236 232 -165 21 -181 28 -210
+102 -51 128 -110 252 -159 333 -64 106 -66 91 29 232 113 167 112 176 -40 308
+-52 45 -130 114 -174 154 -139 126 -133 127 -344 -48 -142 -118 -142 -118
+-142 -190 0 -39 -7 -102 -15 -141 -21 -99 -21 -98 41 -140 177 -117 373 -369
+462 -592 261 -661 -32 -1414 -676 -1737 -364 -182 -904 -161 -1265 51 -873
+511 -924 1725 -97 2303 22 16 22 16 6 110 -9 51 -16 123 -16 159 0 66 0 66
+-121 166 -197 163 -209 169 -265 138z" />
+                                </g>
+                                <g transform="translate(0.000000,589.000000) scale(0.100000,-0.100000)" fill="#f7c417" stroke="none">
+                                    <path d="M2914 5579 c-17 -18 -20 -42 -24 -198 -5 -176 -5 -176 -57 -287 -115
+-244 -114 -387 1 -589 52 -90 58 -114 54 -205 -3 -65 -3 -65 -25 -2 -57 163
+-186 316 -353 420 -134 83 -170 68 -170 -70 1 -335 82 -500 333 -680 174 -125
+210 -185 215 -357 3 -80 1 -111 -7 -107 -6 4 -11 13 -11 19 0 64 -129 250
+-230 331 -233 189 -300 197 -300 39 0 -311 80 -489 288 -645 223 -166 266
+-235 260 -413 -3 -90 -3 -90 -31 -18 -54 139 -137 242 -269 335 -223 158 -255
+147 -245 -86 12 -278 96 -438 310 -589 188 -133 237 -212 237 -379 0 -105 -8
+-115 -30 -43 -41 132 -144 262 -280 356 -223 152 -246 144 -238 -86 12 -318
+138 -512 413 -635 103 -45 104 -46 98 -70 -3 -13 1 -22 12 -26 13 -5 14 -9 3
+-15 -7 -5 45 -8 122 -7 89 0 121 3 95 8 -22 4 -31 8 -19 9 14 1 24 11 30 32 8
+25 25 39 104 80 266 141 367 296 390 597 19 239 -8 260 -183 142 -183 -122
+-347 -320 -347 -418 0 -6 -5 -14 -11 -18 -8 -5 -10 22 -7 97 6 171 47 234 234
+367 223 157 310 323 321 613 6 148 -2 169 -62 169 -42 0 -270 -160 -330 -232
+-52 -62 -93 -132 -120 -201 -39 -104 -48 -97 -43 36 5 167 47 232 240 375 187
+139 271 275 303 491 16 102 20 239 7 257 -32 48 -59 40 -212 -61 -161 -106
+-239 -198 -295 -347 -40 -105 -48 -98 -43 35 6 176 47 245 214 357 223 151
+317 310 333 565 17 264 -3 283 -174 168 -187 -127 -293 -254 -346 -418 -23
+-72 -31 -63 -27 30 2 71 8 100 27 135 82 156 101 201 111 264 20 125 -11 260
+-102 436 -33 65 -33 65 -36 245 -4 203 -8 215 -72 215 -25 0 -43 -7 -56 -21z" />
+                                </g>
+                            </svg>
                         </div>
                     </div>
+
+                    <h1 className="tw-text-3xl tw-font-bold tw-text-slate-900 tw-mb-2">
+                        FoodStocker
+                    </h1>
+                    <p className="tw-text-slate-500 tw-text-sm">
+                        Inicia sesión en tu cuenta
+                    </p>
+                </div>
+
+                {/* Form */}
+                <div className="tw-px-8 tw-pb-10 tw-pt-8">
+                    <form onSubmit={gestionarLogin} className="tw-space-y-6">
+
+                        {/* Email */}
+                        <div className="tw-space-y-2">
+                            <label className="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-font-bold tw-text-slate-600 tw-uppercase tw-tracking-widest">
+                                <Mail className="tw-w-4 tw-h-4" />
+                                Correo Electrónico
+                            </label>
+
+                            {/* Inputs corregidos: Fondo gris clarito, borde visible, texto oscuro */}
+                            <input
+                                type="email"
+                                className="tw-w-full tw-bg-slate-50 tw-border tw-border-slate-200 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 tw-placeholder-slate-400 focus:tw-bg-white focus:tw-outline-none focus:tw-border-slate-400 focus:tw-ring-4 focus:tw-ring-slate-100 tw-transition-all"
+                                value={Cor_Responsable}
+                                onChange={(e) => setCorreo(e.target.value)}
+                                placeholder="ejemplo@correo.com"
+                                required
+                            />
+                        </div>
+
+                        {/* Password */}
+                        <div className="tw-space-y-2">
+                            <div className="tw-flex tw-justify-between tw-items-center">
+                                <label className="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-font-bold tw-text-slate-600 tw-uppercase tw-tracking-widest">
+                                    <Lock className="tw-w-4 tw-h-4" />
+                                    Contraseña
+                                </label>
+                                <a
+                                    href="#"
+                                    className="tw-text-xs tw-font-medium tw-text-slate-500 hover:tw-text-slate-900 tw-transition-colors"
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </a>
+                            </div>
+                            <input
+                                type="password"
+                                className="tw-w-full tw-bg-slate-50 tw-border tw-border-slate-200 tw-rounded-xl tw-px-4 tw-py-3 tw-text-slate-900 tw-placeholder-slate-400 focus:tw-bg-white focus:tw-outline-none focus:tw-border-slate-400 focus:tw-ring-4 focus:tw-ring-slate-100 tw-transition-all"
+                                value={Contraseña}
+                                onChange={(e) => setContraseña(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+
+                        {/* Remember - Checkbox ajustado a modo claro */}
+                        <div className="tw-flex tw-items-center">
+                            <label className="tw-flex tw-items-center tw-gap-3 tw-cursor-pointer tw-group">
+                                <div className="tw-relative tw-flex">
+                                    <input type="checkbox" className="tw-peer tw-sr-only" />
+                                    <div className="tw-w-5 tw-h-5 tw-bg-primario-900 tw-border-2 tw-border-slate-300 tw-rounded-md peer-checked:tw-bg-secundario-200 peer-checked:tw-border-primario-900 tw-transition-all"></div>
+                                    <div className="tw-absolute tw-inset-0 tw-flex tw-items-center tw-justify-center tw-opacity-0 peer-checked:tw-opacity-100 tw-transition-opacity">
+                                        <svg
+                                            className="tw-w-3.5 tw-h-3.5 tw-text-primario-900"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        >
+                                            <path d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <span className="tw-text-sm tw-font-medium tw-text-slate-600 group-hover:tw-text-slate-900 tw-transition-colors">
+                                    Recordar sesión
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Error */}
+                        {error && (
+                            <div className="tw-p-4 tw-bg-red-50 tw-border tw-border-red-200 tw-rounded-xl tw-flex tw-items-center tw-gap-3">
+                                <AlertCircle className="tw-w-5 tw-h-5 tw-text-red-500 flex-shrink-0" />
+                                <p className="tw-text-sm tw-font-medium tw-text-red-600 tw-m-0">
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Submit - Botón oscuro para dar peso visual y elegancia */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="tw-border-none tw-w-full tw-py-4 tw-bg-primario-900 tw-text-white tw-font-bold tw-rounded-xl hover:tw-text-primario-950 hover:tw-bg-secundario-200 tw-transition-all tw-shadow-lg tw-shadow-primario-900/20 tw-flex tw-items-center tw-justify-center tw-gap-2 disabled:tw-opacity-70 disabled:tw-cursor-not-allowed"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="tw-w-5 tw-h-5 tw-animate-spin" />
+                                    <span>Verificando...</span>
+                                </>
+                            ) : (
+                                'INICIAR SESIÓN'
+                            )}
+                        </button>
+
+                        <p className="tw-text-center tw-text-sm tw-text-slate-500">
+                            ¿No tienes una cuenta?{" "}
+                            <a
+                                href="#"
+                                className="tw-text-slate-900 tw-font-bold hover:tw-underline"
+                            >
+                                Contacta al administrador
+                            </a>
+                        </p>
+                    </form>
+                </div>
+
+                {/* Footer - Sutil barra inferior */}
+                <div className="tw-px-8 tw-py-5 tw-bg-slate-50 tw-border-t tw-border-slate-100 tw-flex tw-justify-center tw-gap-8">
+                    <ShieldCheck className="tw-w-5 tw-h-5 tw-text-slate-400" />
+                    <Lock className="tw-w-5 tw-h-5 tw-text-slate-400" />
+                    <Server className="tw-w-5 tw-h-5 tw-text-slate-400" />
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Login
+export default Login;

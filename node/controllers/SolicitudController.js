@@ -4,6 +4,7 @@ import SolicitudModel from "../models/SolicitudModel.js";
 import responsablesModel from "../models/responsableModel.js";
 import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
 import insumosModel from "../models/insumosModel.js";
+import entradasModel from "../models/entradasModel.js";
 import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 import EstadosModel from "../models/EstadosModel.js";
 
@@ -96,11 +97,18 @@ export const getSolicitudesPendientes = async (req, res) => {
                 {
                     model: insumosSolicitudModel,
                     as: 'insumos',
-                    include: [{
-                        model: insumosModel,
-                        as: 'insumo',
-                        attributes: ['Nom_Insumo']
-                    }]
+                    include: [
+                        {
+                            model: insumosModel,
+                            as: 'insumo',
+                            attributes: ['Nom_Insumo']
+                        },
+                        {
+                            model: entradasModel,
+                            as: 'entrada',
+                            attributes: ['Lote', 'Fec_Ven_Entrada']
+                        }
+                    ]
                 }
             ],
             order: [['createdat', 'DESC']]
@@ -130,11 +138,14 @@ export const getSolicitudesPendientes = async (req, res) => {
 // POST /api/solicitudes/cambiar-estado
 export const cambiarEstadoSolicitud = async (req, res) => {
     try {
-        const { Id_solicitud, Id_estado } = req.body;
+        const { Id_solicitud, Id_estado, motivo_cancelacion } = req.body;
         if (!Id_solicitud || !Id_estado) {
             return res.status(400).json({ message: "Id_solicitud e Id_estado son requeridos" });
         }
-        const registro = await solicitudServiceNuevo.cambiarEstado({ Id_solicitud, Id_estado });
+        if (Id_estado === 4 && (!motivo_cancelacion || !motivo_cancelacion.trim())) {
+            return res.status(400).json({ message: "El motivo de cancelación es obligatorio" });
+        }
+        const registro = await solicitudServiceNuevo.cambiarEstado({ Id_solicitud, Id_estado, motivo_cancelacion });
         res.status(201).json({ message: "Estado actualizado", registro });
     } catch (error) {
         res.status(500).json({ message: error.message });

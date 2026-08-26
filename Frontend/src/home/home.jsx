@@ -11,31 +11,47 @@ import {
     Bell,
     Search,
     ChevronDown,
-    Warehouse,
     ClockArrowUp,
+    TrendingUp,
+    Warehouse,
     Waypoints,
+    House,
 } from "lucide-react";
 
 const navItems = [
-    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas" },
-    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes" },
-    { icon: Wheat, label: "Insumos", path: "/Insumos" },
-    { icon: UserRound, label: "Responsables", path: "/Responsables" },
-    { icon: Package, label: "Proveedores", path: "/Proveedores" },
-    { icon: ClockArrowUp, label: "Historico de Solicitudes", path: "/Solicitudes" },
+    { icon: House, label: "Inicio", path: "/Inicio", roles: ["ADMIN", "PDU", "IA"] },
+    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "IA"] },
+    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN"] },
+    { icon: Wheat, label: "Insumos", path: "/Insumos", roles: ["ADMIN"] },
+    { icon: UserRound, label: "Responsables", path: "/Responsables", roles: ["ADMIN", "IA"] },
+    { icon: Package, label: "Proveedores", path: "/Proveedores", roles: ["ADMIN", "IA"] },
+    { icon: ClockArrowUp, label: "Historico de Solicitudes", path: "/Solicitudes", roles: ["ADMIN", "PDU", "IA"] },
 ];
 
 const Temporal = [
-    { icon: Warehouse, label: "Destinos", path: "/Destino" },
-    { icon: Waypoints, label: "Estados", path: "/Estados" },
-    { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud" },
-    { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva" },
-
+  { icon: Warehouse, label: "Destinos", path: "/Destino", roles: ["ADMIN"] },
+  { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN"] },
+  { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN"] },
+  { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "PDU"] },
+  { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "PDU", "IA"] },
 ];
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const location = useLocation();
+    const user = JSON.parse(localStorage.getItem('userFoodStocker') || '{}');
+    const rol = user.rol?.trim();
+    const navSections = [
+        {
+            title: "Principal",
+            items: navItems.filter(item => item.roles.includes(rol))
+        },
+        {
+            title: "Temporal",
+            items: Temporal.filter(item => item.roles.includes(rol))
+        }
+    ];
+
     const [openUserMenu, setOpenUserMenu] = useState(false);
     const menuRef = useRef();
 
@@ -47,7 +63,10 @@ export default function Dashboard() {
     const cargarNotificaciones = async () => {
         try {
             const res = await apiAxios.get("/api/solicitudes/pendientes");
-            const nuevas = res.data.filter(sol => sol.ultimoEstado?.toLowerCase() === "solicitado");
+            const nuevas = res.data.filter(sol => {
+                const estado = sol.ultimoEstado?.toLowerCase();
+                return estado === "solicitado" || estado === "proceso";
+            });
             setNotifications(nuevas);
         } catch (error) {
             console.error("Error cargando notificaciones:", error);
@@ -62,9 +81,12 @@ export default function Dashboard() {
 
     useEffect(() => {
         cargarNotificaciones();
-        
+
         const handleNuevaSolicitud = () => cargarNotificaciones();
         window.addEventListener("nuevaSolicitud", handleNuevaSolicitud);
+
+        // Polling cada 30 segundos para detectar solicitudes de otros usuarios
+        const pollingInterval = setInterval(cargarNotificaciones, 30000);
 
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -80,8 +102,15 @@ export default function Dashboard() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
             window.removeEventListener("nuevaSolicitud", handleNuevaSolicitud);
+            clearInterval(pollingInterval);
         };
     }, []);
+
+    // Cerrar dropdowns al cambiar de ruta
+    useEffect(() => {
+        setShowNotifications(false);
+        setOpenUserMenu(false);
+    }, [location.pathname]);
 
     return (
         <div className="tw-flex tw-h-full tw-font-sans tw-bg-gray-100">
@@ -182,55 +211,35 @@ export default function Dashboard() {
                 {/* NAV */}
                 <nav className="tw-flex-1 tw-px-3 tw-py-4 tw-space-y-0.5 tw-overflow-y-auto tw-bg-primario-900">
 
-                    {navItems.map(({ icon: Icon, label, path }) => {
-                        const isActive = location.pathname === path;
-
-                        return (
-                            <button
-                                key={label}
-                                onClick={() => navigate(path)}
-                                className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150
-                                ${isActive
-                                        ? "tw-bg-gray-800 tw-text-white"
-                                        : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
-                                    }`}
-                            >
-                                <Icon className="tw-w-5 tw-h-5" />
-                                {label}
-                            </button>
-                        );
-                    })}
-
-                    {/* TEMPORAL */}
-                    <div className="tw-pt-6 tw-pb-2">
-                        <p className="tw-px-3 tw-text-xs tw-font-semibold tw-text-primario-50 tw-uppercase tw-mb-2">
-                            Botones temporales
-                        </p>
-
-                        {Temporal.map(({ icon: Icon, label, path }) => {
-                            const isActive = location.pathname === path;
-
-                            return (
-                                <button
-                                    key={label}
-                                    onClick={() => navigate(path)}
-                                    className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium
-                                    ${isActive
-                                            ? "tw-bg-gray-800 tw-text-white"
-                                            : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
-                                        }`}
-                                >
-                                    <Icon className="tw-w-5 tw-h-5" />
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
+                    {navSections.map((section) => (
+                        <div key={section.title} className="tw-mb-4">
+                            <p className="tw-px-3 tw-text-[10px] tw-font-bold tw-text-gray-500 tw-uppercase tw-tracking-widest tw-mb-1.5">
+                                {section.title}
+                            </p>
+                            {section.items.map(({ icon: Icon, label, path }) => {
+                                const isActive = location.pathname === path;
+                                return (
+                                    <button
+                                        key={path}
+                                        onClick={() => navigate(path)}
+                                        className={`tw-border-none tw-mb-1.5 tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150
+                                        ${isActive
+                                                ? "tw-bg-secundario-400 tw-text-primario-950"
+                                                : "tw-text-primario-900 hover:tw-bg-secundario-200 hover:tw-text-primario-950"
+                                            }`}
+                                    >
+                                        <Icon className="tw-w-5 tw-h-5" />
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ))}
                 </nav>
 
                 {/* SETTINGS */}
                 <div className="tw-px-3 tw-pb-4 tw-border-t tw-border-gray-800 tw-pt-4 tw-bg-primario-900">
-                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white">
+                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-primario-900 hover:tw-bg-secundario-200 hover:tw-text-primario-950">
                         <Settings className="tw-w-5 tw-h-5" />
                         Configuración
                     </button>
@@ -245,14 +254,7 @@ export default function Dashboard() {
 
                     {/* Buscador */}
                     <div className="tw-relative">
-                        <input
-                            placeholder="Buscar..."
-                            className="tw-input tw-shadow-lg focus:tw-border-2 tw-border-gray-300 tw-px-5 tw-py-3 tw-rounded-xl tw-w-56 tw-transition-all focus:tw-w-64 tw-outline-none"
-                            name="search"
-                            type="search"
-                        />
 
-                        <Search className="tw-size-6 tw-absolute tw-top-3 tw-right-3 tw-text-gray-500" />
                     </div>
 
                     {/* Acciones */}
@@ -260,13 +262,16 @@ export default function Dashboard() {
 
                         {/* Notificaciones */}
                         <div className="tw-relative" ref={notifRef}>
-                            < button 
+                            < button
                                 onClick={() => setShowNotifications(!showNotifications)}
-                                className="tw-w-9 tw-h-9 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200 tw-transition-all tw-duration-200 tw-relative" 
+                                className="tw-w-9 tw-h-9 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200 tw-transition-all tw-duration-200 tw-relative"
                             >
                                 <Bell className="tw-w-4 tw-h-4" />
                                 {notifications.length > 0 && (
-                                    <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-w-2 tw-h-2 tw-bg-indigo-500 tw-rounded-full" />
+                                    <span className="tw-absolute tw-top-1.5 tw-right-1.5 tw-flex tw-h-2 tw-w-2">
+                                        <span className="tw-animate-ping tw-absolute tw-inline-flex tw-h-full tw-w-full tw-rounded-full tw-bg-indigo-400 tw-opacity-75" />
+                                        <span className="tw-relative tw-inline-flex tw-rounded-full tw-h-2 tw-w-2 tw-bg-indigo-500" />
+                                    </span>
                                 )}
                             </button >
 
@@ -294,8 +299,8 @@ export default function Dashboard() {
                                             </div>
                                         ) : (
                                             notifications.map(sol => (
-                                                <div 
-                                                    key={sol.Id_solicitud} 
+                                                <div
+                                                    key={sol.Id_solicitud}
                                                     className="tw-p-4 hover:tw-bg-indigo-50/50 tw-cursor-pointer tw-transition-all tw-duration-200 tw-group"
                                                     onClick={() => {
                                                         setShowNotifications(false);
@@ -363,7 +368,7 @@ export default function Dashboard() {
                 </header >
 
                 {/* Área de contenido */}
-                < main className="tw-flex-1 tw-p-6 tw-overflow-auto tw-bg-gray-50" >
+                < main className="tw-flex-1 tw-p-6 tw-overflow-auto tw-bg-gray-50" > {/* Aqui el tw-p-6 eventualmente hay que ponerlo en 0, ya que la foto de fondo en el inicio queda de la verga con esa margen */}
 
                     <Outlet />
 

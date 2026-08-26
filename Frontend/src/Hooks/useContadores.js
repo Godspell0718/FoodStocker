@@ -27,14 +27,17 @@ export const useContadores = () => {
             const criticos = [];
 
             resInsumos.data.forEach(insumo => {
-                // Verificar cada entrada/lote del insumo
+                let stockTotalInsumo = 0; // Acumulador para el total de este insumo
+
                 if (insumo.entradas && Array.isArray(insumo.entradas)) {
                     insumo.entradas.forEach(entrada => {
-                        // Solo considerar entradas en STOCK
                         if (entrada.Estado === 'STOCK') {
                             const cantidadDisponible = entrada.Can_Inicial - entrada.Can_Salida;
 
-                            // Verificar vencimiento próximo (2 meses)
+                            // Sumamos al acumulador total del insumo
+                            stockTotalInsumo += cantidadDisponible;
+
+                            // Verificar vencimiento próximo (2 meses) - Esto se queda por lote
                             if (entrada.Fec_Ven_Entrada) {
                                 const fechaVencimiento = new Date(entrada.Fec_Ven_Entrada);
                                 if (fechaVencimiento <= dosMesesDespues && fechaVencimiento > hoy) {
@@ -48,21 +51,17 @@ export const useContadores = () => {
                                     });
                                 }
                             }
-
-                            // Verificar stock crítico (menos del 25% de la cantidad inicial)
-
-
-
-
-                            if (cantidadDisponible <= 10) {
-                                criticos.push({
-                                    idInsumo: insumo.Id_Insumos,
-                                    nombreInsumo: insumo.Nom_Insumo,
-                                    lote: entrada.Lote,
-                                    cantidadDisponible: cantidadDisponible,
-                                });
-                            }
                         }
+                    });
+                }
+
+                // Verificar stock crítico UNA SOLA VEZ por insumo usando el total
+                // Aquí puedes cambiar el 10 por tu límite de stock
+                if (stockTotalInsumo <= 10) {
+                    criticos.push({
+                        idInsumo: insumo.Id_Insumos,
+                        nombreInsumo: insumo.Nom_Insumo,
+                        cantidadDisponibleTotal: stockTotalInsumo // Enviamos el total, ya no el lote
                     });
                 }
             });

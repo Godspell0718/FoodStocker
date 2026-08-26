@@ -7,9 +7,14 @@ import {
     Phone,
     Pencil,
     Users,
-    CircleUser
-
+    CircleUser,
+    User,
+    Trash2,
+    X,
+    Inbox,
 } from 'lucide-react'
+import Swal from "sweetalert2"
+
 
 const CrudResponsables = () => {
 
@@ -17,6 +22,7 @@ const CrudResponsables = () => {
     const [filterText, setFilterText] = useState("")
     const [loading, setLoading] = useState(false)
     const [responsableSeleccionado, setResponsableSeleccionado] = useState(null)
+    const [showModal, setShowModal] = useState(false)
 
     const columnsTable = [
         {
@@ -57,7 +63,7 @@ const CrudResponsables = () => {
             selector: row => row.Tel_Responsable,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <Phone size={15} color="#3b82f6" />
+                    <Phone className="tw-w-3.5 tw-h-3.5 tw-text-blue-400" />
                     <span className="tw-text-slate-600">{row.Tel_Responsable}</span>
                 </div>
             )
@@ -77,14 +83,27 @@ const CrudResponsables = () => {
         {
             name: "Acciones",
             right: true,
+            width: "100px",
             cell: row => (
-
-                <button className="tw-cursor-pointer tw-duration-200 hover:tw-scale-125 active:tw-scale-100 tw-bg-transparent tw-border-none tw-outline-none tw-shadow-none" title="Editar"
-                    data-bs-toggle="modal"
-                    data-bs-target="#responsablesModal"
-                    onClick={() => setResponsableSeleccionado(row)}>
-                    <Pencil size={15} color="#ff6215" />
-                </button>
+                <div className="tw-flex tw-gap-2">
+                    <button
+                        title="Editar"
+                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
+                        onClick={() => {
+                            setResponsableSeleccionado(row)
+                            setShowModal(true)
+                        }}
+                    >
+                        <Pencil className="tw-w-3.5 tw-h-3.5" />
+                    </button>
+                    <button
+                        title="Eliminar"
+                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
+                        onClick={() => deleteResponsable(row.Id_Responsable)}
+                    >
+                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                    </button>
+                </div>
             )
         }
     ]
@@ -93,11 +112,40 @@ const CrudResponsables = () => {
         getAllResponsables()
     }, [])
 
+    const deleteResponsable = async (id) => {
+        const confirm = await Swal.fire({
+            title: "¿Estás seguro?",
+            text: "Esta acción eliminará al responsable permanentemente",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#153753",
+        })
+
+        if (confirm.isConfirmed) {
+            try {
+                await apiAxios.delete(`/api/responsables/${id}`)
+                Swal.fire({
+                    title: "Eliminado",
+                    text: "El responsable ha sido eliminado correctamente",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                })
+                getAllResponsables()
+            } catch (error) {
+                Swal.fire("Error", error.response?.data?.message || "No se pudo eliminar al responsable", "error")
+            }
+        }
+    }
+
     const getAllResponsables = async () => {
         setLoading(true)
         try {
             const response = await apiAxios.get('/api/responsables/')
-            setResponsables(response.data)
+            setResponsables(Array.isArray(response.data) ? response.data : [])
         } catch (error) {
             console.error("Error al cargar responsables:", error)
         } finally {
@@ -116,7 +164,7 @@ const CrudResponsables = () => {
     })
 
     const hideModal = () => {
-        document.getElementById('closeModal')?.click()
+        setShowModal(false)
         setResponsableSeleccionado(null)
         getAllResponsables()
     }
@@ -166,8 +214,8 @@ const CrudResponsables = () => {
                 {/* Header */}
                 <div className="tw-mb-8">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                        <div className="tw-w-10 tw-h-10 tw-bg-gradient-to-br tw-from-blue-600 tw-to-indigo-600 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
-                            <Users color="#ffffff" size={24} />
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                            <Users className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
                         <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Usuarios</h1>
                     </div>
@@ -181,13 +229,19 @@ const CrudResponsables = () => {
                             <i className="fa-solid fa-magnifying-glass tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400"></i>
                             <input
                                 type="text"
-                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-amber-400 focus:tw-border-transparent tw-transition-all"
+                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
                                 placeholder="Buscar por nombre, correo o documento..."
                                 value={filterText}
                                 onChange={(e) => setFilterText(e.target.value)}
                             />
                         </div>
                         <button
+                            type="button"
+                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                            onClick={() => {
+                                setResponsableSeleccionado(null)
+                                setShowModal(true)
+                            }}
                             title="Add New"
                             className="tw-group tw-cursor-pointer tw-outline-none hover:tw-rotate-90 tw-duration-300 tw-bg-transparent tw-border-none"
                             data-bs-toggle="modal"
@@ -236,7 +290,7 @@ const CrudResponsables = () => {
                         }
                         noDataComponent={
                             <div className="tw-py-12 tw-text-center">
-                                <i className="fa-solid fa-inbox tw-text-5xl tw-text-slate-300 tw-mb-3"></i>
+                                <Inbox className="tw-w-12 tw-h-12 tw-text-slate-300 tw-mx-auto tw-mb-3" />
                                 <p className="tw-text-slate-400">No se encontraron responsables</p>
                             </div>
                         }
@@ -250,25 +304,35 @@ const CrudResponsables = () => {
                     </p>
                 </div>
 
-                {/* Modal */}
-                <div className="modal fade" id="responsablesModal" tabIndex="-1" aria-hidden="true">
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content tw-rounded-2xl tw-overflow-hidden">
-                            <div className="tw-bg-gradient-to-r tw-from-blue-600 tw-to-indigo-600 tw-px-6 tw-py-4">
+                {/* Modal Custom Tailwind */}
+                {showModal && (
+                    <div
+                        className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
+                        onClick={(e) => e.target === e.currentTarget && hideModal()}
+                    >
+                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-md tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
+                            {/* Modal Header */}
+                            <div className="tw-bg-primario-900 tw-px-6 tw-py-4">
                                 <div className="tw-flex tw-justify-between tw-items-center">
                                     <div className="tw-flex tw-items-center tw-gap-3">
                                         <div className="tw-w-8 tw-h-8 tw-bg-white/20 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
-                                            <i className="fa-solid fa-user-plus tw-text-white"></i>
+                                            <User className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                                         </div>
                                         <h5 className="tw-text-white tw-font-semibold tw-text-lg tw-m-0">
                                             {responsableSeleccionado ? 'Editar Responsable' : 'Nuevo Responsable'}
                                         </h5>
                                     </div>
-                                    <button type="button" className="tw-text-white/70 hover:tw-text-white tw-text-2xl tw-leading-none" data-bs-dismiss="modal">
-                                        X
+                                    <button
+                                        type="button"
+                                        className="tw-text-white/70 hover:tw-text-white tw-transition-colors"
+                                        onClick={hideModal}
+                                    >
+                                        <X className="tw-w-6 tw-h-6" />
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Modal Body */}
                             <div className="tw-p-6">
                                 <ResponsablesForm
                                     hideModal={hideModal}
@@ -277,7 +341,7 @@ const CrudResponsables = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )

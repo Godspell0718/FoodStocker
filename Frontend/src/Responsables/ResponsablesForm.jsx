@@ -145,8 +145,11 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
                     value={Tip_Responsable}
                     onChange={(e) => setTipo(e.target.value)}
                 >
-                    <option value="P">Pasante</option>
-                    <option value="I">Instructor</option>
+                    <option value="ADMIN">Administrador</option>
+                    <option value="PA">Pasante Agroindustria</option>
+                    <option value="IA">Instructor Agroindustria</option>
+                    <option value="PDU">Pasante</option>
+                    <option value="IDU">Instructor</option>
                 </select>
             </div>
 

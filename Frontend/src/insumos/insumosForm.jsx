@@ -72,21 +72,26 @@ const InsumosForm = ({ hideModal, insumoParaEditar }) => {
     };
 
     return (
-        <form onSubmit={gestionarForm}>
-            <div className="mb-3">
-                <label>Nombre del Insumo *</label>
+        <form onSubmit={gestionarForm} className="tw-space-y-5">
+            <div>
+                <label className="tw-block tw-text-sm tw-font-medium tw-text-slate-700 tw-mb-1.5">
+                    Nombre del Insumo <span className="tw-text-red-500">*</span>
+                </label>
                 <input
-                    className="form-control"
+                    className="tw-w-full tw-px-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                    placeholder="Ej: Harina de trigo"
                     value={Nom_Insumo}
                     onChange={(e) => setNombre(e.target.value)}
                     required
                 />
             </div>
 
-            <div className="mb-3">
-                <label>Tipo de insumo</label>
+            <div>
+                <label className="tw-block tw-text-sm tw-font-medium tw-text-slate-700 tw-mb-1.5">
+                    Tipo de insumo
+                </label>
                 <select
-                    className="form-control"
+                    className="tw-w-full tw-px-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all tw-appearance-none"
                     value={Tip_Insumo}
                     onChange={(e) => setTipo(e.target.value)}
                 >
@@ -112,10 +117,12 @@ const InsumosForm = ({ hideModal, insumoParaEditar }) => {
                 </select>
             </div>
 
-            <div className="mb-3">
-                <label>Referencia del Insumo</label>
+            <div>
+                <label className="tw-block tw-text-sm tw-font-medium tw-text-slate-700 tw-mb-1.5">
+                    Referencia del Insumo
+                </label>
                 <select
-                    className="form-control"
+                    className="tw-w-full tw-px-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all tw-appearance-none"
                     value={Ref_Insumo}
                     onChange={(e) => setReferencia(e.target.value)}
                 >
@@ -125,7 +132,10 @@ const InsumosForm = ({ hideModal, insumoParaEditar }) => {
                 </select>
             </div>
 
-            <button className="btn btn-primary w-100" type="submit">
+            <button 
+                className="tw-w-full tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200"
+                type="submit"
+            >
                 {textFormButton}
             </button>
         </form>
