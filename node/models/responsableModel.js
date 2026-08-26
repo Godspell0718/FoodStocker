@@ -11,7 +11,7 @@ const responsableModel = db.define("responsables", {
         type: DataTypes.STRING
     },
     Tip_Responsable: {
-        type: DataTypes.ENUM("PA","IA","PDU","ADMIN","IDU"),
+        type: DataTypes.ENUM("ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"),
         allowNull: false
     },
      Tel_Responsable: {
@@ -31,6 +31,11 @@ const responsableModel = db.define("responsables", {
     },
      token: {
         type: DataTypes.STRING
+    },
+    Estado: {
+        type: DataTypes.ENUM("ACTIVO", "INACTIVO"),
+        defaultValue: "ACTIVO",
+        allowNull: false
     },
     createdAt: {
         type: DataTypes.DATE,

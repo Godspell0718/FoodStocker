@@ -1,4 +1,30 @@
 import ResponsableService from "../services/responsableservice.js";
+import emailServices from "../services/emailServices.js";
+import responsableservice from "../services/responsableservice.js";
+
+//SOLICITAR RESTABLECER CONTRASEÑA
+export const getResetPassword = async (req, res) => {
+  const { email } = req.body
+
+  try {
+    await userService.resetPassword(email)
+    res.status(200).json({message: 'El mensaje para restablecer la contraseña fue enviado correctamente.'})
+  }catch (error) {
+    res.status(400).json({message: error.message})
+  }
+}
+
+//RECIBIR LA NUEVA CONTRASEÑA
+export const getNewPassword = async (req, res) => {
+  
+  try {
+    await responsableservice.setNewPassword(req.body)
+    res.status(200).json({message: "Contraseña actualizada correctamente."})
+
+  }catch (error) {
+    res.status(400).json({message: "Informacion invalida o el tiempo ha expirado."})
+  }
+}
 
 // ==============================
 // OBTENER TODOS
@@ -71,6 +97,11 @@ export const updateResponsable = async (req, res) => {
     // 🚫 Evitar sobrescribir contraseña vacía
     if (!data.Contraseña) {
       delete data.Contraseña;
+    }
+
+    // 🚫 Administrador no puede cambiar su propio rol
+    if (req.user && String(req.user.id) === String(req.params.id) && data.Tip_Responsable && data.Tip_Responsable !== req.user.rol) {
+      return res.status(400).json({ message: "No está permitido cambiar su propio rol" });
     }
 
     await ResponsableService.update(req.params.id, data);

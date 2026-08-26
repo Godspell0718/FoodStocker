@@ -7,18 +7,19 @@ import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 
 class SolicitudServiceNuevo {
 
-    async crearCompleta({ Id_Responsable, Fec_entrega, motivo, Descripcion, Ficha, insumos }) {
+    async crearCompleta({ Id_Responsable, Fec_entrega, motivo, Descripcion, Ficha, Id_Destino, insumos }) {
 
         const t = await db.transaction();
 
         try {
             const nuevaSolicitud = await SolicitudModel.create(
-                { 
-                    Id_Responsable, 
-                    Fec_entrega, 
+                {
+                    Id_Responsable,
+                    Fec_entrega,
                     motivo,
-                    Descripcion, // ✅ nuevo
-                    Ficha        // ✅ nuevo
+                    Descripcion,
+                    Ficha,
+                    Id_Destino
                 },
                 { transaction: t }
             );
@@ -29,7 +30,7 @@ class SolicitudServiceNuevo {
 
                 const { Id_insumos, cantidad_solicitada, Id_Entradas } = item;
 
-                // 🔥 USAR EL LOTE SELECCIONADO (NO FEFO AUTOMÁTICO)
+                // USAR EL LOTE SELECCIONADO (NO FEFO AUTOMÁTICO)
                 const lote = await entradasModel.findOne({
                     where: {
                         Id_Entradas: Id_Entradas,

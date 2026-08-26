@@ -1,4 +1,5 @@
 import ProveedorModel from "../models/proveedoresModel.js";
+import entradasModel from "../models/entradasModel.js";
 
 class ProveedorService {
   async getAll() {
@@ -27,9 +28,20 @@ class ProveedorService {
 
   async delete(id) {
     const numId = Number(id);
-    const deleted = await ProveedorModel.destroy({ where: { Id_Proveedor: numId } });
-    if (!deleted) throw new Error("Proveedor no encontrado");
-    return true;
+    const proveedor = await ProveedorModel.findByPk(numId);
+    if (!proveedor) throw new Error("Proveedor no encontrado");
+
+    // Verificar si tiene entradas asociadas
+    const entriesCount = await entradasModel.count({ where: { Id_Proveedor: numId } });
+
+    if (entriesCount > 0 || proveedor.Estado === 'ACTIVO') {
+      const nuevoEstado = proveedor.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+      await proveedor.update({ Estado: nuevoEstado });
+      return { inactived: true, nuevoEstado };
+    } else {
+      await proveedor.destroy();
+      return { deleted: true };
+    }
   }
 }
 

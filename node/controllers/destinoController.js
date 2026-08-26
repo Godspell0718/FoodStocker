@@ -40,8 +40,8 @@ export const updateDestino = async (req, res) => {
 
 export const deleteDestino = async (req, res) => {
     try {
-        await destinoService.delete(req.params.id)
-        res.status(204).send()
+        const result = await destinoService.delete(req.params.id)
+        res.status(200).json({ message: "Destino procesado correctamente", ...result })
     } catch (error) {
         res.status(400).json({ message: error.message })
     }

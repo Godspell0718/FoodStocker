@@ -12,6 +12,11 @@ const DestinoModel = db.define('destino', {
     Tip_Destino: {
         type: DataTypes.STRING
     },
+    Estado: {
+        type: DataTypes.ENUM('ACTIVO', 'INACTIVO'),
+        defaultValue: 'ACTIVO',
+        allowNull: false
+    },
     createdat: {
         type: DataTypes.DATE,
         field: "createdat"
@@ -21,7 +26,8 @@ const DestinoModel = db.define('destino', {
         field: "updatedat"
     }
 }, {
-    freezeTableName: true
+    freezeTableName: true,
+    timestamps: false
 })
 
 export default DestinoModel;

@@ -20,7 +20,11 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
     const [Id_Pasante, setPasante] = useState("")
     const [Id_Instructor, setInstructor] = useState("")
     const [Id_Insumos, setInsumo] = useState("")
+    const [Uni_medida, setUniMedida] = useState("Gr")
     const [loading, setLoading] = useState(false)
+
+    // Comprobar si la entrada ya fue utilizada (Requerimiento 8)
+    const isUsed = entradaSeleccionada && (entradaSeleccionada.Can_Salida > 0)
 
     // ─── Datos para los selects ───────────────────────────────────
     const [proveedores, setProveedores] = useState([])
@@ -50,7 +54,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
     const resetForm = () => {
         setFec(""); setLote(""); setVlr(""); setCantidad("")
         setProveedor(""); setPasante(""); setInstructor("")
-        setInsumo("")
+        setInsumo(""); setUniMedida("Gr")
     }
 
     useEffect(() => {
@@ -63,6 +67,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
             setPasante(entradaSeleccionada.Id_Pasante || "")
             setInstructor(entradaSeleccionada.Id_Instructor || "")
             setInsumo(entradaSeleccionada.Id_Insumos || "")
+            setUniMedida(entradaSeleccionada.Uni_medida || "Gr")
         } else {
             resetForm()
         }
@@ -70,6 +75,16 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
 
     const gestionarForm = async e => {
         e.preventDefault()
+
+        if (isUsed) {
+            return Swal.fire("Atención", "No es posible modificar esta entrada porque ya ha sido utilizada", "warning")
+        }
+
+        // Validaciones (Requerimiento 3)
+        if (!Id_Insumos) return Swal.fire("Validación", "Debe seleccionar un insumo", "warning")
+        if (!Lote.trim()) return Swal.fire("Validación", "El lote es requerido", "warning")
+        if (!Can_Inicial || Number(Can_Inicial) <= 0) return Swal.fire("Validación", "La cantidad inicial debe ser mayor a 0", "warning")
+
         setLoading(true)
 
         const payload = {
@@ -81,7 +96,8 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
             Id_Pasante,
             Id_Instructor,
             Id_Insumos,
-            Estado: 'STOCK'
+            Estado: 'STOCK',
+            Uni_medida
         }
 
         try {
@@ -120,13 +136,73 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
     }
 
     // ─── Filtrar pasantes e instructores ─────────────────────────
-    const pasantes = responsables.filter(r => r.Tip_Responsable === 'PA')
-    const instructores = responsables.filter(r => r.Tip_Responsable === 'IA')
+    const pasantes = responsables.filter(r => (r.Tip_Responsable === 'Pasante de agroindustria' || r.Tip_Responsable === 'Pasante solicitante') && (r.Estado === 'ACTIVO' || r.Id_Responsable === Id_Pasante))
+    const instructores = responsables.filter(r => (r.Tip_Responsable === 'Instructor de agroindustria' || r.Tip_Responsable === 'ADMIN') && (r.Estado === 'ACTIVO' || r.Id_Responsable === Id_Instructor))
 
     return (
         <form onSubmit={gestionarForm} className="tw-space-y-6">
             
+            {/* Requerimiento 8: Aviso si la entrada ya fue utilizada */}
+            {isUsed && (
+                <div className="tw-bg-amber-50 tw-border tw-border-amber-200 tw-p-3.5 tw-rounded-xl tw-flex tw-items-center tw-gap-3">
+                    <Info className="tw-w-5 tw-h-5 tw-text-amber-600 tw-shrink-0" />
+                    <p className="tw-text-xs tw-text-amber-800 tw-font-medium tw-m-0">
+                        Esta entrada ya registra consumos/salidas ({entradaSeleccionada.Can_Salida} unidades utilizadas). <strong>No se permite su modificación.</strong>
+                    </p>
+                </div>
+            )}
+
             <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-5">
+                
+                {/* 1. INSUMO (PRIMERO - Requerimiento 5) */}
+                <div className="md:tw-col-span-2">
+                    <label className={labelClass}>
+                        <Info className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
+                        Insumo * (Primer campo)
+                    </label>
+                    <div className="tw-relative">
+                        <select
+                            className={`${selectClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
+                            value={Id_Insumos}
+                            onChange={e => setInsumo(e.target.value)}
+                            disabled={isUsed}
+                            required
+                        >
+                            <option value="">Seleccione un insumo...</option>
+                            {insumos.filter(ins => ins.Estado === 'ACTIVO' || ins.Id_Insumos === Id_Insumos).map(ins => (
+                                <option key={ins.Id_Insumos} value={ins.Id_Insumos}>
+                                    {ins.Nom_Insumo} ({ins.Tip_Insumo})
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
+                    </div>
+                </div>
+
+                {/* 2. Presentación / Unidad de Medida (Requerimiento 5) */}
+                <div>
+                    <label className={labelClass}>
+                        <Package className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
+                        Presentación / Unidad de Medida *
+                    </label>
+                    <div className="tw-relative">
+                        <select
+                            className={`${selectClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
+                            value={Uni_medida}
+                            onChange={e => setUniMedida(e.target.value)}
+                            disabled={isUsed}
+                            required
+                        >
+                            <option value="Kg">Kilogramos (Kg)</option>
+                            <option value="Gr">Gramos (Gr)</option>
+                            <option value="Ml">Mililitros (Ml)</option>
+                            <option value="L">Litros (L)</option>
+                            <option value="Lbs">Libras (Lbs)</option>
+                        </select>
+                        <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
+                    </div>
+                </div>
+
                 {/* Fecha de vencimiento */}
                 <div>
                     <label className={labelClass}>
@@ -135,9 +211,10 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                     </label>
                     <input
                         type="date"
-                        className={inputClass}
+                        className={`${inputClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
                         value={Fec_Ven_Entrada}
                         onChange={e => setFec(e.target.value)}
+                        disabled={isUsed}
                     />
                 </div>
 
@@ -149,10 +226,11 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                     </label>
                     <input
                         type="text"
-                        className={inputClass}
+                        className={`${inputClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
                         placeholder="Ej: LOTE-2024-01"
                         value={Lote}
                         onChange={e => setLote(e.target.value)}
+                        disabled={isUsed}
                         required
                     />
                 </div>
@@ -165,51 +243,29 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                     </label>
                     <input
                         type="number"
-                        className={inputClass}
+                        className={`${inputClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
                         placeholder="$ 0"
                         value={Vlr_Unitario}
                         onChange={e => setVlr(e.target.value)}
+                        disabled={isUsed}
                     />
                 </div>
 
                 {/* Cantidad inicial */}
-                <div>
+                <div className="md:tw-col-span-2">
                     <label className={labelClass}>
                         <Package className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
                         Cantidad inicial
                     </label>
                     <input
                         type="number"
-                        className={inputClass}
+                        className={`${inputClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
                         placeholder="0"
                         value={Can_Inicial}
                         onChange={e => setCantidad(e.target.value)}
+                        disabled={isUsed}
                         required
                     />
-                </div>
-
-                {/* Insumo */}
-                <div className="md:tw-col-span-2">
-                    <label className={labelClass}>
-                        <Info className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
-                        Insumo
-                    </label>
-                    <div className="tw-relative">
-                        <select
-                            className={selectClass}
-                            value={Id_Insumos}
-                            onChange={e => setInsumo(e.target.value)}
-                            required
-                        >
-                            <option value="">Seleccione un insumo...</option>
-                            {insumos.map(ins => (
-                                <option key={ins.Id_Insumos} value={ins.Id_Insumos}>
-                                    {ins.Nom_Insumo} ({ins.Uni_Med_Insumo})
-                                </option>
-                            ))}
-                        </select>
-                        <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
-                    </div>
                 </div>
 
                 {/* Proveedor */}
@@ -220,13 +276,14 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                     </label>
                     <div className="tw-relative">
                         <select
-                            className={selectClass}
+                            className={`${selectClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
                             value={Id_Proveedor}
                             onChange={e => setProveedor(e.target.value)}
+                            disabled={isUsed}
                             required
                         >
                             <option value="">Seleccione un proveedor...</option>
-                            {proveedores.map(p => (
+                            {proveedores.filter(p => p.Estado === 'ACTIVO' || p.Id_Proveedor === Id_Proveedor).map(p => (
                                 <option key={p.Id_Proveedor} value={p.Id_Proveedor}>
                                     {p.Nom_Proveedor}
                                 </option>
@@ -244,9 +301,10 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                     </label>
                     <div className="tw-relative">
                         <select
-                            className={selectClass}
+                            className={`${selectClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
                             value={Id_Pasante}
                             onChange={e => setPasante(e.target.value)}
+                            disabled={isUsed}
                             required
                         >
                             <option value="">Seleccione un pasante...</option>
@@ -268,9 +326,10 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                     </label>
                     <div className="tw-relative">
                         <select
-                            className={selectClass}
+                            className={`${selectClass} ${isUsed ? 'tw-bg-gray-200' : ''}`}
                             value={Id_Instructor}
                             onChange={e => setInstructor(e.target.value)}
+                            disabled={isUsed}
                             required
                         >
                             <option value="">Seleccione un instructor...</option>

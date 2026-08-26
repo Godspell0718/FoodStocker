@@ -7,6 +7,7 @@ import insumosModel from "../models/insumosModel.js";
 import entradasModel from "../models/entradasModel.js";
 import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 import EstadosModel from "../models/EstadosModel.js";
+import DestinoModel from "../models/destinoModel.js";
 
 export const getAll = async (req, res) => {
     try {
@@ -95,6 +96,11 @@ export const getSolicitudesPendientes = async (req, res) => {
                     attributes: ['Nom_Responsable', 'Tip_Responsable']
                 },
                 {
+                    model: DestinoModel,
+                    as: 'destino',
+                    attributes: ['Nom_Destino', 'Tip_Destino']
+                },
+                {
                     model: insumosSolicitudModel,
                     as: 'insumos',
                     include: [
@@ -151,5 +157,23 @@ export const cambiarEstadoSolicitud = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// POST /api/solicitudes/novedad
+export const guardarNovedad = async (req, res) => {
+    try {
+        const { Id_solicitud, novedad } = req.body;
+        if (!Id_solicitud) {
+            return res.status(400).json({ message: "Id_solicitud es requerido" });
+        }
+        await SolicitudModel.update(
+            { novedad: novedad ?? null },
+            { where: { Id_solicitud } }
+        );
+        res.status(200).json({ message: "Novedad guardada correctamente" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 

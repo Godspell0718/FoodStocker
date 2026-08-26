@@ -77,6 +77,11 @@ const Navbar = ({ isAuth, logout }) => {
                                 Solicitudes Pendientes
                             </NavLink>
                         </li>
+                        <li className="nav-item">
+                            <NavLink to="/perdidas" className={navClass}>
+                                Pérdidas
+                            </NavLink>
+                        </li>
 
 
                         {/* 🔴 SECCIÓN AGREGADA - Dropdown de usuario */}
@@ -178,6 +183,11 @@ const Navbar = ({ isAuth, logout }) => {
                         <div data-bs-dismiss="offcanvas">
                             <NavLink to="/solicitudes-pendientes" className={navClass}>
                                 Solicitudes Pendientes
+                            </NavLink>
+                        </div>
+                        <div data-bs-dismiss="offcanvas">
+                            <NavLink to="/perdidas" className={navClass}>
+                                Pérdidas
                             </NavLink>
                         </div>
                         {/* 🔴 También agregar logout en el offcanvas para móviles */}

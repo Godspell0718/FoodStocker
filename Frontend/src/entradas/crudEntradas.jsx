@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react"
 import apiNode from "../api/axiosConfig.js"
 import DataTable from "react-data-table-component"
-import { EntradasForm } from "./EntradasForm.jsx"
-import {
-    Warehouse, Box, Calendar, Truck, UserRound,
-    GraduationCap, Presentation, Pen, Plus, Search,
+import { EntradasForm } from "./entradasForm.jsx"
+import { 
+    Warehouse, Box, Calendar, Truck, UserRound, 
+    GraduationCap, Presentation, Pen, Plus, Search, 
     Inbox, AlertCircle, X, Boxes, Trash2
 } from "lucide-react"
 import Swal from "sweetalert2"
@@ -245,27 +245,38 @@ export const CrudEntradas = () => {
             name: "Acciones",
             right: true,
             width: "100px",
-            cell: row => (
-                <div className="tw-flex tw-gap-2">
-                    <button
-                        title="Editar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => {
-                            setEntradaSeleccionada(row)
-                            setShowModal(true)
-                        }}
-                    >
-                        <Pen className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                    <button
-                        title="Eliminar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => deleteEntrada(row.Id_Entradas)}
-                    >
-                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                </div>
-            ),
+            cell: row => {
+                const isUsed = row.Can_Salida > 0;
+                return (
+                    <div className="tw-flex tw-gap-2">
+                        <button
+                            title={isUsed ? "Entrada utilizada (No editable)" : "Editar"}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
+                                isUsed 
+                                    ? "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed" 
+                                    : "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
+                            }`}
+                            onClick={() => {
+                                if (isUsed) {
+                                    Swal.fire("Edición Bloqueada", "No se puede editar esta entrada porque ya registra salidas de insumo.", "info");
+                                } else {
+                                    setEntradaSeleccionada(row);
+                                    setShowModal(true);
+                                }
+                            }}
+                        >
+                            <Pen className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                        <button
+                            title="Eliminar"
+                            className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
+                            onClick={() => deleteEntrada(row.Id_Entradas)}
+                        >
+                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                    </div>
+                );
+            },
             ignoreRowClick: true,
             button: true
         }

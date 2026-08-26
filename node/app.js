@@ -19,6 +19,9 @@ import insumosModel from "./models/insumosModel.js"
 import proveedoresModel from "./models/proveedoresModel.js"
 import responsablesModel from "./models/responsableModel.js"
 import insumosSolicitudModel from "./models/insumosSolicitudModel.js"
+import perdidasRoutes from "./routes/perdidasRoutes.js"
+import perdidaModel from "./models/perdidasModel.js"
+import DestinoModel from "./models/destinoModel.js"
 
 
 dotenv.config();
@@ -26,7 +29,19 @@ dotenv.config();
 const app = express()
 
 app.use(express.json())
-app.use(cors())
+
+// CORS configurado según el entorno
+const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+    : ['http://localhost:5173', 'http://localhost:3000']
+
+app.use(cors({
+    origin: corsOrigins,
+    credentials: true
+}))
+
+console.log(`🌐 [FoodStocker] Entorno: ${process.env.NODE_ENV || 'development'}`)
+console.log(`🔗 CORS habilitado para: ${corsOrigins.join(', ')}`)
 
 // ============================================
 // ASOCIACIONES DE MODELOS
@@ -88,6 +103,16 @@ responsablesModel.hasMany(SolicitudModel, {
     foreignKey: 'Id_Responsable',
     as: 'solicitudes'
 });
+
+// Solicitud -> Destino
+SolicitudModel.belongsTo(DestinoModel, {
+    foreignKey: 'Id_Destino',
+    as: 'destino'
+});
+DestinoModel.hasMany(SolicitudModel, {
+    foreignKey: 'Id_Destino',
+    as: 'solicitudes'
+});
 Estado_solicitudModel.belongsTo(EstadosModel, {
     foreignKey: 'Id_estado',
     as: 'estado'
@@ -119,6 +144,7 @@ app.use("/api/proveedores", proveedoresRouters)
 app.use("/api/solicitudes", SolicitudRoutes)
 app.use("/api/estados", EstadosRoutes)
 app.use("/api/estado_solicitud", Estado_solicitudRoutes)
+app.use("/api/perdidas", perdidasRoutes)
 
 // ============================================
 // CONEXIÓN A BASE DE DATOS

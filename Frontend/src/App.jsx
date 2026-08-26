@@ -2,10 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from './context/authContext';
 
-// --- VISTAS PROTEGIDAS ---
-import CrudResponsables from './Responsables/crudResponsables';
-import CrudProveedores from './Proveedores/crudProveedores';
-import CrudDestino from './Destino/crudDestino';
+// VISTAS
+import CrudResponsables from './Responsables/crudResponsables.jsx';
+import CrudProveedores from './Proveedores/crudProveedores.jsx';
+import CrudDestino from './destino/crudDestino.jsx';
 import CrudInsumos from './insumos/crudInsumos.jsx';
 import CrudEntradas from './entradas/crudEntradas.jsx';
 import SolicitudCrud from './Solicitudes/SolicitudCrud.jsx';
@@ -25,6 +25,8 @@ import ContactoPublico from './home/beforeLogin/contactoPublico.jsx';
 import DocumentosPublicos from './home/beforeLogin/documentosPublicos.jsx';
 
 // Lógica de protección: si se cierra sesión, reenvía a /login
+import PerdidasCrud from './Reportes/PerdidasCrud.jsx';
+import PerdidasForm from './Reportes/PerdidasForm.jsx';
 const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
   const { user } = useContext(AuthContext);
 
@@ -106,11 +108,11 @@ function App() {
         <Route path="/solicitudes-pendientes" element={<SolicitudPendientes />} />
         <Route path="/solicitud-nueva" element={<SolicitudConLotes />} />
 
-        {/* ADMIN / IA */}
+        {/* ACCESOS CONFIGURADOS SEGÚN EL ENTORNO DE ROLES NUEVOS */}
         <Route
           path="/Proveedores"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN"]}>
               <CrudProveedores />
             </RutaProtegida>
           }
@@ -118,17 +120,15 @@ function App() {
         <Route
           path="/Responsables"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "IA"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN"]}>
               <CrudResponsables />
             </RutaProtegida>
           }
         />
-
-        {/* SOLO ADMIN */}
         <Route
           path="/Destino"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <CrudDestino />
             </RutaProtegida>
           }
@@ -136,7 +136,7 @@ function App() {
         <Route
           path="/Estados"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <EstadoCrud />
             </RutaProtegida>
           }
@@ -144,11 +144,93 @@ function App() {
         <Route
           path="/Estado_solicitud"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <Estados_solicitudCrud />
             </RutaProtegida>
           }
         />
+
+        <Route
+          path="Insumos"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <CrudInsumos />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="Entradas"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <CrudEntradas />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="Solicitudes"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <SolicitudCrud />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="Reportes"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <DashboardReportes />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="perdidas"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <PerdidasCrud />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="perdidas/nuevo"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <PerdidasForm />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="perdidas/editar/:id"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <PerdidasForm />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="solicitudes-pendientes"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+              <SolicitudPendientes />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="solicitud-nueva"
+          element={
+            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"]}>
+              <SolicitudConLotes />
+            </RutaProtegida>
+          }
+        />
+
       </Route>
 
       {/* FALLBACK: Si escribe una URL que no existe, evalúa si está logueado o no */}

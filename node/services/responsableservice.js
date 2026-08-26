@@ -1,7 +1,26 @@
 import responsableModel from "../models/responsableModel.js";
+import entradasModel from "../models/entradasModel.js";
+import SolicitudModel from "../models/SolicitudModel.js";
+import perdidaModel from "../models/perdidasModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
+import emailServices from "./emailServices.js";
+
+class responsableService{
+  //metodo para solicitar restablecimiento de contraseña 
+  async resetPassword(email) {
+    const responsable = await responsableModel.findOne({where: {email: email }})
+
+    if (!responsable) throw new Error("Ups, algo paso.")
+
+    const tokenForPassword = jwt.sign({user: {id: responsable.id }},
+      process.env.JWT_SECRET,
+      { expiresIn: '15m'})
+    await emailServices.sendPasswordResetEmail(email, tokenForPassword)
+    return 
+  }
+}
 
 class ResponsableService {
 
@@ -77,6 +96,10 @@ class ResponsableService {
     if (!responsable)
       throw new Error("Credenciales inválidas");
 
+    // 🚫 Impedir inicio de sesión si el usuario está INACTIVO
+    if (responsable.Estado === "INACTIVO")
+      throw new Error("Su usuario se encuentra INACTIVO. Contacte al administrador.");
+
     const passwordValida = await bcrypt.compare(
       Contraseña,
       responsable.Contraseña
@@ -126,17 +149,29 @@ class ResponsableService {
   }
 
   // ========================
-  // ELIMINAR
+  // ========================
+  // ELIMINAR / INACTIVAR
   // ========================
   async delete(id) {
-    const deleted = await responsableModel.destroy({
-      where: { Id_Responsable: id }
-    });
+    const responsable = await responsableModel.findByPk(id);
+    if (!responsable) throw new Error("Responsable no encontrado");
 
-    if (!deleted)
-      throw new Error("Responsable no encontrado");
+    // Verificar si tiene acciones asociadas en entradas, solicitudes o pérdidas
+    const hasEntradasPasante = await entradasModel.count({ where: { Id_Pasante: id } });
+    const hasEntradasInstructor = await entradasModel.count({ where: { Id_Instructor: id } });
+    const hasSolicitudes = await SolicitudModel.count({ where: { Id_Responsable: id } });
+    const hasPerdidas = await perdidaModel.count({ where: { Id_Responsable: id } });
 
-    return true;
+    const totalAcciones = hasEntradasPasante + hasEntradasInstructor + hasSolicitudes + hasPerdidas;
+
+    if (totalAcciones > 0 || responsable.Estado === 'ACTIVO') {
+      // Inactivar para no romper integridad referencial
+      await responsable.update({ Estado: responsable.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' });
+      return { inactived: true, nuevoEstado: responsable.Estado };
+    } else {
+      await responsable.destroy();
+      return { deleted: true };
+    }
   }
 }
 

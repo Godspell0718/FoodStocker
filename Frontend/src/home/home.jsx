@@ -16,7 +16,10 @@ import {
     Warehouse,
     Waypoints,
     House,
+    ArrowUpRight,
+    X,
 } from "lucide-react";
+import ProfileModal from "./ProfileModal.jsx";
 
 const navItems = [
     { icon: House, label: "Inicio", path: "/Inicio", roles: ["ADMIN", "PDU", "IA"] },
@@ -29,11 +32,12 @@ const navItems = [
 ];
 
 const Temporal = [
-  { icon: Warehouse, label: "Destinos", path: "/Destino", roles: ["ADMIN"] },
-  { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN"] },
-  { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN"] },
-  { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "PDU"] },
-  { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "PDU", "IA"] },
+  { icon: Warehouse, label: "Destinos", path: "/Destino", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+  { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+  { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+  { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"] },
+  { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+  { icon: ArchiveRestore, label: "Pérdidas", path: "/perdidas", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
 ];
 
 export default function Dashboard() {
@@ -53,6 +57,7 @@ export default function Dashboard() {
     ];
 
     const [openUserMenu, setOpenUserMenu] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
     const menuRef = useRef();
 
     // Notificaciones
@@ -351,14 +356,26 @@ export default function Dashboard() {
                                     <ChevronDown className="tw-w-4 tw-h-4 tw-text-primario-50" />
                                 </div>
 
-                                {/* Dropdown */}
+                                 {/* Dropdown */}
                                 {openUserMenu && (
-                                    <div className="tw-absolute tw-right-0 tw-mt-2 tw-w-40 tw-bg-white tw-rounded-lg tw-shadow-lg tw-border tw-border-gray-200 tw-z-50">
+                                    <div className="tw-absolute tw-right-0 tw-mt-2 tw-w-44 tw-bg-white tw-rounded-xl tw-shadow-xl tw-border tw-border-gray-200 tw-z-50 tw-py-1">
+                                        <button
+                                            onClick={() => {
+                                                setOpenUserMenu(false);
+                                                setShowProfileModal(true);
+                                            }}
+                                            className="tw-w-full tw-text-left tw-px-4 tw-py-2.5 tw-text-sm tw-text-gray-700 hover:tw-bg-gray-100 tw-flex tw-items-center tw-gap-2.5 tw-font-medium"
+                                        >
+                                            <UserRound className="tw-w-4 tw-h-4 tw-text-slate-500" />
+                                            Editar Perfil
+                                        </button>
+                                        <div className="tw-border-t tw-border-gray-100 tw-my-1" />
                                         <button
                                             onClick={logout}
-                                            className="tw-w-full tw-text-left tw-px-4 tw-py-2 tw-text-sm tw-text-gray-700 hover:tw-bg-gray-100 tw-rounded-lg"
+                                            className="tw-w-full tw-text-left tw-px-4 tw-py-2.5 tw-text-sm tw-text-red-600 hover:tw-bg-red-50 tw-flex tw-items-center tw-gap-2.5 tw-font-medium"
                                         >
-                                            Cerrar sesión
+                                            <X className="tw-w-4 tw-h-4 tw-text-red-500" />
+                                            Cerrar Sesión
                                         </button>
                                     </div>
                                 )}
@@ -373,6 +390,12 @@ export default function Dashboard() {
                     <Outlet />
 
                 </main >
+
+                {/* Modal de perfil */}
+                <ProfileModal
+                    isOpen={showProfileModal}
+                    onClose={() => setShowProfileModal(false)}
+                />
             </div >
         </div >
     );

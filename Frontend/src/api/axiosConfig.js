@@ -1,6 +1,10 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const APP_ENV = import.meta.env.VITE_APP_ENV || 'development'
+
+// 🔍 Muestra en consola a qué entorno estás conectado
+console.log(`🌐 [FoodStocker] Entorno: ${APP_ENV} | API: ${API_URL}`)
 
 const apiNode = axios.create({
     baseURL: API_URL,

@@ -72,39 +72,65 @@ const CrudResponsables = () => {
             name: "Tipo",
             selector: row => row.Tip_Responsable,
             cell: row => (
-                <span className={`tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium ${row.Tip_Responsable === 'Administrador'
-                    ? 'tw-bg-blue-100 tw-text-blue-700'
-                    : 'tw-bg-amber-100 tw-text-amber-700'
-                    }`}>
+                <span className={`tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium ${
+                    row.Tip_Responsable === 'ADMIN' 
+                        ? 'tw-bg-blue-100 tw-text-blue-700' 
+                        : row.Tip_Responsable === 'Instructor de agroindustria'
+                        ? 'tw-bg-purple-100 tw-text-purple-700'
+                        : row.Tip_Responsable === 'Pasante de agroindustria'
+                        ? 'tw-bg-emerald-100 tw-text-emerald-700'
+                        : 'tw-bg-amber-100 tw-text-amber-700'
+                }`}>
                     {row.Tip_Responsable}
+                </span>
+            )
+        },
+        { 
+            name: "Estado", 
+            selector: row => row.Estado || 'ACTIVO',
+            sortable: true,
+            cell: row => (
+                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${
+                    (row.Estado || 'ACTIVO') === 'ACTIVO'
+                        ? 'tw-bg-emerald-100 tw-text-emerald-800' 
+                        : 'tw-bg-rose-100 tw-text-rose-800'
+                }`}>
+                    {row.Estado || 'ACTIVO'}
                 </span>
             )
         },
         {
             name: "Acciones",
             right: true,
-            width: "100px",
-            cell: row => (
-                <div className="tw-flex tw-gap-2">
-                    <button
-                        title="Editar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => {
-                            setResponsableSeleccionado(row)
-                            setShowModal(true)
-                        }}
-                    >
-                        <Pencil className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                    <button
-                        title="Eliminar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => deleteResponsable(row.Id_Responsable)}
-                    >
-                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                </div>
-            )
+            width: "120px",
+            cell: row => {
+                const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+                return (
+                    <div className="tw-flex tw-gap-2">
+                        <button
+                            title="Editar"
+                            className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
+                            onClick={() => {
+                                setResponsableSeleccionado(row)
+                                setShowModal(true)
+                            }}
+                        >
+                            <Pencil className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                        <button
+                            title={isActivo ? "Inactivar Usuario" : "Activar Usuario"}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
+                                isActivo 
+                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white" 
+                                    : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
+                            }`}
+                            onClick={() => toggleEstadoResponsable(row)}
+                        >
+                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                    </div>
+                );
+            }
         }
     ]
 
@@ -112,31 +138,35 @@ const CrudResponsables = () => {
         getAllResponsables()
     }, [])
 
-    const deleteResponsable = async (id) => {
+    const toggleEstadoResponsable = async (row) => {
+        const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+        const accion = isActivo ? "Inactivar" : "Activar";
         const confirm = await Swal.fire({
-            title: "¿Estás seguro?",
-            text: "Esta acción eliminará al responsable permanentemente",
+            title: `¿${accion} usuario?`,
+            text: isActivo 
+                ? "El usuario pasará a estado INACTIVO (no se eliminarán sus registros históricos)"
+                : "El usuario pasará a estado ACTIVO",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Sí, eliminar",
+            confirmButtonText: `Sí, ${accion.toLowerCase()}`,
             cancelButtonText: "Cancelar",
-            confirmButtonColor: "#ef4444",
+            confirmButtonColor: isActivo ? "#f59e0b" : "#10b981",
             cancelButtonColor: "#153753",
         })
 
         if (confirm.isConfirmed) {
             try {
-                await apiAxios.delete(`/api/responsables/${id}`)
+                await apiAxios.delete(`/api/responsables/${row.Id_Responsable}`)
                 Swal.fire({
-                    title: "Eliminado",
-                    text: "El responsable ha sido eliminado correctamente",
+                    title: "Completado",
+                    text: `El usuario ahora está ${isActivo ? 'INACTIVO' : 'ACTIVO'}`,
                     icon: "success",
                     timer: 1500,
                     showConfirmButton: false
                 })
                 getAllResponsables()
             } catch (error) {
-                Swal.fire("Error", error.response?.data?.message || "No se pudo eliminar al responsable", "error")
+                Swal.fire("Error", error.response?.data?.message || "No se pudo cambiar el estado del responsable", "error")
             }
         }
     }

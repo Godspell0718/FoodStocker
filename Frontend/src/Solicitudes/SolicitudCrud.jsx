@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component"
 import SolicitudFormNuevo from "./SolicitudFormN.jsx"
 import SolicitudForm from "./SolicitudForm.jsx"
 import Swal from 'sweetalert2'
-import { ClipboardList, Plus, Pencil, Trash2, Utensils, X, Search, Hash, User, Calendar, FileText, Tag, Clock, Info } from "lucide-react"
+import { ClipboardList, Plus, Pencil, Trash2, Utensils, X, Search, Hash, User, Calendar, FileText, Tag, Clock, Info, MapPin } from "lucide-react"
 
 const customTableStyles = {
     table: { style: { backgroundColor: 'transparent', borderRadius: '0.75rem', overflow: 'hidden' } },
@@ -91,6 +91,17 @@ const SolicitudCrud = () => {
                     <Tag className="tw-w-2.5 tw-h-2.5" />
                     {row.Ficha ?? "-"}
                 </span>
+            )
+        },
+        { 
+            name: 'Destino', 
+            selector: row => row.destino?.Nom_Destino ?? "Sin destino",
+            sortable: true,
+            cell: row => (
+                <div className="tw-flex tw-items-center tw-gap-1.5 tw-text-gray-600">
+                    <MapPin className="tw-w-3.5 tw-h-3.5 tw-text-indigo-500" />
+                    <span>{row.destino?.Nom_Destino ?? "—"}</span>
+                </div>
             )
         },
         { 
