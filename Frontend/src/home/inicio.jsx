@@ -64,6 +64,12 @@ const EstadoBadge = ({ estado }) => {
 
 const Inicio = () => {
     const navigate = useNavigate();
+    const currentUser = JSON.parse(localStorage.getItem('userFoodStocker') || '{}');
+    const userRol = currentUser.rol?.trim() || '';
+    const esAdmin = userRol === 'ADMIN';
+    const esPasanteAgro = userRol === 'Pasante de agroindustria';
+    const esInstructorAgro = userRol === 'Instructor de agroindustria';
+    const puedeVerSolicitudesPendientes = esAdmin || esPasanteAgro || esInstructorAgro;
     const [greeting, setGreeting] = useState({
         text: '',
         SvgLucide: null,
@@ -291,7 +297,7 @@ const Inicio = () => {
             </div>
 
             {/* SECCIÓN PRINCIPAL: Izquierda (Alertas + Resumen) / Derecha (Solicitudes Pendientes - Máx 2) */}
-            <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-6 tw-mb-8">
+            <div className={`tw-grid tw-grid-cols-1 ${puedeVerSolicitudesPendientes ? 'md:tw-grid-cols-2' : ''} tw-gap-6 tw-mb-8`}>
 
                 {/* LADO IZQUIERDO: Alertas de Inventario + Métricas Generales */}
                 <div className="tw-flex tw-flex-col tw-gap-6">
@@ -348,7 +354,8 @@ const Inicio = () => {
                     </div>
                 </div>
 
-                {/* LADO DERECHO: Solicitudes Pendientes (Máx 2 visibles, sin scroll) */}
+                {/* LADO DERECHO: Solicitudes Pendientes (solo ADMIN, Pasante e Instructor de agroindustria) */}
+                {puedeVerSolicitudesPendientes && (
                 <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-border tw-border-slate-200 tw-p-6 tw-flex tw-flex-col tw-justify-between">
                     <div>
                         <div className="tw-flex tw-items-center tw-justify-between tw-mb-4">
@@ -450,45 +457,38 @@ const Inicio = () => {
                         </div>
                     )}
                 </div>
+                )}
             </div>
 
-            {/* Acciones Rápidas */}
-            <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-border tw-border-slate-200 tw-p-6">
-                <h3 className="tw-text-lg tw-font-semibold tw-text-slate-800 tw-mb-4">Acciones Rápidas</h3>
-                <div className="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 md:tw-grid-cols-4 tw-gap-4">
-                    <button
-                        onClick={() => navigate('/Entradas')}
-                        className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-p-4 hover:tw-bg-secundario-200 tw-text-white tw-rounded-xl hover:tw-shadow-lg tw-transition-all hover:-translate-y-1 tw-border-none tw-cursor-pointer"
-                    >
-                        <ArchiveRestore color="#153753" className="tw-text-2xl tw-mb-2" />
-                        <span className="tw-text-sm tw-font-medium tw-text-primario-950">Registrar Entrada</span>
-                    </button>
-
-                    <button
-                        onClick={() => navigate('/solicitudes-pendientes')}
-                        className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-p-4 hover:tw-bg-secundario-200 tw-text-white tw-rounded-xl hover:tw-shadow-lg tw-transition-all hover:-translate-y-1 tw-border-none tw-cursor-pointer"
-                    >
-                        <ClipboardPaste color="#153753" className="tw-text-2xl tw-mb-2" />
-                        <span className="tw-text-sm tw-font-medium tw-text-primario-950">Registrar Salida</span>
-                    </button>
-
-                    <button
-                        onClick={() => navigate('/Insumos')}
-                        className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-p-4 hover:tw-bg-secundario-200 tw-text-white tw-rounded-xl hover:tw-shadow-lg tw-transition-all hover:-translate-y-1 tw-border-none tw-cursor-pointer"
-                    >
-                        <Plus color="#153753" className="tw-text-2xl tw-mb-2" />
-                        <span className="tw-text-sm tw-font-medium tw-text-primario-950">Nuevo Insumo</span>
-                    </button>
-
-                    <button
-                        onClick={() => navigate('/Insumos')}
-                        className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-p-4 hover:tw-bg-secundario-200 tw-text-white tw-rounded-xl hover:tw-shadow-lg tw-transition-all hover:-translate-y-1 tw-border-none tw-cursor-pointer"
-                    >
-                        <Wheat color="#153753" className="tw-text-2xl tw-mb-2" />
-                        <span className="tw-text-sm tw-font-medium tw-text-primario-950">Ver Inventario</span>
-                    </button>
-                </div>
-            </div>
+            {/* Acciones Rápidas — filtradas por rol */}
+            {(() => {
+                const allActions = [
+                    { icon: ArchiveRestore, label: "Registrar Entrada", path: "/Entradas", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+                    { icon: ClipboardPaste, label: "Registrar Salida", path: "/solicitudes-pendientes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+                    { icon: Plus, label: "Nuevo Insumo", path: "/Insumos", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+                    { icon: Wheat, label: "Ver Inventario", path: "/Insumos", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+                    { icon: ClipboardPaste, label: "Nueva Solicitud", path: "/solicitud-nueva", roles: ["Pasante solicitante"] },
+                ];
+                const filteredActions = allActions.filter(a => a.roles.includes(userRol));
+                if (filteredActions.length === 0) return null;
+                return (
+                    <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-border tw-border-slate-200 tw-p-6">
+                        <h3 className="tw-text-lg tw-font-semibold tw-text-slate-800 tw-mb-4">Acciones Rápidas</h3>
+                        <div className={`tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 md:tw-grid-cols-${Math.min(filteredActions.length, 4)} tw-gap-4`}>
+                            {filteredActions.map(({ icon: Icon, label, path }) => (
+                                <button
+                                    key={label}
+                                    onClick={() => navigate(path)}
+                                    className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-p-4 hover:tw-bg-secundario-200 tw-text-white tw-rounded-xl hover:tw-shadow-lg tw-transition-all hover:-translate-y-1 tw-border-none tw-cursor-pointer"
+                                >
+                                    <Icon color="#153753" className="tw-text-2xl tw-mb-2" />
+                                    <span className="tw-text-sm tw-font-medium tw-text-primario-950">{label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* MODAL: VER MÁS SOLICITUDES CON PAGINACIÓN (10 por página) */}
             {modalVerMas && (

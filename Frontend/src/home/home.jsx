@@ -18,13 +18,15 @@ import {
     House,
     ArrowUpRight,
     X,
+    Shield,
+    LogOut,
 } from "lucide-react";
 import ProfileModal from "./ProfileModal.jsx";
 
 const navItems = [
-    { icon: House, label: "Inicio", path: "/Inicio", roles: ["ADMIN", "PDU", "IA"] },
-    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "IA"] },
-    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN"] },
+    { icon: House, label: "Inicio", path: "/Inicio", roles: ["ADMIN", "PDU", "IA", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"] },
+    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "IA", "Pasante de agroindustria", "Instructor de agroindustria"] },
+    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
     { icon: Wheat, label: "Insumos", path: "/Insumos", roles: ["ADMIN"] },
     { icon: UserRound, label: "Responsables", path: "/Responsables", roles: ["ADMIN", "IA"] },
     { icon: Package, label: "Proveedores", path: "/Proveedores", roles: ["ADMIN", "IA"] },
@@ -358,25 +360,58 @@ export default function Dashboard() {
 
                                  {/* Dropdown */}
                                 {openUserMenu && (
-                                    <div className="tw-absolute tw-right-0 tw-mt-2 tw-w-44 tw-bg-white tw-rounded-xl tw-shadow-xl tw-border tw-border-gray-200 tw-z-50 tw-py-1">
-                                        <button
-                                            onClick={() => {
-                                                setOpenUserMenu(false);
-                                                setShowProfileModal(true);
-                                            }}
-                                            className="tw-w-full tw-text-left tw-px-4 tw-py-2.5 tw-text-sm tw-text-gray-700 hover:tw-bg-gray-100 tw-flex tw-items-center tw-gap-2.5 tw-font-medium"
-                                        >
-                                            <UserRound className="tw-w-4 tw-h-4 tw-text-slate-500" />
-                                            Editar Perfil
-                                        </button>
-                                        <div className="tw-border-t tw-border-gray-100 tw-my-1" />
-                                        <button
-                                            onClick={logout}
-                                            className="tw-w-full tw-text-left tw-px-4 tw-py-2.5 tw-text-sm tw-text-red-600 hover:tw-bg-red-50 tw-flex tw-items-center tw-gap-2.5 tw-font-medium"
-                                        >
-                                            <X className="tw-w-4 tw-h-4 tw-text-red-500" />
-                                            Cerrar Sesión
-                                        </button>
+                                    <div className="tw-absolute tw-right-0 tw-mt-3 tw-w-72 tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-border tw-border-gray-100 tw-z-50 tw-overflow-hidden tw-animate-in tw-fade-in tw-slide-in-from-top-2">
+                                        {/* User info header */}
+                                        <div className="tw-px-5 tw-py-4 tw-bg-gradient-to-br tw-from-primario-900 tw-to-slate-800">
+                                            <div className="tw-flex tw-items-center tw-gap-3">
+                                                <div className="tw-w-11 tw-h-11 tw-rounded-full tw-bg-gradient-to-br tw-from-orange-400 tw-to-rose-400 tw-flex tw-items-center tw-justify-center tw-text-white tw-text-lg tw-font-bold tw-shadow-lg tw-ring-2 tw-ring-white/20">
+                                                    {user.nombre?.[0]?.toUpperCase() || 'U'}
+                                                </div>
+                                                <div className="tw-flex-1 tw-min-w-0">
+                                                    <p className="tw-text-white tw-font-semibold tw-text-sm tw-m-0 tw-truncate">
+                                                        {user.nombre || 'Usuario'}
+                                                    </p>
+                                                    <span className="tw-inline-flex tw-items-center tw-gap-1 tw-mt-1 tw-px-2 tw-py-0.5 tw-bg-secundario-400/20 tw-text-secundario-400 tw-text-[11px] tw-font-bold tw-rounded-md">
+                                                        <Shield className="tw-w-3 tw-h-3" />
+                                                        {user.rol || 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="tw-py-2 tw-px-2">
+                                            <button
+                                                onClick={() => {
+                                                    setOpenUserMenu(false);
+                                                    setShowProfileModal(true);
+                                                }}
+                                                className="tw-w-full tw-text-left tw-px-3 tw-py-2.5 tw-text-sm tw-text-gray-700 hover:tw-bg-primario-50 tw-rounded-xl tw-flex tw-items-center tw-gap-3 tw-font-medium tw-transition-all tw-duration-150 tw-group"
+                                            >
+                                                <div className="tw-w-8 tw-h-8 tw-bg-slate-100 tw-rounded-lg tw-flex tw-items-center tw-justify-center group-hover:tw-bg-primario-100 tw-transition-colors">
+                                                    <UserRound className="tw-w-4 tw-h-4 tw-text-slate-500 group-hover:tw-text-primario-700" />
+                                                </div>
+                                                <div>
+                                                    <span className="tw-block tw-text-sm tw-font-medium tw-text-gray-700">Editar Perfil</span>
+                                                    <span className="tw-block tw-text-[11px] tw-text-gray-400">Actualizar datos personales</span>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        <div className="tw-border-t tw-border-gray-100 tw-py-2 tw-px-2">
+                                            <button
+                                                onClick={logout}
+                                                className="tw-w-full tw-text-left tw-px-3 tw-py-2.5 tw-text-sm tw-text-red-600 hover:tw-bg-red-50 tw-rounded-xl tw-flex tw-items-center tw-gap-3 tw-font-medium tw-transition-all tw-duration-150 tw-group"
+                                            >
+                                                <div className="tw-w-8 tw-h-8 tw-bg-red-50 tw-rounded-lg tw-flex tw-items-center tw-justify-center group-hover:tw-bg-red-100 tw-transition-colors">
+                                                    <LogOut className="tw-w-4 tw-h-4 tw-text-red-500" />
+                                                </div>
+                                                <div>
+                                                    <span className="tw-block tw-text-sm tw-font-medium tw-text-red-600">Cerrar Sesión</span>
+                                                    <span className="tw-block tw-text-[11px] tw-text-red-400">Salir de la aplicación</span>
+                                                </div>
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>

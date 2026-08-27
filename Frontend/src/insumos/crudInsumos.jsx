@@ -208,7 +208,7 @@ const CrudInsumos = () => {
                             setInsumoDetalle(row);
                         }}
                     >
-                        {stockTotal}
+                        {totalFisico}
                     </button>
                 );
             },
@@ -508,7 +508,7 @@ const CrudInsumos = () => {
                                 </div>
                                 <button onClick={hideModal} className="tw-text-white/70 hover:tw-text-white"><X className="tw-w-6 tw-h-6" /></button>
                             </div>
-                            <div className="modal-body">
+                            <div className="tw-p-6">
                                 <InsumosForm
                                     hideModal={hideModal}
                                     insumoParaEditar={insumoEditando}

@@ -272,27 +272,23 @@ const CrudResponsables = () => {
                                 setResponsableSeleccionado(null)
                                 setShowModal(true)
                             }}
-                            title="Add New"
-                            className="tw-group tw-cursor-pointer tw-outline-none hover:tw-rotate-90 tw-duration-300 tw-bg-transparent tw-border-none"
-                            data-bs-toggle="modal"
-                            data-bs-target="#responsablesModal"
-                            id="closeModal"
-                            onClick={() => setResponsableSeleccionado(null)}
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                width="50px"
-                                height="50px"
+                                width="20"
+                                height="20"
                                 viewBox="0 0 24 24"
-                                className="tw-stroke-[#eec224] tw-fill-none group-hover:tw-fill-[#fbf5c6] group-active:tw-stroke-zinc-200 group-active:tw-fill-zinc-600 group-active:tw-duration-0 tw-duration-300"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                             >
-                                <path
-                                    d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"
-                                    stroke-width="1.5"
-                                ></path>
-                                <path d="M8 12H16" stroke-width="1.5"></path>
-                                <path d="M12 16V8" stroke-width="1.5"></path>
+                                <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"></path>
+                                <path d="M8 12H16"></path>
+                                <path d="M12 16V8"></path>
                             </svg>
+                            <span>Nuevo Responsable</span>
                         </button>
 
                     </div>

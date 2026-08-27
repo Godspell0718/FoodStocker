@@ -2,10 +2,13 @@ import React, { useState, useEffect, useContext } from 'react';
 import apiAxios from '../api/axiosConfig.js';
 import { AuthContext } from '../context/authContext.jsx';
 import Swal from 'sweetalert2';
-import { User, FileText, Mail, Phone, Lock, Save, X, Eye, EyeOff, Shield } from 'lucide-react';
+import {
+    User, FileText, Mail, Phone, Lock, Save, X,
+    Eye, EyeOff, Shield, CircleUser, AtSign, BadgeCheck
+} from 'lucide-react';
 
-const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all";
-const labelClass = "tw-block tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wide tw-mb-1.5";
+const inputClass = "tw-w-full tw-pl-11 tw-pr-4 tw-py-3 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50/80 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all tw-placeholder-gray-400";
+const labelClass = "tw-block tw-text-[11px] tw-font-bold tw-text-gray-400 tw-uppercase tw-tracking-wider tw-mb-2";
 
 export default function ProfileModal({ isOpen, onClose }) {
     const { user, login } = useContext(AuthContext);
@@ -83,135 +86,180 @@ export default function ProfileModal({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
+    // Generate initials from name
+    const initials = nombre
+        ? nombre.split(' ').slice(0, 2).map(n => n[0]?.toUpperCase()).join('')
+        : 'U';
+
     return (
-        <div className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm">
-            <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-md tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
-                
-                {/* Header */}
-                <div className="tw-bg-primario-900 tw-px-6 tw-py-4">
-                    <div className="tw-flex tw-justify-between tw-items-center">
-                        <div className="tw-flex tw-items-center tw-gap-3">
-                            <div className="tw-w-8 tw-h-8 tw-bg-white/20 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
-                                <User className="tw-w-5 tw-h-5 tw-text-secundario-400" />
-                            </div>
-                            <h5 className="tw-text-white tw-font-semibold tw-text-lg tw-m-0">
-                                Editar Mi Perfil
-                            </h5>
+        <div
+            className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
+            onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+            <div className="tw-bg-gray-50 tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-2xl tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
+
+                {/* Close button */}
+                <button
+                    type="button"
+                    className="tw-absolute tw-z-10 tw-top-4 tw-right-4 tw-w-8 tw-h-8 tw-rounded-full tw-bg-white/10 hover:tw-bg-white/20 tw-text-white tw-flex tw-items-center tw-justify-center tw-transition-colors"
+                    onClick={onClose}
+                >
+                    <X className="tw-w-4 tw-h-4" />
+                </button>
+
+                {/* ============ PROFILE HEADER CARD ============ */}
+                <div className="tw-relative tw-bg-gradient-to-r tw-from-primario-900 tw-via-slate-800 tw-to-primario-900 tw-px-8 tw-py-7">
+                    <div className="tw-flex tw-items-center tw-gap-5">
+                        {/* Avatar */}
+                        <div className="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-gradient-to-br tw-from-indigo-500 tw-to-blue-600 tw-flex tw-items-center tw-justify-center tw-text-white tw-text-2xl tw-font-bold tw-shadow-xl tw-ring-3 tw-ring-white/10">
+                            {initials}
                         </div>
-                        <button
-                            type="button"
-                            className="tw-text-white/70 hover:tw-text-white tw-transition-colors"
-                            onClick={onClose}
-                        >
-                            <X className="tw-w-6 tw-h-6" />
-                        </button>
+                        <div className="tw-flex-1">
+                            <h2 className="tw-text-xl tw-font-bold tw-text-white tw-m-0 tw-mb-1">
+                                {nombre || 'Usuario'}
+                            </h2>
+                            <p className="tw-text-slate-300 tw-text-sm tw-m-0 tw-mb-2">
+                                {user?.rol || 'N/A'}
+                            </p>
+                            <span className="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1 tw-bg-emerald-500/15 tw-text-emerald-400 tw-text-xs tw-font-bold tw-rounded-full tw-border tw-border-emerald-500/20">
+                                <span className="tw-w-1.5 tw-h-1.5 tw-bg-emerald-400 tw-rounded-full"></span>
+                                Cuenta Activa
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Form Body */}
-                <form onSubmit={handleSave} className="tw-p-6 tw-space-y-4">
-                    
-                    {/* Indicador de Rol (No editable por el admin para su propio usuario) */}
-                    <div className="tw-bg-slate-100 tw-p-3 tw-rounded-xl tw-flex tw-items-center tw-gap-2">
-                        <Shield className="tw-w-4 tw-h-4 tw-text-slate-600" />
-                        <span className="tw-text-xs tw-font-semibold tw-text-slate-600">
-                            Rol actual: <span className="tw-text-primario-900 tw-font-bold">{user?.rol || 'N/A'}</span>
-                        </span>
-                        <span className="tw-text-[10px] tw-text-slate-400 tw-ml-auto">(No modificable)</span>
-                    </div>
+                {/* ============ FORM BODY ============ */}
+                <form onSubmit={handleSave} className="tw-p-6">
+                    <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-5">
 
-                    <div>
-                        <label className={labelClass}>
-                            <User className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
-                            Nombre completo
-                        </label>
-                        <input
-                            type="text"
-                            className={inputClass}
-                            value={nombre}
-                            onChange={(e) => setNombre(e.target.value)}
-                            required
-                        />
-                    </div>
+                        {/* ---- LEFT: Información Personal ---- */}
+                        <div className="tw-bg-white tw-rounded-2xl tw-p-5 tw-shadow-sm tw-border tw-border-gray-100">
+                            <div className="tw-flex tw-items-center tw-gap-2 tw-mb-5">
+                                <div className="tw-w-7 tw-h-7 tw-bg-indigo-100 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
+                                    <CircleUser className="tw-w-4 tw-h-4 tw-text-indigo-600" />
+                                </div>
+                                <h3 className="tw-text-sm tw-font-bold tw-text-gray-800 tw-m-0">Información Personal</h3>
+                            </div>
 
-                    <div className="tw-grid tw-grid-cols-2 tw-gap-3">
-                        <div>
-                            <label className={labelClass}>
-                                <FileText className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
-                                Documento
-                            </label>
-                            <input
-                                type="text"
-                                className={inputClass}
-                                value={documento}
-                                onChange={(e) => setDocumento(e.target.value)}
-                                required
-                            />
+                            {/* Nombre */}
+                            <div className="tw-mb-4">
+                                <label className={labelClass}>Nombres</label>
+                                <div className="tw-relative">
+                                    <User className="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                                    <input
+                                        type="text"
+                                        className={inputClass}
+                                        value={nombre}
+                                        onChange={(e) => setNombre(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Documento */}
+                            <div className="tw-mb-4">
+                                <label className={labelClass}>Num. Documento</label>
+                                <div className="tw-relative">
+                                    <FileText className="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                                    <input
+                                        type="text"
+                                        className={inputClass}
+                                        value={documento}
+                                        onChange={(e) => setDocumento(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Rol (read-only) */}
+                            <div>
+                                <label className={labelClass}>Rol</label>
+                                <div className="tw-relative">
+                                    <Shield className="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                                    <div className="tw-w-full tw-pl-11 tw-pr-4 tw-py-3 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-100 tw-text-sm tw-text-gray-500 tw-cursor-not-allowed tw-flex tw-items-center tw-justify-between">
+                                        <span>{user?.rol || 'N/A'}</span>
+                                        <span className="tw-text-[10px] tw-text-gray-400 tw-bg-gray-200 tw-px-2 tw-py-0.5 tw-rounded-md tw-font-medium">No editable</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div>
-                            <label className={labelClass}>
-                                <Phone className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
-                                Teléfono
-                            </label>
-                            <input
-                                type="tel"
-                                className={inputClass}
-                                value={telefono}
-                                onChange={(e) => setTelefono(e.target.value)}
-                            />
+                        {/* ---- RIGHT: Información de Contacto ---- */}
+                        <div className="tw-bg-white tw-rounded-2xl tw-p-5 tw-shadow-sm tw-border tw-border-gray-100 tw-flex tw-flex-col">
+                            <div className="tw-flex tw-items-center tw-gap-2 tw-mb-5">
+                                <div className="tw-w-7 tw-h-7 tw-bg-blue-100 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
+                                    <AtSign className="tw-w-4 tw-h-4 tw-text-blue-600" />
+                                </div>
+                                <h3 className="tw-text-sm tw-font-bold tw-text-gray-800 tw-m-0">Información de Contacto</h3>
+                            </div>
+
+                            {/* Correo */}
+                            <div className="tw-mb-4">
+                                <label className={labelClass}>Correo Electrónico</label>
+                                <div className="tw-relative">
+                                    <Mail className="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                                    <input
+                                        type="email"
+                                        className={inputClass}
+                                        value={correo}
+                                        onChange={(e) => setCorreo(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Teléfono */}
+                            <div className="tw-mb-4">
+                                <label className={labelClass}>Teléfono</label>
+                                <div className="tw-relative">
+                                    <Phone className="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                                    <input
+                                        type="tel"
+                                        className={inputClass}
+                                        value={telefono}
+                                        onChange={(e) => setTelefono(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Contraseña */}
+                            <div>
+                                <label className={labelClass}>Nueva Contraseña</label>
+                                <div className="tw-relative">
+                                    <Lock className="tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        className={`${inputClass} tw-pr-10`}
+                                        placeholder="Dejar en blanco para mantener"
+                                        value={contrasena}
+                                        onChange={(e) => setContrasena(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="tw-absolute tw-right-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-gray-400 hover:tw-text-gray-600 tw-transition-colors"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff className="tw-w-4 tw-h-4" /> : <Eye className="tw-w-4 tw-h-4" />}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <label className={labelClass}>
-                            <Mail className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
-                            Correo electrónico
-                        </label>
-                        <input
-                            type="email"
-                            className={inputClass}
-                            value={correo}
-                            onChange={(e) => setCorreo(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className={labelClass}>
-                            <Lock className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
-                            Nueva Contraseña
-                        </label>
-                        <div className="tw-relative">
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                className={`${inputClass} tw-pr-10`}
-                                placeholder="Dejar en blanco para mantener"
-                                value={contrasena}
-                                onChange={(e) => setContrasena(e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                className="tw-absolute tw-right-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-gray-400 hover:tw-text-gray-600"
-                                onClick={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? <EyeOff className="tw-w-4 tw-h-4" /> : <Eye className="tw-w-4 tw-h-4" />}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="tw-flex tw-gap-3 tw-pt-3">
+                    {/* ============ SAVE BUTTON ============ */}
+                    <div className="tw-mt-5 tw-flex tw-gap-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-text-gray-600 tw-font-semibold hover:tw-bg-gray-50"
+                            className="tw-px-6 tw-py-3 tw-rounded-xl tw-border tw-border-gray-200 tw-text-gray-600 tw-font-semibold tw-text-sm hover:tw-bg-gray-100 tw-transition-all tw-duration-150"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="tw-flex-[2] tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-white tw-font-semibold hover:tw-bg-primario-700 disabled:tw-opacity-50"
+                            className="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-6 tw-py-3 tw-rounded-xl tw-bg-gradient-to-r tw-from-blue-600 tw-to-indigo-600 tw-text-white tw-font-semibold tw-text-sm hover:tw-from-blue-700 hover:tw-to-indigo-700 tw-shadow-lg tw-shadow-blue-500/25 hover:tw-shadow-blue-500/40 disabled:tw-opacity-50 tw-transition-all tw-duration-200"
                         >
                             {loading ? (
                                 <div className="tw-w-4 tw-h-4 tw-border-2 tw-border-white/30 tw-border-t-white tw-rounded-full tw-animate-spin" />
