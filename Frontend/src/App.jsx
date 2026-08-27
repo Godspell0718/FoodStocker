@@ -13,20 +13,29 @@ import EstadoCrud from './Estados/EstadosCrud.jsx';
 import Estados_solicitudCrud from './Estados_solicitud/Estado_solicitudCrud.jsx';
 import Login from './home/Login';
 import Home from './home/home.jsx';
+import Inicio from './home/inicio.jsx';
 import SolicitudConLotes from "./Solicitudes/SolicitudConLotes.jsx";
 import SolicitudPendientes from "./Solicitudes/Solicitudpendientes.jsx";
 import DashboardReportes from './Reportes/DashboardReportes.jsx';
+
+// --- VISTAS PÚBLICAS (SEPARADAS) ---
+import InicioPublico from './home/beforeLogin/inicioPublico.jsx';
+import QuienesSomos from './home/beforeLogin/quienesSomos.jsx';
+import ContactoPublico from './home/beforeLogin/contactoPublico.jsx';
+import DocumentosPublicos from './home/beforeLogin/documentosPublicos.jsx';
+
+// Lógica de protección: si se cierra sesión, reenvía a /login
 import PerdidasCrud from './Reportes/PerdidasCrud.jsx';
 import PerdidasForm from './Reportes/PerdidasForm.jsx';
 const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
   const { user } = useContext(AuthContext);
 
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" replace />;
 
   const rol = user.rol?.trim();
 
   if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(rol)) {
-    return <Navigate to="/" />;
+    return <Navigate to="/Inicio" replace />;
   }
 
   return children;
@@ -34,17 +43,13 @@ const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
 
 function App() {
   const { user } = useContext(AuthContext);
-
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem('tokenFoodStocker');
-
-    // simulación de validación
     if (stored) {
       console.log("Token encontrado");
     }
-
     setIsLoading(false);
   }, []);
 
@@ -52,7 +57,6 @@ function App() {
     return (
       <div className="tw-min-h-screen tw-flex tw-flex-col tw-items-center tw-justify-center tw-bg-slate-950 tw-gap-4">
         <div className="tw-w-10 tw-h-10 tw-border-4 tw-border-slate-700 tw-border-t-white tw-rounded-full tw-animate-spin"></div>
-
         <p className="tw-text-slate-400 tw-text-sm tw-font-medium">
           Cargando FoodStocker...
         </p>
@@ -62,55 +66,83 @@ function App() {
 
   return (
     <Routes>
+      
+      {/* ================================================= */}
+      {/* RUTAS PÚBLICAS (Antes del Login)                  */}
+      {/* Si hay sesión activa, redirigen automáticamente   */}
+      {/* ================================================= */}
+      <Route 
+        path="/" 
+        element={user ? <Navigate to="/Inicio" replace /> : <InicioPublico />} 
+      />
+      <Route 
+        path="/quienes-somos" 
+        element={user ? <Navigate to="/Inicio" replace /> : <QuienesSomos />} 
+      />
+      <Route 
+        path="/contacto" 
+        element={user ? <Navigate to="/Inicio" replace /> : <ContactoPublico />} 
+      />
+      <Route 
+        path="/documentos" 
+        element={user ? <Navigate to="/Inicio" replace /> : <DocumentosPublicos />} 
+      />
 
-      {/* LOGIN */}
-      <Route path="/login" element={<Login />} />
+      {/* LOGIN: Si hay sesión activa, bloquea el acceso y lo manda al Inicio */}
+      <Route 
+        path="/login" 
+        element={user ? <Navigate to="/Inicio" replace /> : <Login />} 
+      />
 
-      {/* LAYOUT */}
-      <Route
-        path="/"
-        element={user ? <Home /> : <Navigate to="/login" />}
-      >
+      {/* ================================================= */}
+      {/* LAYOUT Y RUTAS PROTEGIDAS                         */}
+      {/* ================================================= */}
+      <Route element={<RutaProtegida><Home /></RutaProtegida>}>
+        
+        {/* TODOS LOS ROLES PERMITIDOS */}
+        <Route path="/Inicio" element={<Inicio />} />
+        <Route path="/Insumos" element={<CrudInsumos />} />
+        <Route path="/Entradas" element={<CrudEntradas />} />
+        <Route path="/Solicitudes" element={<SolicitudCrud />} />
+        <Route path="/Reportes" element={<DashboardReportes />} />
+        <Route path="/solicitudes-pendientes" element={<SolicitudPendientes />} />
+        <Route path="/solicitud-nueva" element={<SolicitudConLotes />} />
 
         {/* ACCESOS CONFIGURADOS SEGÚN EL ENTORNO DE ROLES NUEVOS */}
         <Route
-          path="Proveedores"
+          path="/Proveedores"
           element={
             <RutaProtegida rolesPermitidos={["ADMIN"]}>
               <CrudProveedores />
             </RutaProtegida>
           }
         />
-
         <Route
-          path="Responsables"
+          path="/Responsables"
           element={
             <RutaProtegida rolesPermitidos={["ADMIN"]}>
               <CrudResponsables />
             </RutaProtegida>
           }
         />
-
         <Route
-          path="Destino"
+          path="/Destino"
           element={
             <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <CrudDestino />
             </RutaProtegida>
           }
         />
-
         <Route
-          path="Estados"
+          path="/Estados"
           element={
             <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <EstadoCrud />
             </RutaProtegida>
           }
         />
-
         <Route
-          path="Estado_solicitud"
+          path="/Estado_solicitud"
           element={
             <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
               <Estados_solicitudCrud />
@@ -201,10 +233,10 @@ function App() {
 
       </Route>
 
-      {/* FALLBACK */}
+      {/* FALLBACK: Si escribe una URL que no existe, evalúa si está logueado o no */}
       <Route
         path="*"
-        element={<Navigate to={user ? "/" : "/login"} />}
+        element={<Navigate to={user ? "/Inicio" : "/login"} replace />}
       />
 
     </Routes>

@@ -15,18 +15,20 @@ import {
     TrendingUp,
     Warehouse,
     Waypoints,
+    House,
     ArrowUpRight,
     X,
 } from "lucide-react";
 import ProfileModal from "./ProfileModal.jsx";
 
 const navItems = [
-    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: Wheat, label: "Insumos", path: "/Insumos", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: UserRound, label: "Responsables", path: "/Responsables", roles: ["ADMIN"] },
-    { icon: Package, label: "Proveedores", path: "/Proveedores", roles: ["ADMIN"] },
-    { icon: ClockArrowUp, label: "Historico de Solicitudes", path: "/Solicitudes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+    { icon: House, label: "Inicio", path: "/Inicio", roles: ["ADMIN", "PDU", "IA"] },
+    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "IA"] },
+    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN"] },
+    { icon: Wheat, label: "Insumos", path: "/Insumos", roles: ["ADMIN"] },
+    { icon: UserRound, label: "Responsables", path: "/Responsables", roles: ["ADMIN", "IA"] },
+    { icon: Package, label: "Proveedores", path: "/Proveedores", roles: ["ADMIN", "IA"] },
+    { icon: ClockArrowUp, label: "Historico de Solicitudes", path: "/Solicitudes", roles: ["ADMIN", "PDU", "IA"] },
 ];
 
 const Temporal = [
@@ -225,10 +227,10 @@ export default function Dashboard() {
                                     <button
                                         key={path}
                                         onClick={() => navigate(path)}
-                                        className={`tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150
+                                        className={`tw-border-none tw-mb-1.5 tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-duration-150
                                         ${isActive
-                                                ? "tw-bg-gray-800 tw-text-white"
-                                                : "tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white"
+                                                ? "tw-bg-secundario-400 tw-text-primario-950"
+                                                : "tw-text-primario-900 hover:tw-bg-secundario-200 hover:tw-text-primario-950"
                                             }`}
                                     >
                                         <Icon className="tw-w-5 tw-h-5" />
@@ -242,7 +244,7 @@ export default function Dashboard() {
 
                 {/* SETTINGS */}
                 <div className="tw-px-3 tw-pb-4 tw-border-t tw-border-gray-800 tw-pt-4 tw-bg-primario-900">
-                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-gray-400 hover:tw-bg-gray-800 hover:tw-text-white">
+                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-primario-900 hover:tw-bg-secundario-200 hover:tw-text-primario-950">
                         <Settings className="tw-w-5 tw-h-5" />
                         Configuración
                     </button>
@@ -383,7 +385,7 @@ export default function Dashboard() {
                 </header >
 
                 {/* Área de contenido */}
-                < main className="tw-flex-1 tw-p-6 tw-overflow-auto tw-bg-gray-50" >
+                < main className="tw-flex-1 tw-p-6 tw-overflow-auto tw-bg-gray-50" > {/* Aqui el tw-p-6 eventualmente hay que ponerlo en 0, ya que la foto de fondo en el inicio queda de la verga con esa margen */}
 
                     <Outlet />
 

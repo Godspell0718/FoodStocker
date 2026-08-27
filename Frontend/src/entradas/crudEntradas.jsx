@@ -38,38 +38,55 @@ export const CrudEntradas = () => {
             )
         },
         {
+
             name: "Fecha Venc.",
             selector: row =>
                 row.Fec_Ven_Entrada
-                    ? new Date(row.Fec_Ven_Entrada).toLocaleDateString("es-CO")
+                    ? (() => {
+                        const [year, month, day] = row.Fec_Ven_Entrada.split('-');
+                        return `${day}/${month}/${year}`;
+                    })()
                     : "—",
             sortable: true,
             width: "140px",
             cell: row => {
-                const fechaVenc = row.Fec_Ven_Entrada ? new Date(row.Fec_Ven_Entrada) : null
-                const hoy = new Date()
-                const diasRestantes = fechaVenc ? Math.ceil((fechaVenc - hoy) / (1000 * 60 * 60 * 24)) : null
+                const fechaVenc = row.Fec_Ven_Entrada
+                    ? (() => {
+                        const [year, month, day] = row.Fec_Ven_Entrada.split('-');
+                        return new Date(Date.UTC(year, month - 1, day));
+                    })()
+                    : null;
 
-                let colorClase = "tw-text-slate-600"
+                const hoy = new Date();
+                const hoyUTC = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()));
+
+                const diasRestantes = fechaVenc ? Math.ceil((fechaVenc - hoyUTC) / (1000 * 60 * 60 * 24)) : null;
+
+                let colorClase = "tw-text-slate-600";
                 if (diasRestantes !== null) {
-                    if (diasRestantes < 0) colorClase = "tw-text-red-600 tw-font-medium"
-                    else if (diasRestantes <= 30) colorClase = "tw-text-amber-600 tw-font-medium"
-                    else colorClase = "tw-text-green-600"
+                    if (diasRestantes <= 0) colorClase = "tw-text-red-600 tw-font-medium";
+                    else if (diasRestantes <= 30) colorClase = "tw-text-amber-600 tw-font-medium";
+                    else colorClase = "tw-text-green-600";
                 }
+
+                const fechaMostrada = row.Fec_Ven_Entrada
+                    ? (() => {
+                        const [year, month, day] = row.Fec_Ven_Entrada.split('-');
+                        return `${day}/${month}/${year}`;
+                    })()
+                    : "—";
 
                 return (
                     <div className="tw-flex tw-items-center tw-gap-2">
-                        <Calendar className={`tw-w-3.5 tw-h-3.5 ${diasRestantes !== null && diasRestantes < 0 ? 'tw-text-red-500' :
+                        <i className={`fa-regular fa-calendar tw-text-xs ${diasRestantes !== null && diasRestantes <= 0 ? 'tw-text-red-500' :
                             diasRestantes !== null && diasRestantes <= 30 ? 'tw-text-amber-500' :
                                 'tw-text-slate-400'
-                            }`} />
+                            }`}></i>
                         <span className={colorClase}>
-                            {row.Fec_Ven_Entrada
-                                ? new Date(row.Fec_Ven_Entrada).toLocaleDateString("es-CO")
-                                : "—"}
+                            {fechaMostrada}
                         </span>
                     </div>
-                )
+                );
             }
         },
         {
@@ -332,7 +349,6 @@ export const CrudEntradas = () => {
         getAllEntradas()
     }
 
-    // Estilos personalizados para DataTable
     const customStyles = {
         headRow: {
             style: {
@@ -373,7 +389,6 @@ export const CrudEntradas = () => {
     return (
         <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
             <div className="tw-max-w-7xl tw-mx-auto">
-                {/* Header */}
                 <div className="tw-mb-8">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
                         <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
@@ -391,7 +406,6 @@ export const CrudEntradas = () => {
                     </div>
                 )}
 
-                {/* Barra de herramientas */}
                 <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
                     <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
                         <div className="tw-relative tw-w-full md:tw-w-96">
@@ -418,7 +432,6 @@ export const CrudEntradas = () => {
                     </div>
                 </div>
 
-                {/* Tabla de datos */}
                 <div className="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-overflow-hidden">
                     <DataTable
                         columns={columnsTable}
@@ -447,21 +460,18 @@ export const CrudEntradas = () => {
                     />
                 </div>
 
-                {/* Información de registros */}
                 <div className="tw-mt-4 tw-text-right">
                     <p className="tw-text-sm tw-text-slate-400">
                         Mostrando {filtered.length} de {entradas.length} entradas
                     </p>
                 </div>
 
-                {/* Modal Custom Tailwind */}
                 {showModal && (
-                    <div 
+                    <div
                         className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
                         onClick={(e) => e.target === e.currentTarget && hideModal()}
                     >
                         <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-2xl tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
-                            {/* Modal Header */}
                             <div className="tw-bg-primario-900 tw-px-6 tw-py-4">
                                 <div className="tw-flex tw-justify-between tw-items-center">
                                     <div className="tw-flex tw-items-center tw-gap-3">
@@ -482,7 +492,6 @@ export const CrudEntradas = () => {
                                 </div>
                             </div>
 
-                            {/* Modal Body */}
                             <div className="tw-p-6">
                                 <EntradasForm
                                     hideModal={hideModal}
@@ -499,4 +508,3 @@ export const CrudEntradas = () => {
 }
 
 export default CrudEntradas
-

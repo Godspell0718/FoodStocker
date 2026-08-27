@@ -26,11 +26,12 @@ const CrudInsumos = () => {
 
     const [solicitudes, setSolicitudes] = useState([]);
     const [insumoSolicitudDetalle, setInsumoSolicitudDetalle] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0); // Para forzar refrescos
 
     useEffect(() => {
         getAllInsumos();
-        cargarSolicitudesInsumos(); // Nueva carga independiente
-    }, []);
+        cargarSolicitudesInsumos();
+    }, [refreshKey]); // Se refresca cuando cambia refreshKey
 
     const getAllInsumos = async () => {
         setLoading(true);
@@ -58,6 +59,31 @@ const CrudInsumos = () => {
         }
     };
 
+    // Función para calcular stock disponible correctamente
+    const calcularStockDisponible = (insumo) => {
+        if (!insumo.entradas || !Array.isArray(insumo.entradas)) return 0;
+
+        // Calcula el stock sumando todas las entradas ACTIVAS (no vencidas ni agotadas)
+        const stockTotal = insumo.entradas
+            .filter(entrada => {
+                // Solo contar entradas en estado STOCK
+                if (entrada.Estado !== 'STOCK') return false;
+
+                // Opcional: Verificar que no esté vencida
+                const fechaVenc = entrada.Fec_Ven_Entrada ? new Date(entrada.Fec_Ven_Entrada) : null;
+                const hoy = new Date();
+                if (fechaVenc && fechaVenc < hoy) return false;
+
+                return true;
+            })
+            .reduce((acc, entrada) => {
+                const disponible = (entrada.Can_Inicial || 0) - (entrada.Can_Salida || 0);
+                return acc + Math.max(0, disponible);
+            }, 0);
+
+        return stockTotal;
+    };
+
     const obtenerConteoYLista = (idInsumo) => {
         const listaParaModal = [];
         let acumuladoSolicitado = 0;
@@ -65,7 +91,6 @@ const CrudInsumos = () => {
         solicitudes.forEach(sol => {
             if (sol.insumos && Array.isArray(sol.insumos)) {
                 sol.insumos.forEach(item => {
-                    // Verificación por ambos posibles nombres de ID en el objeto
                     if (item.Id_insumos === idInsumo || item.id_insumo === idInsumo) {
                         acumuladoSolicitado += item.cantidad_solicitada;
                         listaParaModal.push({
@@ -107,7 +132,7 @@ const CrudInsumos = () => {
                     timer: 1500,
                     showConfirmButton: false
                 });
-                getAllInsumos();
+                setRefreshKey(prev => prev + 1); // Refrescar después de eliminar
             } catch (error) {
                 Swal.fire("Error", error.response?.data?.error || "No se pudo cambiar el estado del insumo", "error");
             }
@@ -174,12 +199,24 @@ const CrudInsumos = () => {
 
                 return (
                     <button
-                        className="tw-px-3 tw-py-1 tw-bg-primario-900 tw-text-white tw-text-sm tw-font-bold tw-rounded-lg hover:tw-bg-primario-700 tw-transition-colors tw-shadow-sm"
-                        onClick={() => { setTipoDetalle('disponible'); setInsumoDetalle(row); setShowModalLotes(true); }}
+                        className="btn btn-sm"
+                        style={{ backgroundColor: '#1d334a', color: 'white', border: 'none', minWidth: '40px', borderRadius: '4px', padding: '4px 8px', fontWeight: 'bold' }}
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalDetalleLotes"
+                        onClick={() => {
+                            setTipoDetalle('disponible');
+                            setInsumoDetalle(row);
+                        }}
                     >
-                        {totalFisico}
+                        {stockTotal}
                     </button>
                 );
+            },
+            sortable: true,
+            sortFunction: (a, b) => {
+                const stockA = calcularStockDisponible(a);
+                const stockB = calcularStockDisponible(b);
+                return stockA - stockB;
             }
         },
         {
@@ -189,7 +226,8 @@ const CrudInsumos = () => {
                 const { acumuladoSolicitado, listaParaModal } = obtenerConteoYLista(row.Id_Insumos);
                 return (
                     <button
-                        className="tw-px-3 tw-py-1 tw-bg-amber-100 tw-text-amber-700 tw-text-sm tw-font-bold tw-rounded-lg hover:tw-bg-amber-200 tw-transition-colors"
+                        className="btn btn-sm text-white fw-bold"
+                        style={{ backgroundColor: '#D1C661', minWidth: '40px', borderRadius: '4px', border: 'none' }}
                         onClick={() => {
                             setInsumoSolicitudDetalle({ nombre: row.Nom_Insumo, datos: listaParaModal });
                             setShowModalSolicitudes(true);
@@ -201,18 +239,25 @@ const CrudInsumos = () => {
             }
         },
         {
-            name: "Historial",
-            width: "80px",
-            center: true,
-            cell: row => (
-                <button
-                    title="Ver lotes consumidos"
-                    className="tw-p-2 tw-rounded-lg tw-text-slate-400 hover:tw-bg-slate-100 hover:tw-text-slate-600 tw-transition-all"
-                    onClick={() => setVistaDetalle(row)}
-                >
-                    <History className="tw-w-4 tw-h-4" />
-                </button>
-            )
+            name: "Stock Consumido",
+            cell: row => {
+                const consumido = row.entradas?.reduce((acc, e) => {
+                    if (e.Estado === 'AGOTADO' || e.Estado === 'VENCIDO') {
+                        return acc + (e.Can_Inicial - e.Can_Salida);
+                    }
+                    return acc;
+                }, 0) || 0;
+
+                return (
+                    <button
+                        className="btn btn-sm"
+                        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', minWidth: '40px', borderRadius: '4px' }}
+                        onClick={() => setVistaDetalle(row)}
+                    >
+                        {consumido}
+                    </button>
+                );
+            }
         },
         {
             name: "Estado",
@@ -266,7 +311,8 @@ const CrudInsumos = () => {
 
     const filteredInsumos = insumos.filter(insumo => {
         const textToSearch = filterText.toLowerCase();
-        return insumo.Nom_Insumo?.toLowerCase().includes(textToSearch) || insumo.Tip_Insumo?.toLowerCase().includes(textToSearch);
+        return insumo.Nom_Insumo?.toLowerCase().includes(textToSearch) ||
+            insumo.Tip_Insumo?.toLowerCase().includes(textToSearch);
     });
 
     const hideModal = () => {
@@ -462,8 +508,12 @@ const CrudInsumos = () => {
                                 </div>
                                 <button onClick={hideModal} className="tw-text-white/70 hover:tw-text-white"><X className="tw-w-6 tw-h-6" /></button>
                             </div>
-                            <div className="tw-p-6">
-                                <InsumosForm hideModal={hideModal} insumoParaEditar={insumoEditando} />
+                            <div className="modal-body">
+                                <InsumosForm
+                                    hideModal={hideModal}
+                                    insumoParaEditar={insumoEditando}
+                                    onSuccess={() => setRefreshKey(prev => prev + 1)}
+                                />
                             </div>
                         </div>
                     </div>
