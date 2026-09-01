@@ -19,6 +19,13 @@ class ServInsumos {
     }
 
     async update(id, data) {
+        // 🚫 No permitir edición de insumos inactivos
+        const insumo = await Insumo.findByPk(id);
+        if (!insumo) throw new Error("Insumo no encontrado");
+        if (insumo.Estado === 'INACTIVO') {
+            throw new Error("No se puede editar un insumo INACTIVO. Actívelo primero.");
+        }
+
         const result = await Insumo.update(data, { 
             where: { Id_Insumos: id } 
         });

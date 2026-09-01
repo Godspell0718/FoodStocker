@@ -283,9 +283,17 @@ const CrudInsumos = () => {
                 return (
                     <div className="tw-flex tw-gap-2">
                         <button
-                            title="Editar"
-                            className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
+                            title={isActivo ? "Editar" : "No se puede editar un registro inactivo"}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
+                                isActivo
+                                    ? "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
+                                    : "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed"
+                            }`}
                             onClick={() => {
+                                if (!isActivo) {
+                                    Swal.fire("Edición Bloqueada", "No se puede editar un insumo que se encuentra INACTIVO. Actívelo primero para poder editarlo.", "info");
+                                    return;
+                                }
                                 setInsumoEditando(row)
                                 setShowModalForm(true)
                             }}

@@ -14,8 +14,8 @@ router.get('/disponibles', async (req, res) => {
     const { filtro } = req.query;
     
     const whereCondition = filtro 
-      ? { Nom_Insumo: { [Op.like]: `%${filtro}%` } }
-      : {};
+      ? { Nom_Insumo: { [Op.like]: `%${filtro}%` }, Estado: 'ACTIVO' }
+      : { Estado: 'ACTIVO' };
 
     const insumos = await insumoModel.findAll({
       where: whereCondition,

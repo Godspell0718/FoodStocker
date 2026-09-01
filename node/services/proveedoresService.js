@@ -21,6 +21,13 @@ class ProveedorService {
 
   async update(id, data) {
     const numId = Number(id);
+    // 🚫 No permitir edición de proveedores inactivos
+    const proveedor = await ProveedorModel.findByPk(numId);
+    if (!proveedor) throw new Error("Proveedor no encontrado");
+    if (proveedor.Estado === 'INACTIVO') {
+      throw new Error("No se puede editar un proveedor INACTIVO. Actívelo primero.");
+    }
+
     const [updated] = await ProveedorModel.update(data, { where: { Id_Proveedor: numId } });
     if (updated === 0) throw new Error("Proveedor no encontrado o sin cambios");
     return true;
@@ -31,17 +38,10 @@ class ProveedorService {
     const proveedor = await ProveedorModel.findByPk(numId);
     if (!proveedor) throw new Error("Proveedor no encontrado");
 
-    // Verificar si tiene entradas asociadas
-    const entriesCount = await entradasModel.count({ where: { Id_Proveedor: numId } });
-
-    if (entriesCount > 0 || proveedor.Estado === 'ACTIVO') {
-      const nuevoEstado = proveedor.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
-      await proveedor.update({ Estado: nuevoEstado });
-      return { inactived: true, nuevoEstado };
-    } else {
-      await proveedor.destroy();
-      return { deleted: true };
-    }
+    // Siempre hacer toggle de estado (ACTIVO ↔ INACTIVO)
+    const nuevoEstado = proveedor.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+    await proveedor.update({ Estado: nuevoEstado });
+    return { inactived: nuevoEstado === 'INACTIVO', nuevoEstado };
   }
 }
 

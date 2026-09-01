@@ -55,7 +55,8 @@ const SolicitudConLotes = () => {
     const cargarDestinos = async () => {
         try {
             const res = await apiAxios.get("/api/destino");
-            setDestinos(res.data);
+            const activos = (Array.isArray(res.data) ? res.data : []).filter(d => (d.Estado || 'ACTIVO') === 'ACTIVO');
+            setDestinos(activos);
         } catch (error) {
             console.error("Error cargando destinos:", error);
         }
@@ -126,6 +127,7 @@ const SolicitudConLotes = () => {
     };
 
     const insumosFiltrados = insumos.filter(ins =>
+        (ins.Estado || 'ACTIVO') === 'ACTIVO' &&
         ins.Nom_Insumo.toLowerCase().includes(filtro.toLowerCase())
     );
 

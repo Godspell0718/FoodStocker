@@ -133,6 +133,13 @@ class ResponsableService {
   // ========================
   async update(id, data) {
 
+    // 🚫 No permitir edición de responsables inactivos
+    const responsable = await responsableModel.findByPk(id);
+    if (!responsable) throw new Error("Responsable no encontrado");
+    if (responsable.Estado === 'INACTIVO') {
+      throw new Error("No se puede editar un responsable INACTIVO. Actívelo primero.");
+    }
+
     // 🔐 Si viene contraseña → encriptar
     if (data.Contraseña) {
       data.Contraseña = await bcrypt.hash(data.Contraseña, 10);

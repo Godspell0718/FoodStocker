@@ -20,6 +20,13 @@ class DestinoService {
     }
 
     async update(id, data) {
+        // 🚫 No permitir edición de destinos inactivos
+        const destino = await DestinoModel.findByPk(id);
+        if (!destino) throw new Error("Destino no encontrado");
+        if (destino.Estado === 'INACTIVO') {
+            throw new Error("No se puede editar un destino INACTIVO. Actívelo primero.");
+        }
+
         const result = await DestinoModel.update(data, { where: { Id_Destino: id } })
         const updated = result[0]
 
@@ -33,17 +40,10 @@ class DestinoService {
         const destino = await DestinoModel.findByPk(id);
         if (!destino) throw new Error("Destino no encontrado");
 
-        // Verificar si tiene solicitudes asociadas
-        const count = await SolicitudModel.count({ where: { Id_Destino: id } });
-
-        if (count > 0 || destino.Estado === 'ACTIVO') {
-            const nuevoEstado = destino.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
-            await destino.update({ Estado: nuevoEstado });
-            return { inactived: true, nuevoEstado };
-        } else {
-            await destino.destroy();
-            return { deleted: true };
-        }
+        // Siempre hacer toggle de estado (ACTIVO ↔ INACTIVO)
+        const nuevoEstado = destino.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+        await destino.update({ Estado: nuevoEstado });
+        return { inactived: nuevoEstado === 'INACTIVO', nuevoEstado };
     }
 }
 

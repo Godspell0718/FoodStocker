@@ -30,7 +30,8 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
     const getResponsables = async () => {
         try {
             const res = await apiAxios.get("/api/responsables");
-            setResponsables(res.data);
+            const activos = (Array.isArray(res.data) ? res.data : []).filter(r => (r.Estado || 'ACTIVO') === 'ACTIVO');
+            setResponsables(activos);
         } catch (error) {
             console.error("Error cargando responsables", error);
         }

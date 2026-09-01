@@ -31,7 +31,8 @@ const SolicitudFormNuevo = ({ hideModal }) => {
     const cargarDestinos = async () => {
         try {
             const res = await apiAxios.get("/api/destino");
-            setDestinos(res.data);
+            const activos = (Array.isArray(res.data) ? res.data : []).filter(d => (d.Estado || 'ACTIVO') === 'ACTIVO');
+            setDestinos(activos);
         } catch (error) {
             console.error("Error al cargar destinos:", error);
         }
@@ -77,6 +78,7 @@ const SolicitudFormNuevo = ({ hideModal }) => {
     };
 
     const insumosFiltrados = insumos.filter(ins =>
+        (ins.Estado || 'ACTIVO') === 'ACTIVO' &&
         ins.Nom_Insumo.toLowerCase().includes(filtro.toLowerCase())
     );
 
