@@ -106,35 +106,35 @@ const CrudInsumos = () => {
         return { acumuladoSolicitado, listaParaModal };
     };
 
-    const eliminarInsumo = async (id, nombre) => {
-        const result = await Swal.fire({
-            title: '¿Eliminar insumo?',
-            text: `¿Estás seguro de eliminar "${nombre}"?`,
-            icon: 'warning',
+    const toggleEstadoInsumo = async (row) => {
+        const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+        const accion = isActivo ? "Inactivar" : "Activar";
+        const confirm = await Swal.fire({
+            title: `¿${accion} insumo?`,
+            text: isActivo 
+                ? "El insumo pasará a estado INACTIVO (no se mostrará para nuevos movimientos, pero se mantiene su historial)"
+                : "El insumo pasará a estado ACTIVO",
+            icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#153753',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
+            confirmButtonText: `Sí, ${accion.toLowerCase()}`,
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: isActivo ? "#f59e0b" : "#10b981",
+            cancelButtonColor: "#153753",
         });
 
-        if (result.isConfirmed) {
+        if (confirm.isConfirmed) {
             try {
-                await apiAxios.delete(`/api/insumos/${id}`);
+                const response = await apiAxios.delete(`/api/insumos/${row.Id_Insumos}`);
                 Swal.fire({
-                    title: 'Eliminado',
-                    text: 'Insumo eliminado correctamente',
-                    icon: 'success',
+                    title: "Completado",
+                    text: response.data.Message || `El insumo ahora está ${isActivo ? 'INACTIVO' : 'ACTIVO'}`,
+                    icon: "success",
                     timer: 1500,
                     showConfirmButton: false
                 });
                 setRefreshKey(prev => prev + 1); // Refrescar después de eliminar
             } catch (error) {
-                let mensaje = 'Error al eliminar el insumo';
-                if (error.response && error.response.status === 400) {
-                    mensaje = error.response.data.error || 'No se puede eliminar el insumo porque tiene registros asociados.';
-                }
-                Swal.fire({ title: 'Error', text: mensaje, icon: 'error' });
+                Swal.fire("Error", error.response?.data?.error || "No se pudo cambiar el estado del insumo", "error");
             }
         }
     };
@@ -220,16 +220,6 @@ const CrudInsumos = () => {
             }
         },
         {
-            name: "Descripción",
-            selector: row => row.Descripcion,
-            sortable: true,
-            cell: row => (
-                <span className="tw-text-slate-600 tw-truncate tw-max-w-xs">
-                    {row.Descripcion || 'N/A'}
-                </span>
-            )
-        },
-        {
             name: "En Solicitud",
             width: "120px",
             cell: row => {
@@ -270,30 +260,60 @@ const CrudInsumos = () => {
             }
         },
         {
+            name: "Estado",
+            selector: row => row.Estado || 'ACTIVO',
+            sortable: true,
+            width: "110px",
+            cell: row => (
+                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${
+                    (row.Estado || 'ACTIVO') === 'ACTIVO'
+                        ? 'tw-bg-emerald-100 tw-text-emerald-800' 
+                        : 'tw-bg-rose-100 tw-text-rose-800'
+                }`}>
+                    {row.Estado || 'ACTIVO'}
+                </span>
+            )
+        },
+        {
             name: "Acciones",
             right: true,
-            width: "100px",
-            cell: row => (
-                <div className="tw-flex tw-gap-2">
-                    <button
-                        title="Editar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => {
-                            setInsumoEditando(row)
-                            setShowModalForm(true)
-                        }}
-                    >
-                        <Pencil className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                    <button
-                        title="Eliminar"
-                        className="tw-p-1.5 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-200 tw-shadow-sm"
-                        onClick={() => eliminarInsumo(row.Id_Insumos, row.Nom_Insumo)}
-                    >
-                        <Trash2 className="tw-w-3.5 tw-h-3.5" />
-                    </button>
-                </div>
-            )
+            width: "120px",
+            cell: row => {
+                const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
+                return (
+                    <div className="tw-flex tw-gap-2">
+                        <button
+                            title={isActivo ? "Editar" : "No se puede editar un registro inactivo"}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
+                                isActivo
+                                    ? "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
+                                    : "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed"
+                            }`}
+                            onClick={() => {
+                                if (!isActivo) {
+                                    Swal.fire("Edición Bloqueada", "No se puede editar un insumo que se encuentra INACTIVO. Actívelo primero para poder editarlo.", "info");
+                                    return;
+                                }
+                                setInsumoEditando(row)
+                                setShowModalForm(true)
+                            }}
+                        >
+                            <Pencil className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                        <button
+                            title={isActivo ? "Inactivar Insumo" : "Activar Insumo"}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
+                                isActivo 
+                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white" 
+                                    : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
+                            }`}
+                            onClick={() => toggleEstadoInsumo(row)}
+                        >
+                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                        </button>
+                    </div>
+                );
+            }
         }
     ];
 
@@ -449,6 +469,7 @@ const CrudInsumos = () => {
                                             <tr>
                                                 <th className="tw-px-4 tw-py-3 tw-rounded-l-lg">ID</th>
                                                 <th className="tw-px-4 tw-py-3">Lote</th>
+                                                <th className="tw-px-4 tw-py-3">Cant. Inicial</th>
                                                 <th className="tw-px-4 tw-py-3">Cant. Restante</th>
                                                 <th className="tw-px-4 tw-py-3">Vencimiento</th>
                                                 <th className="tw-px-4 tw-py-3 tw-rounded-r-lg">Estado</th>
@@ -459,6 +480,9 @@ const CrudInsumos = () => {
                                                 <tr key={l.Id_Entradas} className="hover:tw-bg-slate-50 tw-transition-colors">
                                                     <td className="tw-px-4 tw-py-3 tw-font-mono tw-text-slate-400">#{l.Id_Entradas}</td>
                                                     <td className="tw-px-4 tw-py-3 tw-font-medium">{l.Lote}</td>
+                                                    <td className="tw-px-4 tw-py-3 tw-font-bold tw-text-blue-600">
+                                                        {l.Can_Inicial}
+                                                    </td>
                                                     <td className="tw-px-4 tw-py-3">{l.Can_Inicial - l.Can_Salida}</td>
                                                     <td className="tw-px-4 tw-py-3">{l.Fec_Ven_Entrada ? new Date(l.Fec_Ven_Entrada).toLocaleDateString() : 'N/A'}</td>
                                                     <td className="tw-px-4 tw-py-3">
