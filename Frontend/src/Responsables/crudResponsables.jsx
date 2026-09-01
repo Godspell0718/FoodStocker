@@ -2,11 +2,19 @@ import { useState, useEffect } from "react"
 import apiAxios from '../api/axiosConfig.js'
 import DataTable from "react-data-table-component"
 import ResponsablesForm from "./ResponsablesForm.jsx"
+import {
+    Mail,
+    Phone,
+    Pencil,
+    Users,
+    CircleUser,
+    User,
+    Trash2,
+    X,
+    Inbox,
+} from 'lucide-react'
 import Swal from "sweetalert2"
-import { 
-    Users, User, Mail, Phone, Shield, 
-    Plus, Search, Pencil, Trash2, X, Inbox 
-} from "lucide-react"
+
 
 const CrudResponsables = () => {
 
@@ -17,41 +25,41 @@ const CrudResponsables = () => {
     const [showModal, setShowModal] = useState(false)
 
     const columnsTable = [
-        { 
-            name: "Nombre", 
+        {
+            name: "Nombre",
             selector: row => row.Nom_Responsable,
             sortable: true,
             grow: 2,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-3">
-                    <div className="tw-w-8 tw-h-8 tw-bg-gradient-to-br tw-from-blue-100 tw-to-amber-100 tw-rounded-full tw-flex tw-items-center tw-justify-center">
-                        <User className="tw-w-4 tw-h-4 tw-text-blue-600" />
+                    <div className="tw-w-8 tw-h-8 tw-bg-gradient-to-br tw-from-primario-100 tw-to-secundario-100 tw-rounded-full tw-flex tw-items-center tw-justify-center">
+                        <CircleUser color="#17353f" size={24} />
                     </div>
                     <span className="tw-font-medium tw-text-slate-700">{row.Nom_Responsable}</span>
                 </div>
             )
         },
-        { 
-            name: "Documento", 
+        {
+            name: "Documento",
             selector: row => row.Doc_Responsable,
             sortable: true,
             cell: row => (
                 <span className="tw-font-mono tw-text-slate-600">{row.Doc_Responsable}</span>
             )
         },
-        { 
-            name: "Correo", 
+        {
+            name: "Correo",
             selector: row => row.Cor_Responsable,
             grow: 2,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
-                    <Mail className="tw-w-3.5 tw-h-3.5 tw-text-amber-500" />
+                    <Mail size={15} color="#fbbf24" />
                     <span className="tw-text-slate-600">{row.Cor_Responsable}</span>
                 </div>
             )
         },
-        { 
-            name: "Teléfono", 
+        {
+            name: "Teléfono",
             selector: row => row.Tel_Responsable,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
@@ -60,8 +68,8 @@ const CrudResponsables = () => {
                 </div>
             )
         },
-        { 
-            name: "Tipo", 
+        {
+            name: "Tipo",
             selector: row => row.Tip_Responsable,
             cell: row => (
                 <span className={`tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium ${
@@ -180,15 +188,15 @@ const CrudResponsables = () => {
         const nombre = responsable.Nom_Responsable?.toLowerCase() || ''
         const correo = responsable.Cor_Responsable?.toLowerCase() || ''
         const documento = responsable.Doc_Responsable?.toString() || ''
-        return nombre.includes(textToSearch) || 
-               correo.includes(textToSearch) || 
-               documento.includes(textToSearch)
+        return nombre.includes(textToSearch) ||
+            correo.includes(textToSearch) ||
+            documento.includes(textToSearch)
     })
 
     const hideModal = () => {
         setShowModal(false)
-        setResponsableSeleccionado(null) 
-        getAllResponsables() 
+        setResponsableSeleccionado(null)
+        getAllResponsables()
     }
 
     // Estilos personalizados para DataTable
@@ -217,6 +225,7 @@ const CrudResponsables = () => {
                 marginBottom: '4px',
                 '&:hover': {
                     backgroundColor: '#fef3c7',
+
                 },
             },
         },
@@ -244,10 +253,10 @@ const CrudResponsables = () => {
                 </div>
 
                 {/* Barra de herramientas */}
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
-                    <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
-                        <div className="tw-relative tw-w-full md:tw-w-96">
-                            <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
+                <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-p-4 tw-mb-6">
+                    <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4 ">
+                        <div className="tw-relative tw-w-full md:tw-w-96 ">
+                            <i className="fa-solid fa-magnifying-glass tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400"></i>
                             <input
                                 type="text"
                                 className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
@@ -264,14 +273,29 @@ const CrudResponsables = () => {
                                 setShowModal(true)
                             }}
                         >
-                            <Plus className="tw-w-4 tw-h-4" />
-                            <span>Nuevo Usuario</span>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"></path>
+                                <path d="M8 12H16"></path>
+                                <path d="M12 16V8"></path>
+                            </svg>
+                            <span>Nuevo Responsable</span>
                         </button>
+
                     </div>
                 </div>
 
                 {/* Tabla de datos */}
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-overflow-hidden">
+                <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-overflow-hidden">
                     <DataTable
                         columns={columnsTable}
                         data={newListResponsables}
@@ -308,7 +332,7 @@ const CrudResponsables = () => {
 
                 {/* Modal Custom Tailwind */}
                 {showModal && (
-                    <div 
+                    <div
                         className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
                         onClick={(e) => e.target === e.currentTarget && hideModal()}
                     >

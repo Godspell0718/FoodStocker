@@ -96,6 +96,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
             Id_Pasante,
             Id_Instructor,
             Id_Insumos,
+            Estado: 'STOCK',
             Uni_medida
         }
 
