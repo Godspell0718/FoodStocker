@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
 import apiNode from "../api/axiosConfig.js"
 import Swal from "sweetalert2"
-import { 
-    Calendar, Hash, DollarSign, Package, Truck, User, 
-    ChevronDown, Save, X, Info
+import {
+    Calendar, Hash, DollarSign, Package, Truck, User,
+    ChevronDown, Save, X, Info, FileText
 } from "lucide-react"
 
 const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all"
@@ -21,6 +21,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
     const [Id_Instructor, setInstructor] = useState("")
     const [Id_Insumos, setInsumo] = useState("")
     const [Uni_medida, setUniMedida] = useState("Gr")
+    const [Observaciones, setObservaciones] = useState("")
     const [loading, setLoading] = useState(false)
 
     // Comprobar si la entrada ya fue utilizada (Requerimiento 8)
@@ -54,7 +55,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
     const resetForm = () => {
         setFec(""); setLote(""); setVlr(""); setCantidad("")
         setProveedor(""); setPasante(""); setInstructor("")
-        setInsumo(""); setUniMedida("Gr")
+        setInsumo(""); setUniMedida("Gr"); setObservaciones("")
     }
 
     useEffect(() => {
@@ -68,6 +69,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
             setInstructor(entradaSeleccionada.Id_Instructor || "")
             setInsumo(entradaSeleccionada.Id_Insumos || "")
             setUniMedida(entradaSeleccionada.Uni_medida || "Gr")
+            setObservaciones(entradaSeleccionada.Observaciones || "")
         } else {
             resetForm()
         }
@@ -97,7 +99,8 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
             Id_Instructor,
             Id_Insumos,
             Estado: 'STOCK',
-            Uni_medida
+            Uni_medida,
+            Observaciones: Observaciones || null
         }
 
         try {
@@ -141,7 +144,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
 
     return (
         <form onSubmit={gestionarForm} className="tw-space-y-6">
-            
+
             {/* Requerimiento 8: Aviso si la entrada ya fue utilizada */}
             {isUsed && (
                 <div className="tw-bg-amber-50 tw-border tw-border-amber-200 tw-p-3.5 tw-rounded-xl tw-flex tw-items-center tw-gap-3">
@@ -153,7 +156,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
             )}
 
             <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-5">
-                
+
                 {/* 1. INSUMO (PRIMERO - Requerimiento 5) */}
                 <div className="md:tw-col-span-2">
                     <label className={labelClass}>
@@ -255,7 +258,7 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                 <div className="md:tw-col-span-2">
                     <label className={labelClass}>
                         <Package className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
-                        Cantidad inicial
+                        Cantidad
                     </label>
                     <input
                         type="number"
@@ -342,6 +345,26 @@ export const EntradasForm = ({ hideModal, refreshTable, entradaSeleccionada }) =
                         <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
                     </div>
                 </div>
+            </div>
+
+            {/* Observaciones */}
+            <div className="md:tw-col-span-2">
+                <label className={labelClass}>
+                    <FileText className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5" />
+                    Observaciones
+                </label>
+                <textarea
+                    className={`${inputClass} tw-resize-none ${isUsed ? 'tw-bg-gray-200' : ''}`}
+                    rows={3}
+                    placeholder="Escriba aquí cualquier observación relevante sobre esta entrada..."
+                    value={Observaciones}
+                    onChange={e => setObservaciones(e.target.value)}
+                    disabled={isUsed}
+                    maxLength={500}
+                />
+                <p className="tw-text-xs tw-text-gray-400 tw-mt-1 tw-text-right tw-m-0">
+                    {Observaciones.length}/500
+                </p>
             </div>
 
             {/* Acciones */}
