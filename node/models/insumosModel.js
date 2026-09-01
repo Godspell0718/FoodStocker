@@ -22,6 +22,10 @@ const insumoModel = db.define('insumos', {
         allowNull: false,
         defaultValue: 'MP'
     },
+    Descripcion: {
+        type: DataTypes.STRING(250),
+        allowNull: true
+    },
     Estado: {
         type: DataTypes.ENUM('ACTIVO', 'INACTIVO'),
         defaultValue: 'ACTIVO',
