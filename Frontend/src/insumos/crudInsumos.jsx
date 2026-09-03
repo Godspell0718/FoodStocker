@@ -201,12 +201,12 @@ const CrudInsumos = () => {
                     <button
                         className="btn btn-sm fw-bold"
                         style={{
-                            background: 'linear-gradient(145deg, #dbeafe, #bfdbfe)',
+                            background: 'linear-gradient(145deg, #e4f0fe, #cce4fe)',
                             color: '#1e40af',
                             minWidth: '40px',
                             borderRadius: '8px',
-                            border: '1px solid rgba(191,219,254,0.6)',
-                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 1px 3px rgba(30,64,175,0.1)',
+                            border: '1px solid rgba(204,228,254,0.6)',
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.6), 0 1px 3px rgba(30,64,175,0.08)',
                             padding: '4px 10px',
                         }}
                         data-bs-toggle="modal"
