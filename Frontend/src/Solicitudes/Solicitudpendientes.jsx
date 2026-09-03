@@ -91,28 +91,244 @@ const SolicitudPendientes = () => {
         }
     };
 
-    const guardarNovedad = async (Id_solicitud, novedadActual) => {
-        const { value: nuevaNovedad, isConfirmed } = await Swal.fire({
-            title: 'Novedad de entrega',
-            html: '<p style="font-size:13px;color:#6b7280;margin-bottom:8px">Describe qué se entregó o la diferencia respecto a lo solicitado</p>',
-            input: 'textarea',
-            inputValue: novedadActual || '',
-            inputPlaceholder: 'Ej: Se solicitaron 10 huevos pero solo se entregaron 8...',
-            inputAttributes: { 'aria-label': 'Novedad', style: 'min-height:100px; font-size:13px;' },
+    const guardarNovedad = async (sol) => {
+        const estado = sol.ultimoEstado?.toLowerCase();
+        const esFinalizado = estado === "despachado" || estado === "cancelado";
+
+        // Si la solicitud ya está despachada o cancelada:
+        if (esFinalizado) {
+            if (sol.novedad) {
+                // Modo lectura: mostrar la novedad registrada sin permitir edición
+                Swal.fire({
+                    title: `📋 Novedad Registrada (#${sol.Id_solicitud})`,
+                    html: `
+                        <div style="text-align: left; font-size: 13px; color: #374151;">
+                            <p style="margin-bottom: 8px;"><strong>Estado de solicitud:</strong> <span style="text-transform: capitalize;">${estado}</span></p>
+                            <div style="padding: 12px; border-radius: 10px; background: #fef3c7; border: 1px solid #fde68a; color: #92400e;">
+                                <strong>Novedad:</strong><br/>${sol.novedad}
+                            </div>
+                            <p style="font-size: 11px; color: #6b7280; margin-top: 10px;">* No se pueden modificar las cantidades de una solicitud ${estado}.</p>
+                        </div>`,
+                    icon: 'info',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#153753'
+                });
+                return;
+            }
+            Swal.fire("Acción no permitida", `No se pueden registrar novedades en solicitudes ${estado}s`, "warning");
+            return;
+        }
+
+        const insumosData = sol.insumos || [];
+        if (insumosData.length === 0) {
+            Swal.fire("Sin insumos", "Esta solicitud no tiene insumos registrados", "info");
+            return;
+        }
+
+        // Construir filas HTML con las columnas requeridas: Insumo/Lote | Solicitado | Entregar | Por Entregar (A restar) | Descripción
+        const filasHTML = insumosData.map((item, idx) => {
+            const nombre = item.insumo?.Nom_Insumo ?? `Insumo #${item.Id_insumos}`;
+            const lote = item.entrada?.Lote ?? "—";
+            const solicitada = item.cantidad_solicitada;
+            const entregadaPrevia = item.cantidad_entregada !== null && item.cantidad_entregada !== undefined
+                ? item.cantidad_entregada : solicitada;
+            const diff = solicitada - entregadaPrevia;
+
+            return `
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="padding: 10px 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
+                        ${nombre}
+                        <div style="font-size: 11px; font-weight: 500; color: #64748b; margin-top: 2px;">
+                            📦 Lote: <strong>${lote}</strong>
+                        </div>
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center;">
+                        <span style="font-weight: 700; color: #153753; font-size: 14px;">${solicitada}</span>
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center;">
+                        <input type="number" id="novedad-entregar-${idx}" min="0" max="${solicitada}" value="${entregadaPrevia}"
+                            data-id="${item.Id_insumo_solicitud}" data-solicitada="${solicitada}" data-nombre="${nombre}"
+                            style="width: 75px; padding: 6px 8px; border: 2px solid #cbd5e1; border-radius: 8px; text-align: center; font-size: 14px; font-weight: 700; color: #153753; outline: none;"
+                            onfocus="this.style.borderColor='#153753'" onblur="this.style.borderColor='#cbd5e1'"
+                            oninput="
+                                var req = ${solicitada};
+                                var ent = parseInt(this.value || 0);
+                                var resta = req - ent;
+                                var spanResta = document.getElementById('novedad-resta-${idx}');
+                                var inputDesc = document.getElementById('novedad-desc-${idx}');
+                                if(resta > 0){
+                                    spanResta.textContent = resta + ' a restar';
+                                    spanResta.style.color = '#dc2626';
+                                    spanResta.style.background = '#fef2f2';
+                                    inputDesc.style.display = 'block';
+                                } else {
+                                    spanResta.textContent = '0 (Completo)';
+                                    spanResta.style.color = '#16a34a';
+                                    spanResta.style.background = '#f0fdf4';
+                                    inputDesc.style.display = 'none';
+                                }
+                            "
+                        />
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center;">
+                        <span id="novedad-resta-${idx}" style="font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 6px;
+                            color: ${diff > 0 ? '#dc2626' : '#16a34a'}; background: ${diff > 0 ? '#fef2f2' : '#f0fdf4'};">
+                            ${diff > 0 ? `${diff} a restar` : '0 (Completo)'}
+                        </span>
+                    </td>
+                    <td style="padding: 10px 8px;">
+                        <input type="text" id="novedad-desc-${idx}" placeholder="Motivo por el que no se entrega..."
+                            style="width: 100%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px; display: ${diff > 0 ? 'block' : 'none'}; outline: none;"
+                            onfocus="this.style.borderColor='#153753'" onblur="this.style.borderColor='#cbd5e1'"
+                        />
+                    </td>
+                </tr>`;
+        }).join('');
+
+        const htmlContent = `
+            <div style="text-align: left; margin-top: 6px;">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+                    Indica cuántos insumos se van a <strong>entregar</strong>. Los sobrantes (por entregar/a restar) se devolverán automáticamente al stock del lote.
+                </p>
+                <div style="border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 12px; max-height: 320px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #153753; position: sticky; top: 0; z-index: 10;">
+                                <th style="padding: 10px 8px; text-align: left; color: #c9a84c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Insumo / Lote</th>
+                                <th style="padding: 10px 8px; text-align: center; color: #c9a84c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Solicitado</th>
+                                <th style="padding: 10px 8px; text-align: center; color: #c9a84c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Entregar</th>
+                                <th style="padding: 10px 8px; text-align: center; color: #c9a84c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Cant. Por Entregar / Restar</th>
+                                <th style="padding: 10px 8px; text-align: left; color: #c9a84c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; width: 35%;">Descripción / Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filasHTML}</tbody>
+                    </table>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Observación General de Novedad (opcional)</label>
+                    <textarea id="novedad-observacion-general" placeholder="Nota general para la solicitud..."
+                        style="width: 100%; min-height: 50px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px; outline: none; font-family: inherit;"
+                        onfocus="this.style.borderColor='#153753'" onblur="this.style.borderColor='#cbd5e1'"
+                    >${sol.novedad || ''}</textarea>
+                </div>
+            </div>`;
+
+        // Mostrar Modal de Novedad
+        const { value: novedadData, isConfirmed } = await Swal.fire({
+            title: '📋 Novedad de entrega de insumos',
+            html: htmlContent,
+            width: 820,
             showCancelButton: true,
             confirmButtonText: 'Guardar novedad',
             cancelButtonText: 'Cancelar',
             confirmButtonColor: '#153753',
-            cancelButtonColor: '#6b7280',
+            cancelButtonColor: '#64748b',
+            preConfirm: () => {
+                const items = [];
+                const motivosDetalle = [];
+                let hayDiferencia = false;
+
+                for (let idx = 0; idx < insumosData.length; idx++) {
+                    const inputEntregar = document.getElementById(`novedad-entregar-${idx}`);
+                    const inputDesc = document.getElementById(`novedad-desc-${idx}`);
+
+                    const entregada = parseInt(inputEntregar.value);
+                    const solicitada = parseInt(inputEntregar.dataset.solicitada);
+                    const idInsumoSolicitud = parseInt(inputEntregar.dataset.id);
+                    const nombreInsumo = inputEntregar.dataset.nombre;
+                    const descMotivo = inputDesc ? inputDesc.value.trim() : '';
+
+                    if (isNaN(entregada) || entregada < 0) {
+                        Swal.showValidationMessage('Todas las cantidades a entregar deben ser números válidos y mayor o igual a 0');
+                        return false;
+                    }
+                    if (entregada > solicitada) {
+                        Swal.showValidationMessage(`La cantidad a entregar de "${nombreInsumo}" no puede superar la solicitada (${solicitada})`);
+                        return false;
+                    }
+
+                    const aRestar = solicitada - entregada;
+                    if (aRestar > 0) {
+                        hayDiferencia = true;
+                        if (descMotivo) {
+                            motivosDetalle.push(`${nombreInsumo}: se entregan ${entregada}/${solicitada} (${aRestar} por entregar). Motivo: ${descMotivo}`);
+                        } else {
+                            motivosDetalle.push(`${nombreInsumo}: se entregan ${entregada}/${solicitada} (${aRestar} por entregar)`);
+                        }
+                    }
+
+                    items.push({
+                        Id_insumo_solicitud: idInsumoSolicitud,
+                        cantidad_solicitada: solicitada,
+                        cantidad_entregada: entregada
+                    });
+                }
+
+                const obsGeneral = document.getElementById('novedad-observacion-general').value.trim();
+
+                if (!hayDiferencia && !obsGeneral) {
+                    Swal.showValidationMessage('No hay diferencias en las cantidades ni observaciones registradas.');
+                    return false;
+                }
+
+                // Consolidar la observación completa para guardar en sol.novedad
+                let observacionConsolidada = '';
+                if (motivosDetalle.length > 0) {
+                    observacionConsolidada = motivosDetalle.join(' | ');
+                    if (obsGeneral) observacionConsolidada += ` — Nota: ${obsGeneral}`;
+                } else {
+                    observacionConsolidada = obsGeneral;
+                }
+
+                return { items, observacion: observacionConsolidada, motivosDetalle };
+            }
         });
-        if (!isConfirmed) return;
+
+        if (!isConfirmed || !novedadData) return;
+
+        // Resumen antes de aplicar los cambios en stock
+        const devueltos = novedadData.items.filter(i => i.cantidad_entregada < i.cantidad_solicitada);
+        let resumenHTML = '';
+        if (devueltos.length > 0) {
+            const listaHTML = devueltos.map(i => {
+                const diff = i.cantidad_solicitada - i.cantidad_entregada;
+                const nombre = insumosData.find(x => x.Id_insumo_solicitud === i.Id_insumo_solicitud)?.insumo?.Nom_Insumo || 'Insumo';
+                return `<li style="padding: 3px 0; font-size: 13px;"><strong>${nombre}:</strong> <span style="color: #dc2626; font-weight: 700;">+${diff}</span> regresan al stock</li>`;
+            }).join('');
+            resumenHTML = `<ul style="list-style: none; padding: 0; margin: 10px 0; text-align: left;">${listaHTML}</ul>`;
+        }
+
+        const confirm2 = await Swal.fire({
+            title: '¿Confirmar actualización de novedad?',
+            html: `<p style="font-size: 13px; color: #64748b;">Los insumos por entregar (a restar) regresarán al stock del lote automáticamente.</p>${resumenHTML}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, confirmar',
+            cancelButtonText: 'Volver',
+            confirmButtonColor: '#153753',
+            cancelButtonColor: '#64748b'
+        });
+
+        if (!confirm2.isConfirmed) return;
+
+        // Enviar datos al backend
         try {
-            await apiAxios.post('/api/solicitudes/novedad', { Id_solicitud, novedad: nuevaNovedad || null });
-            Swal.fire({ icon: 'success', title: 'Novedad guardada', timer: 1200, showConfirmButton: false });
+            await apiAxios.post('/api/solicitudes/novedad', {
+                Id_solicitud: sol.Id_solicitud,
+                observacion: novedadData.observacion,
+                items: novedadData.items
+            });
+            Swal.fire({
+                icon: 'success',
+                title: 'Novedad registrada exitosamente',
+                text: devueltos.length > 0 ? `Se actualizaron ${devueltos.length} insumo(s) y se devolvió la diferencia al stock` : 'Novedad guardada correctamente',
+                timer: 2200,
+                showConfirmButton: false
+            });
             cargarSolicitudes();
             window.dispatchEvent(new Event('nuevaSolicitud'));
         } catch (error) {
-            Swal.fire('Error', error.response?.data?.message || 'No se pudo guardar la novedad', 'error');
+            Swal.fire('Error', error.response?.data?.message || 'No se pudo registrar la novedad', 'error');
         }
     };
 
@@ -344,22 +560,39 @@ const SolicitudPendientes = () => {
                                     )}
                                     </div>
 
-                                    {/* Botón Novedad — siempre visible */}
-                                    <button
-                                        onClick={() => guardarNovedad(sol.Id_solicitud, sol.novedad)}
-                                        className={`tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-shadow-sm tw-border ${
-                                            sol.novedad
-                                                ? "tw-bg-amber-50 tw-text-amber-700 tw-border-amber-200 hover:tw-bg-amber-100"
-                                                : "tw-bg-gray-50 tw-text-gray-600 tw-border-gray-200 hover:tw-bg-gray-100"
-                                        }`}
-                                        title={sol.novedad ? `Novedad: ${sol.novedad}` : "Agregar novedad de entrega"}
-                                    >
-                                        <AlertTriangle className="tw-w-4 tw-h-4" />
-                                        Novedad
-                                        {sol.novedad && (
-                                            <span className="tw-w-2 tw-h-2 tw-rounded-full tw-bg-amber-500 tw-inline-block" />
-                                        )}
-                                    </button>
+                                    {/* Botón Novedad — deshabilitado si está despachado/cancelado sin novedad previamente registrada */}
+                                    {(() => {
+                                        const estadoActual = sol.ultimoEstado?.toLowerCase();
+                                        const esFinalizado = estadoActual === "despachado" || estadoActual === "cancelado";
+                                        const deshabilitado = esFinalizado && !sol.novedad;
+
+                                        return (
+                                            <button
+                                                onClick={() => guardarNovedad(sol)}
+                                                disabled={deshabilitado}
+                                                className={`tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-shadow-sm tw-border ${
+                                                    deshabilitado
+                                                        ? "tw-bg-gray-100 tw-text-gray-400 tw-border-gray-200 tw-cursor-not-allowed tw-shadow-none"
+                                                        : sol.novedad
+                                                            ? "tw-bg-amber-50 tw-text-amber-700 tw-border-amber-200 hover:tw-bg-amber-100"
+                                                            : "tw-bg-gray-50 tw-text-gray-600 tw-border-gray-200 hover:tw-bg-gray-100"
+                                                }`}
+                                                title={
+                                                    deshabilitado
+                                                        ? "No se pueden registrar novedades en solicitudes despachadas o canceladas"
+                                                        : sol.novedad
+                                                            ? `Ver Novedad: ${sol.novedad}`
+                                                            : "Agregar novedad de entrega"
+                                                }
+                                            >
+                                                <AlertTriangle className="tw-w-4 tw-h-4" />
+                                                Novedad
+                                                {sol.novedad && (
+                                                    <span className="tw-w-2 tw-h-2 tw-rounded-full tw-bg-amber-500 tw-inline-block" />
+                                                )}
+                                            </button>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>

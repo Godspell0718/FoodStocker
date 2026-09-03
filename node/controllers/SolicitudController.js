@@ -161,16 +161,29 @@ export const cambiarEstadoSolicitud = async (req, res) => {
 // POST /api/solicitudes/novedad
 export const guardarNovedad = async (req, res) => {
     try {
-        const { Id_solicitud, novedad } = req.body;
+        const { Id_solicitud, observacion, items } = req.body;
         if (!Id_solicitud) {
             return res.status(400).json({ message: "Id_solicitud es requerido" });
         }
-        await SolicitudModel.update(
-            { novedad: novedad ?? null },
-            { where: { Id_solicitud } }
-        );
-        res.status(200).json({ message: "Novedad guardada correctamente" });
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ message: "Debes enviar los items con las cantidades entregadas" });
+        }
+        // Validar cada item
+        for (const item of items) {
+            if (item.cantidad_entregada === undefined || item.cantidad_entregada === null) {
+                return res.status(400).json({ message: "Cada item debe tener cantidad_entregada" });
+            }
+            if (item.cantidad_entregada < 0) {
+                return res.status(400).json({ message: "La cantidad entregada no puede ser negativa" });
+            }
+            if (item.cantidad_entregada > item.cantidad_solicitada) {
+                return res.status(400).json({ message: "La cantidad entregada no puede superar la solicitada" });
+            }
+        }
+        const result = await solicitudServiceNuevo.registrarNovedad({ Id_solicitud, observacion, items });
+        res.status(200).json(result);
     } catch (error) {
+        console.error("Error al registrar novedad:", error);
         res.status(500).json({ message: error.message });
     }
 };
