@@ -30,9 +30,13 @@ apiNode.interceptors.response.use(
     response => response,
     error => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('tokenFoodStocker')
-            localStorage.removeItem('userFoodStocker')
-            window.location.href = '/login'
+            // No redirigir si el 401 viene del login (dejar que el componente muestre el error)
+            const requestUrl = error.config?.url || ''
+            if (!requestUrl.includes('/login')) {
+                localStorage.removeItem('tokenFoodStocker')
+                localStorage.removeItem('userFoodStocker')
+                window.location.href = '/login'
+            }
         }
         return Promise.reject(error)
     }

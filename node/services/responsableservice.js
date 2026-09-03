@@ -169,16 +169,10 @@ class ResponsableService {
     const hasSolicitudes = await SolicitudModel.count({ where: { Id_Responsable: id } });
     const hasPerdidas = await perdidaModel.count({ where: { Id_Responsable: id } });
 
-    const totalAcciones = hasEntradasPasante + hasEntradasInstructor + hasSolicitudes + hasPerdidas;
-
-    if (totalAcciones > 0 || responsable.Estado === 'ACTIVO') {
-      // Inactivar para no romper integridad referencial
-      await responsable.update({ Estado: responsable.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' });
-      return { inactived: true, nuevoEstado: responsable.Estado };
-    } else {
-      await responsable.destroy();
-      return { deleted: true };
-    }
+    // Siempre hacer toggle del estado (nunca destruir el registro)
+    const nuevoEstado = responsable.Estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+    await responsable.update({ Estado: nuevoEstado });
+    return { toggled: true, nuevoEstado };
   }
 }
 

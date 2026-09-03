@@ -9,7 +9,8 @@ import {
     Users,
     CircleUser,
     User,
-    Trash2,
+    ToggleLeft,
+    ToggleRight,
     X,
     Inbox,
 } from 'lucide-react'
@@ -134,7 +135,7 @@ const CrudResponsables = () => {
                             }`}
                             onClick={() => toggleEstadoResponsable(row)}
                         >
-                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                            {isActivo ? <ToggleRight className="tw-w-4 tw-h-4" /> : <ToggleLeft className="tw-w-4 tw-h-4" />}
                         </button>
                     </div>
                 );

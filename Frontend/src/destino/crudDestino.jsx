@@ -5,7 +5,7 @@ import DestinoForm from "./destinoForm.jsx"
 import Swal from "sweetalert2"
 import { 
     MapPin, Utensils, Hash, Type,
-    Plus, Search, Pencil, Trash2, X, Inbox 
+    Plus, Search, Pencil, ToggleLeft, ToggleRight, X, Inbox 
 } from "lucide-react"
 
 const CrudDestino = () => {
@@ -96,7 +96,7 @@ const CrudDestino = () => {
                             }`}
                             onClick={() => toggleEstadoDestino(row)}
                         >
-                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                            {isActivo ? <ToggleRight className="tw-w-4 tw-h-4" /> : <ToggleLeft className="tw-w-4 tw-h-4" />}
                         </button>
                     </div>
                 );

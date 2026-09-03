@@ -5,7 +5,7 @@ import InsumosForm from './insumosForm.jsx';
 import Swal from "sweetalert2";
 import {
     Package, Tag, Layers, ClipboardList, Eye,
-    Pencil, Trash2, Plus, Search, X, Inbox,
+    Pencil, ToggleLeft, ToggleRight, Plus, Search, X, Inbox,
     AlertCircle, CheckCircle2, ArrowLeft, Boxes,
     History
 } from "lucide-react"
@@ -309,7 +309,7 @@ const CrudInsumos = () => {
                             }`}
                             onClick={() => toggleEstadoInsumo(row)}
                         >
-                            <Trash2 className="tw-w-3.5 tw-h-3.5" />
+                            {isActivo ? <ToggleRight className="tw-w-4 tw-h-4" /> : <ToggleLeft className="tw-w-4 tw-h-4" />}
                         </button>
                     </div>
                 );

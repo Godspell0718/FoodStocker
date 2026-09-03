@@ -44,10 +44,18 @@ const Login = ({ setIsAuth }) => {
             navigate('/home');
 
         } catch (err) {
-            setError(err.response?.data?.mensaje || 'Email o contraseña incorrecta');
+            const serverMessage = err.response?.data?.message;
+            if (serverMessage && serverMessage.toLowerCase().includes('inactivo')) {
+                setError('INACTIVO: ' + serverMessage);
+            } else {
+                setError(serverMessage || 'Email o contraseña incorrecta');
+            }
             setLoading(false);
         }
     };
+
+    const isInactiveError = error.startsWith('INACTIVO: ');
+    const displayError = isInactiveError ? error.replace('INACTIVO: ', '') : error;
 
     return (
         <div className="tw-min-h-screen tw-bg-slate-50 tw-flex tw-items-center tw-justify-center tw-p-6">
@@ -220,13 +228,28 @@ const Login = ({ setIsAuth }) => {
                             </label>
                         </div>
 
-                        {/* Error */}
+                        {/* Error - Estilo diferenciado para usuario inactivo vs error genérico */}
                         {error && (
-                            <div className="tw-p-4 tw-bg-red-50 tw-border tw-border-red-200 tw-rounded-xl tw-flex tw-items-center tw-gap-3">
-                                <AlertCircle className="tw-w-5 tw-h-5 tw-text-red-500 flex-shrink-0" />
-                                <p className="tw-text-sm tw-font-medium tw-text-red-600 tw-m-0">
-                                    {error}
-                                </p>
+                            <div className={`tw-p-4 tw-border tw-rounded-xl tw-flex tw-items-start tw-gap-3 ${
+                                isInactiveError
+                                    ? 'tw-bg-amber-50 tw-border-amber-300'
+                                    : 'tw-bg-red-50 tw-border-red-200'
+                            }`}>
+                                <AlertCircle className={`tw-w-5 tw-h-5 tw-flex-shrink-0 tw-mt-0.5 ${
+                                    isInactiveError ? 'tw-text-amber-500' : 'tw-text-red-500'
+                                }`} />
+                                <div>
+                                    {isInactiveError && (
+                                        <p className="tw-text-xs tw-font-bold tw-text-amber-700 tw-uppercase tw-tracking-wide tw-mb-1 tw-m-0">
+                                            Usuario Inactivo
+                                        </p>
+                                    )}
+                                    <p className={`tw-text-sm tw-font-medium tw-m-0 ${
+                                        isInactiveError ? 'tw-text-amber-700' : 'tw-text-red-600'
+                                    }`}>
+                                        {displayError}
+                                    </p>
+                                </div>
                             </div>
                         )}
 
