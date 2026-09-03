@@ -260,7 +260,7 @@ const CrudInsumos = () => {
             cell: row => {
                 const consumido = row.entradas?.reduce((acc, e) => {
                     if (e.Estado === 'AGOTADO' || e.Estado === 'VENCIDO') {
-                        return acc + (e.Can_Inicial - e.Can_Salida);
+                        return acc + (e.Can_Salida || 0);
                     }
                     return acc;
                 }, 0) || 0;
