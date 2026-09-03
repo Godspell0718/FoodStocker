@@ -404,40 +404,14 @@ const Inicio = () => {
                                             {sol.Ficha && <span className="tw-ml-2 tw-text-primario-900">| Ficha: {sol.Ficha}</span>}
                                         </div>
 
-                                        {/* Botones de acción rápida */}
-                                        <div className="tw-flex tw-gap-2 tw-justify-end">
-                                            {sol.ultimoEstado?.toLowerCase() === "solicitado" && (
-                                                <>
-                                                    <button
-                                                        onClick={() => cambiarEstado(sol.Id_solicitud, 2, "proceso")}
-                                                        className="tw-flex tw-items-center tw-gap-1 tw-px-2.5 tw-py-1 tw-rounded-lg tw-bg-primario-900 tw-text-white tw-text-xs tw-font-medium hover:tw-bg-primario-700 tw-transition-all tw-border-none"
-                                                    >
-                                                        <CheckCircle className="tw-w-3.5 tw-h-3.5" /> Aceptar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
-                                                        className="tw-flex tw-items-center tw-gap-1 tw-px-2.5 tw-py-1 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-xs tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-border-none"
-                                                    >
-                                                        <XCircle className="tw-w-3.5 tw-h-3.5" /> Cancelar
-                                                    </button>
-                                                </>
-                                            )}
-                                            {sol.ultimoEstado?.toLowerCase() === "proceso" && (
-                                                <>
-                                                    <button
-                                                        onClick={() => cambiarEstado(sol.Id_solicitud, 3, "despachado")}
-                                                        className="tw-flex tw-items-center tw-gap-1 tw-px-2.5 tw-py-1 tw-rounded-lg tw-bg-green-600 tw-text-white tw-text-xs tw-font-medium hover:tw-bg-green-700 tw-transition-all tw-border-none"
-                                                    >
-                                                        <Truck className="tw-w-3.5 tw-h-3.5" /> Despachar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
-                                                        className="tw-flex tw-items-center tw-gap-1 tw-px-2.5 tw-py-1 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-xs tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-border-none"
-                                                    >
-                                                        <XCircle className="tw-w-3.5 tw-h-3.5" /> Cancelar
-                                                    </button>
-                                                </>
-                                            )}
+                                        {/* Botón Ver para ir a solicitudes pendientes */}
+                                        <div className="tw-flex tw-justify-end">
+                                            <button
+                                                onClick={() => navigate('/solicitudes-pendientes')}
+                                                className="tw-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1.5 tw-rounded-lg tw-bg-primario-900 tw-text-white tw-text-xs tw-font-medium hover:tw-bg-primario-700 tw-transition-all tw-border-none tw-cursor-pointer"
+                                            >
+                                                <Eye className="tw-w-3.5 tw-h-3.5" /> Ver
+                                            </button>
                                         </div>
                                     </div>
                                 ))}

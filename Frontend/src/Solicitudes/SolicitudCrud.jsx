@@ -4,7 +4,10 @@ import DataTable from "react-data-table-component"
 import SolicitudFormNuevo from "./SolicitudFormN.jsx"
 import SolicitudForm from "./SolicitudForm.jsx"
 import Swal from 'sweetalert2'
-import { ClipboardList, Plus, Pencil, Trash2, Utensils, X, Search, Hash, User, Calendar, FileText, Tag, Clock, Info, MapPin } from "lucide-react"
+import { ClipboardList, Plus, Pencil, Trash2, Utensils, X, Search, Hash, User, Calendar, FileText, Tag, Clock, Info, MapPin, ShieldCheck, Ban, Download } from "lucide-react"
+import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const customTableStyles = {
     table: { style: { backgroundColor: 'transparent', borderRadius: '0.75rem', overflow: 'hidden' } },
@@ -24,10 +27,10 @@ const SolicitudCrud = () => {
     const [filterText, setFilterText] = useState("")
 
     const columnsTable = [
-        { 
-            name: 'ID', 
-            selector: row => row.Id_solicitud, 
-            sortable: true, 
+        {
+            name: 'ID',
+            selector: row => row.Id_solicitud,
+            sortable: true,
             width: '80px',
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-1.5 tw-font-mono tw-text-gray-500">
@@ -36,9 +39,9 @@ const SolicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Responsable', 
-            selector: row => row.responsable?.Nom_Responsable ?? "Sin responsable", 
+        {
+            name: 'Responsable',
+            selector: row => row.responsable?.Nom_Responsable ?? "Sin responsable",
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
@@ -49,9 +52,9 @@ const SolicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Entrega', 
-            selector: row => row.Fec_entrega, 
+        {
+            name: 'Entrega',
+            selector: row => row.Fec_entrega,
             sortable: true,
             width: '120px',
             cell: row => (
@@ -61,9 +64,9 @@ const SolicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Motivo', 
-            selector: row => row.motivo, 
+        {
+            name: 'Motivo',
+            selector: row => row.motivo,
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-1.5">
@@ -72,8 +75,8 @@ const SolicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Descripción', 
+        {
+            name: 'Descripción',
             selector: row => row.Descripcion ?? "Sin descripción",
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-1.5 tw-text-gray-500">
@@ -82,8 +85,8 @@ const SolicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Ficha', 
+        {
+            name: 'Ficha',
             selector: row => row.Ficha ?? "-",
             width: '100px',
             cell: row => (
@@ -93,8 +96,8 @@ const SolicitudCrud = () => {
                 </span>
             )
         },
-        { 
-            name: 'Destino', 
+        {
+            name: 'Destino',
             selector: row => row.destino?.Nom_Destino ?? "Sin destino",
             sortable: true,
             cell: row => (
@@ -104,9 +107,9 @@ const SolicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Solicitud', 
-            selector: row => row.createdat?.slice(0, 10), 
+        {
+            name: 'Solicitud',
+            selector: row => row.createdat?.slice(0, 10),
             sortable: true,
             width: '120px',
             cell: row => (
@@ -117,27 +120,63 @@ const SolicitudCrud = () => {
             )
         },
         {
+            name: 'Estado',
+            selector: row => row.ultimoEstado,
+            sortable: true,
+            width: '140px',
+            cell: row => {
+                const estado = (row.ultimoEstado || 'solicitado').toLowerCase();
+                const estilos = {
+                    aceptada: 'tw-bg-green-100 tw-text-green-700 tw-border-green-200',
+                    proceso: 'tw-bg-purple-100 tw-text-purple-700 tw-border-purple-200',
+                    despachado: 'tw-bg-blue-100 tw-text-blue-700 tw-border-blue-200',
+                    cancelado: 'tw-bg-red-100 tw-text-red-700 tw-border-red-200',
+                    solicitado: 'tw-bg-amber-100 tw-text-amber-700 tw-border-amber-200',
+                };
+                const clase = estilos[estado] || 'tw-bg-gray-100 tw-text-gray-600 tw-border-gray-200';
+                return (
+                    <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-[11px] tw-font-bold tw-uppercase tw-tracking-wide tw-border ${clase}`}>
+                        {row.ultimoEstado || 'Solicitado'}
+                    </span>
+                );
+            }
+        },
+        {
             name: 'Acciones',
             width: '100px',
             right: true,
-            cell: (row) => (
-                <div className="tw-flex tw-gap-1.5">
-                    <button
-                        title="Editar"
-                        className="tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700 tw-transition-all tw-duration-150"
-                        onClick={() => updateSolicitud(row.Id_solicitud)}
-                    >
-                        <Utensils className="tw-w-3 tw-h-3" />
-                    </button>
-                    <button
-                        title="Eliminar"
-                        className="tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white tw-transition-all tw-duration-150"
-                        onClick={() => deleteSolicitud(row.Id_solicitud)}
-                    >
-                        <Trash2 className="tw-w-3 tw-h-3" />
-                    </button>
-                </div>
-            )
+            cell: (row) => {
+                const estado = (row.ultimoEstado || '').toLowerCase();
+                const bloqueado = ['proceso', 'despachado', 'cancelado'].includes(estado);
+                return (
+                    <div className="tw-flex tw-gap-1.5">
+                        <button
+                            title={bloqueado ? `No se puede editar (${row.ultimoEstado})` : "Editar"}
+                            className={`tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-transition-all tw-duration-150 ${
+                                bloqueado
+                                    ? 'tw-bg-gray-100 tw-text-gray-300 tw-cursor-not-allowed'
+                                    : 'tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700'
+                            }`}
+                            onClick={() => !bloqueado && updateSolicitud(row.Id_solicitud)}
+                            disabled={bloqueado}
+                        >
+                            <Utensils className="tw-w-3 tw-h-3" />
+                        </button>
+                        <button
+                            title={bloqueado ? `No se puede eliminar (${row.ultimoEstado})` : "Eliminar"}
+                            className={`tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-transition-all tw-duration-150 ${
+                                bloqueado
+                                    ? 'tw-bg-gray-100 tw-text-gray-300 tw-cursor-not-allowed'
+                                    : 'tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white'
+                            }`}
+                            onClick={() => !bloqueado && deleteSolicitud(row.Id_solicitud)}
+                            disabled={bloqueado}
+                        >
+                            <Trash2 className="tw-w-3 tw-h-3" />
+                        </button>
+                    </div>
+                );
+            }
         }
     ]
 
@@ -198,6 +237,118 @@ const SolicitudCrud = () => {
         if (e.target === e.currentTarget) setShowModal(false)
     }
 
+    const prepararDatosExport = () => {
+        return newListSolicitudes.map(sol => ({
+            'ID': sol.Id_solicitud,
+            'Responsable': sol.responsable?.Nom_Responsable ?? 'Sin responsable',
+            'Fecha Entrega': sol.Fec_entrega ?? '',
+            'Motivo': sol.motivo ?? '',
+            'Descripción': sol.Descripcion ?? '',
+            'Ficha': sol.Ficha ?? '',
+            'Destino': sol.destino?.Nom_Destino ?? '',
+            'Fecha Solicitud': sol.createdat?.slice(0, 10) ?? '',
+            'Estado': sol.ultimoEstado ?? 'Solicitado'
+        }))
+    }
+
+    const exportToExcel = () => {
+        const datos = prepararDatosExport()
+        if (datos.length === 0) {
+            Swal.fire('Sin datos', 'No hay solicitudes para exportar', 'info')
+            return
+        }
+        const ws = XLSX.utils.json_to_sheet(datos)
+        // Ajustar anchos de columna
+        ws['!cols'] = [
+            { wch: 6 },   // ID
+            { wch: 22 },  // Responsable
+            { wch: 14 },  // Fecha Entrega
+            { wch: 25 },  // Motivo
+            { wch: 30 },  // Descripción
+            { wch: 10 },  // Ficha
+            { wch: 18 },  // Destino
+            { wch: 14 },  // Fecha Solicitud
+            { wch: 14 },  // Estado
+        ]
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Solicitudes')
+        XLSX.writeFile(wb, `Solicitudes_FoodStocker_${new Date().toISOString().slice(0, 10)}.xlsx`)
+    }
+
+    const exportToPDF = () => {
+        const datos = prepararDatosExport()
+        if (datos.length === 0) {
+            Swal.fire('Sin datos', 'No hay solicitudes para exportar', 'info')
+            return
+        }
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' })
+
+        // Header del documento
+        doc.setFillColor(21, 55, 83) // #153753
+        doc.rect(0, 0, doc.internal.pageSize.getWidth(), 28, 'F')
+        doc.setTextColor(255, 255, 255)
+        doc.setFontSize(16)
+        doc.setFont('helvetica', 'bold')
+        doc.text('FoodStocker — Historial de Solicitudes', 14, 14)
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Generado el: ${new Date().toLocaleDateString('es-CO')} — Total: ${datos.length} registros`, 14, 22)
+
+        // Tabla
+        const columnas = ['ID', 'Responsable', 'Entrega', 'Motivo', 'Descripción', 'Ficha', 'Destino', 'Solicitud', 'Estado']
+        const filas = datos.map(d => [
+            d['ID'],
+            d['Responsable'],
+            d['Fecha Entrega'],
+            d['Motivo'],
+            d['Descripción'],
+            d['Ficha'],
+            d['Destino'],
+            d['Fecha Solicitud'],
+            d['Estado']
+        ])
+
+        autoTable(doc, {
+            head: [columnas],
+            body: filas,
+            startY: 34,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [21, 55, 83],
+                textColor: [255, 255, 255],
+                fontSize: 8,
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            bodyStyles: {
+                fontSize: 7.5,
+                textColor: [31, 41, 55],
+                cellPadding: 2
+            },
+            alternateRowStyles: {
+                fillColor: [240, 247, 255]
+            },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 12 },
+                2: { halign: 'center', cellWidth: 22 },
+                5: { halign: 'center', cellWidth: 16 },
+                7: { halign: 'center', cellWidth: 22 },
+                8: { halign: 'center', cellWidth: 22, fontStyle: 'bold' }
+            },
+            margin: { left: 10, right: 10 },
+            didDrawPage: (data) => {
+                // Footer en cada página
+                const pageHeight = doc.internal.pageSize.getHeight()
+                doc.setFontSize(7)
+                doc.setTextColor(150)
+                doc.text(`Página ${doc.getCurrentPageInfo().pageNumber}`, doc.internal.pageSize.getWidth() - 25, pageHeight - 8)
+                doc.text('FoodStocker © ' + new Date().getFullYear(), 14, pageHeight - 8)
+            }
+        })
+
+        doc.save(`Solicitudes_FoodStocker_${new Date().toISOString().slice(0, 10)}.pdf`)
+    }
+
     const newListSolicitudes = solicitudes.filter(sol => {
         const text = filterText.toLowerCase()
         const responsable = sol.responsable?.Nom_Responsable?.toLowerCase() ?? ""
@@ -229,16 +380,34 @@ const SolicitudCrud = () => {
                     </button>
                 </div>
 
-                {/* Buscador */}
-                <div className="tw-relative tw-w-72 tw-mb-6">
-                    <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por responsable o motivo..."
-                        className="tw-w-full tw-pl-9 tw-pr-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 tw-transition-all tw-shadow-sm"
-                        value={filterText}
-                        onChange={(e) => setFilterText(e.target.value)}
-                    />
+                {/* Buscador y Exportar */}
+                <div className="tw-flex tw-items-center tw-justify-between tw-mb-6">
+                    <div className="tw-relative tw-w-72">
+                        <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por responsable o motivo..."
+                            className="tw-w-full tw-pl-9 tw-pr-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 tw-transition-all tw-shadow-sm"
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                        />
+                    </div>
+                    <div className="tw-flex tw-gap-2">
+                        <button
+                            onClick={exportToExcel}
+                            className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-green-600 tw-text-white hover:tw-bg-green-700 tw-transition-all tw-duration-200 tw-shadow-sm tw-font-medium tw-text-sm"
+                        >
+                            <Download className="tw-w-4 tw-h-4" />
+                            Excel
+                        </button>
+                        <button
+                            onClick={exportToPDF}
+                            className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-red-600 tw-text-white hover:tw-bg-red-700 tw-transition-all tw-duration-200 tw-shadow-sm tw-font-medium tw-text-sm"
+                        >
+                            <Download className="tw-w-4 tw-h-4" />
+                            PDF
+                        </button>
+                    </div>
                 </div>
 
                 {/* Tabla */}

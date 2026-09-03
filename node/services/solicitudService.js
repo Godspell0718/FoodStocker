@@ -2,11 +2,13 @@ import SolicitudModel from "../models/SolicitudModel.js";
 import responsablesModel from "../models/responsableModel.js";
 import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
 import DestinoModel from "../models/destinoModel.js";
+import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
+import EstadosModel from "../models/EstadosModel.js";
 
 class SolicitudService {
 
   async getAll() {
-    return await SolicitudModel.findAll({
+    const solicitudes = await SolicitudModel.findAll({
       include: [
         {
           model: responsablesModel,
@@ -21,6 +23,22 @@ class SolicitudService {
       ],
       order: [['Id_solicitud', 'DESC']]
     });
+
+    // Agregar el último estado a cada solicitud
+    const result = await Promise.all(solicitudes.map(async (sol) => {
+      const ultimoEstadoReg = await Estado_solicitudModel.findOne({
+        where: { Id_solicitud: sol.Id_solicitud },
+        include: [{ model: EstadosModel, as: 'estado', attributes: ['nom_estado'] }],
+        order: [['createdat', 'DESC']]
+      });
+
+      return {
+        ...sol.toJSON(),
+        ultimoEstado: ultimoEstadoReg?.estado?.nom_estado ?? "solicitado"
+      };
+    }));
+
+    return result;
   }
 
   async getById(Id_solicitud) {

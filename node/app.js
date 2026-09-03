@@ -48,7 +48,14 @@ console.log(`🔗 CORS habilitado para: ${corsOrigins.join(', ')}`)
 // ============================================
 // ⚠️ IMPORTANTE: Las asociaciones deben ir ANTES de las rutas
 //Solicitud -> Estado_solicitud
-
+SolicitudModel.hasMany(Estado_solicitudModel, {
+    foreignKey: 'Id_solicitud',
+    as: 'estados_solicitud'
+});
+Estado_solicitudModel.belongsTo(SolicitudModel, {
+    foreignKey: 'Id_solicitud',
+    as: 'solicitud'
+});
 
 // Entrada -> Insumo
 entradasModel.belongsTo(insumosModel, {
