@@ -6,7 +6,8 @@ import sequelize from "../database/db.js";
        Id_solicitud:        { type: DataTypes.INTEGER, allowNull: false },
        Id_insumos:          { type: DataTypes.INTEGER, allowNull: false },
        Id_Entradas: { type: DataTypes.INTEGER, allowNull: false },
-       cantidad_solicitada: { type: DataTypes.INTEGER, allowNull: false }
+       cantidad_solicitada: { type: DataTypes.INTEGER, allowNull: false },
+       cantidad_entregada:  { type: DataTypes.INTEGER, allowNull: true, defaultValue: null }
    }, { tableName: "insumos_solicitud", timestamps: true });
   
    export default insumosSolicitudModel;

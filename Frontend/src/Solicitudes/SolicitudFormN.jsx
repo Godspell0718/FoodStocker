@@ -199,7 +199,7 @@ const SolicitudFormNuevo = ({ hideModal }) => {
         setEnviando(true);
         try {
             await apiAxios.post("/api/solicitudes/completa", {
-                Id_Responsable: usuario.id,
+                Id_Responsable: usuario.id || usuario.Id_Responsable,
                 Fec_entrega: formData.Fec_entrega,
                 motivo: formData.motivo,
                 Id_Destino: formData.Id_Destino || null,

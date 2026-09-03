@@ -66,7 +66,8 @@ const SolicitudConLotes = () => {
         try {
             setLoadingSolicitudes(true);
             const res = await apiAxios.get("/api/solicitudes/pendientes");
-            const filtradas = res.data.filter(sol => sol.Id_Responsable === usuario.id);
+            const userId = usuario.id || usuario.Id_Responsable;
+            const filtradas = res.data.filter(sol => String(sol.Id_Responsable) === String(userId));
             setMisSolicitudes(filtradas);
         } catch (error) {
             console.error("Error cargando solicitudes:", error);
@@ -249,7 +250,7 @@ const SolicitudConLotes = () => {
         setEnviando(true);
         try {
             await apiAxios.post("/api/solicitudes/completa", {
-                Id_Responsable: usuario.id,
+                Id_Responsable: usuario.id || usuario.Id_Responsable,
                 Fec_entrega: fechaEntrega,
                 motivo, 
                 descripcion, 
