@@ -111,7 +111,7 @@ const CrudInsumos = () => {
         const accion = isActivo ? "Inactivar" : "Activar";
         const confirm = await Swal.fire({
             title: `¿${accion} insumo?`,
-            text: isActivo 
+            text: isActivo
                 ? "El insumo pasará a estado INACTIVO (no se mostrará para nuevos movimientos, pero se mantiene su historial)"
                 : "El insumo pasará a estado ACTIVO",
             icon: "warning",
@@ -199,13 +199,22 @@ const CrudInsumos = () => {
 
                 return (
                     <button
-                        className="btn btn-sm"
-                        style={{ backgroundColor: '#1d334a', color: 'white', border: 'none', minWidth: '40px', borderRadius: '4px', padding: '4px 8px', fontWeight: 'bold' }}
+                        className="btn btn-sm fw-bold"
+                        style={{
+                            background: 'linear-gradient(145deg, #dbeafe, #bfdbfe)',
+                            color: '#1e40af',
+                            minWidth: '40px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(191,219,254,0.6)',
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 1px 3px rgba(30,64,175,0.1)',
+                            padding: '4px 10px',
+                        }}
                         data-bs-toggle="modal"
                         data-bs-target="#modalDetalleLotes"
                         onClick={() => {
                             setTipoDetalle('disponible');
                             setInsumoDetalle(row);
+                            setShowModalLotes(true);
                         }}
                     >
                         {totalFisico}
@@ -226,8 +235,16 @@ const CrudInsumos = () => {
                 const { acumuladoSolicitado, listaParaModal } = obtenerConteoYLista(row.Id_Insumos);
                 return (
                     <button
-                        className="btn btn-sm text-white fw-bold"
-                        style={{ backgroundColor: '#D1C661', minWidth: '40px', borderRadius: '4px', border: 'none' }}
+                        className="btn btn-sm fw-bold"
+                        style={{
+                            background: 'linear-gradient(145deg, #fef3c7, #fde68a)',
+                            color: '#92400e',
+                            minWidth: '40px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(253,230,138,0.6)',
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 1px 3px rgba(146,64,14,0.1)',
+                            padding: '4px 10px',
+                        }}
                         onClick={() => {
                             setInsumoSolicitudDetalle({ nombre: row.Nom_Insumo, datos: listaParaModal });
                             setShowModalSolicitudes(true);
@@ -250,8 +267,16 @@ const CrudInsumos = () => {
 
                 return (
                     <button
-                        className="btn btn-sm"
-                        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', minWidth: '40px', borderRadius: '4px' }}
+                        className="btn btn-sm fw-bold"
+                        style={{
+                            background: 'linear-gradient(145deg, #ffe4e6, #fecdd3)',
+                            color: '#9f1239',
+                            minWidth: '40px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(254,205,211,0.6)',
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 1px 3px rgba(159,18,57,0.1)',
+                            padding: '4px 10px',
+                        }}
                         onClick={() => setVistaDetalle(row)}
                     >
                         {consumido}
@@ -265,11 +290,10 @@ const CrudInsumos = () => {
             sortable: true,
             width: "110px",
             cell: row => (
-                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${
-                    (row.Estado || 'ACTIVO') === 'ACTIVO'
-                        ? 'tw-bg-emerald-100 tw-text-emerald-800' 
-                        : 'tw-bg-rose-100 tw-text-rose-800'
-                }`}>
+                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${(row.Estado || 'ACTIVO') === 'ACTIVO'
+                    ? 'tw-bg-emerald-100 tw-text-emerald-800'
+                    : 'tw-bg-rose-100 tw-text-rose-800'
+                    }`}>
                     {row.Estado || 'ACTIVO'}
                 </span>
             )
@@ -284,11 +308,10 @@ const CrudInsumos = () => {
                     <div className="tw-flex tw-gap-2">
                         <button
                             title={isActivo ? "Editar" : "No se puede editar un registro inactivo"}
-                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
-                                isActivo
-                                    ? "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
-                                    : "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed"
-                            }`}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${isActivo
+                                ? "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
+                                : "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed"
+                                }`}
                             onClick={() => {
                                 if (!isActivo) {
                                     Swal.fire("Edición Bloqueada", "No se puede editar un insumo que se encuentra INACTIVO. Actívelo primero para poder editarlo.", "info");
@@ -302,11 +325,10 @@ const CrudInsumos = () => {
                         </button>
                         <button
                             title={isActivo ? "Inactivar Insumo" : "Activar Insumo"}
-                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
-                                isActivo 
-                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white" 
-                                    : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
-                            }`}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${isActivo
+                                ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white"
+                                : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
+                                }`}
                             onClick={() => toggleEstadoInsumo(row)}
                         >
                             {isActivo ? <ToggleRight className="tw-w-4 tw-h-4" /> : <ToggleLeft className="tw-w-4 tw-h-4" />}
