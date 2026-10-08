@@ -4,6 +4,7 @@ import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
 import DestinoModel from "../models/destinoModel.js";
 import Estado_solicitudModel from "../models/Estado_solicitudModel.js";
 import EstadosModel from "../models/EstadosModel.js";
+import solicitudServiceNuevo from "./SolicitudServiceNuevo.js";
 
 class SolicitudService {
 
@@ -29,7 +30,7 @@ class SolicitudService {
       const ultimoEstadoReg = await Estado_solicitudModel.findOne({
         where: { Id_solicitud: sol.Id_solicitud },
         include: [{ model: EstadosModel, as: 'estado', attributes: ['nom_estado'] }],
-        order: [['createdat', 'DESC']]
+        order: [['Id_estado_solicitud', 'DESC']]
       });
 
       return {
@@ -61,14 +62,8 @@ class SolicitudService {
   }
 
   async delete(Id_solicitud) {
-    await insumosSolicitudModel.destroy({
-      where: { Id_solicitud }
-    });
-    const deleted = await SolicitudModel.destroy({
-      where: { Id_solicitud }
-    });
-    if (!deleted) throw new Error("Solicitud no encontrada");
-    return true;
+    // Borrado transaccional: devuelve al lote el stock retenido y bloquea solicitudes despachadas
+    return await solicitudServiceNuevo.eliminar(Id_solicitud);
   }
 }
 

@@ -4,16 +4,28 @@ import Swal from "sweetalert2";
 import {
     ClipboardList, Calendar, FileText, Hash, Search,
     ArrowRight, ArrowLeft, Send, Plus, Trash2, ShoppingCart, Package,
-    CheckCircle, XCircle, Loader2, Truck, Eye, MapPin, ChevronDown
+    CheckCircle, XCircle, Loader2, Truck, Eye, MapPin, ChevronDown, Boxes, Layers
 } from "lucide-react";
+import {
+    fmtUnidad,
+    nombrePresentacion,
+    tienePresentacion,
+    describirPresentacion,
+    fmtCantidadConPresentacion,
+    fmtFechaVencimiento,
+    loteVigente,
+    compararPorVencimiento
+} from "../utils/inventario.js";
 
 const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all";
 const labelClass = "tw-block tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wide tw-mb-1.5";
 
 const SolicitudConLotes = () => {
     const [paso, setPaso] = useState(1);
+    const [tipSolicitud, setTipSolicitud] = useState("PRESENTACION");
     const [motivo, setMotivo] = useState("");
     const [descripcion, setDescripcion] = useState("");
+    const [observaciones, setObservaciones] = useState("");
     const [ficha, setFicha] = useState("");
     const [fichaConfirm, setFichaConfirm] = useState("");
     const [fechaEntrega, setFechaEntrega] = useState("");
@@ -103,28 +115,14 @@ const SolicitudConLotes = () => {
         setPaso(2);
     };
 
-    // Calcula el stock total disponible (lotes no vencidos)
+    // Calcula el stock total disponible (lotes vigentes, sin vencer)
     const calcularStockDisponible = (insumo) => {
-        const hoy = new Date();
         return (insumo.entradas || [])
             .filter(lote => {
-                const disponible = lote.Can_Inicial - lote.Can_Salida;
-                const fechaVenc = new Date(lote.Fec_Ven_Entrada);
-                return disponible > 0 && fechaVenc >= hoy;
+                const disponible = (lote.Can_Inicial || 0) - (lote.Can_Salida || 0);
+                return disponible > 0 && loteVigente(lote.Fec_Ven_Entrada) && lote.Estado === 'STOCK';
             })
-            .reduce((acc, lote) => acc + (lote.Can_Inicial - lote.Can_Salida), 0);
-    };
-
-    // Obtiene el lote más próximo a vencer con stock disponible
-    const getLoteMasProximo = (insumo) => {
-        const hoy = new Date();
-        return (insumo.entradas || [])
-            .filter(lote => {
-                const disponible = lote.Can_Inicial - lote.Can_Salida;
-                const fechaVenc = new Date(lote.Fec_Ven_Entrada);
-                return disponible > 0 && fechaVenc >= hoy;
-            })
-            .sort((a, b) => new Date(a.Fec_Ven_Entrada) - new Date(b.Fec_Ven_Entrada))[0] || null;
+            .reduce((acc, lote) => acc + ((lote.Can_Inicial || 0) - (lote.Can_Salida || 0)), 0);
     };
 
     const insumosFiltrados = insumos.filter(ins =>
@@ -133,33 +131,43 @@ const SolicitudConLotes = () => {
     );
 
     const handleAgregar = (insumo) => {
-        const cantidad = parseInt(cantidades[insumo.Id_Insumos] || 0);
-        if (!cantidad || cantidad <= 0) {
+        const inputVal = parseInt(cantidades[insumo.Id_Insumos] || 0);
+        if (!inputVal || inputVal <= 0) {
             Swal.fire("Cantidad inválida", "Ingresa una cantidad mayor a 0", "warning");
             return;
         }
 
+        // Si la solicitud es por presentación completa y el insumo la tiene configurada:
+        // la cantidad base es: inputVal (número de empaques) * Can_Presentacion
+        const esPorPresentacion = tipSolicitud === "PRESENTACION" && tienePresentacion(insumo);
+        const cantidadBase = esPorPresentacion
+            ? inputVal * Number(insumo.Can_Presentacion)
+            : inputVal;
+
         const stockTotal = calcularStockDisponible(insumo);
-        if (cantidad > stockTotal) {
-            Swal.fire("Stock insuficiente", `Solo hay ${stockTotal} unidades disponibles para ${insumo.Nom_Insumo}`, "warning");
+        if (cantidadBase > stockTotal) {
+            const unidadTxt = fmtUnidad(insumo.Uni_medida);
+            const extraMsg = esPorPresentacion
+                ? ` (${inputVal} ${nombrePresentacion(insumo.Tip_Presentacion, inputVal)} = ${cantidadBase.toLocaleString("es-CO")} ${unidadTxt})`
+                : "";
+            Swal.fire("Stock insuficiente", `Solo hay ${stockTotal.toLocaleString("es-CO")} ${unidadTxt} disponibles para ${insumo.Nom_Insumo}${extraMsg}`, "warning");
             return;
         }
 
-        // Ordenar lotes por fecha de vencimiento más próxima
-        const hoy = new Date();
+        // Ordenar lotes por FEFO (más próximo a vencer primero; sin fecha al final)
         const lotesOrdenados = (insumo.entradas || [])
             .filter(l => {
-                const disp = l.Can_Inicial - l.Can_Salida;
-                return disp > 0 && new Date(l.Fec_Ven_Entrada) >= hoy;
+                const disp = (l.Can_Inicial || 0) - (l.Can_Salida || 0);
+                return disp > 0 && loteVigente(l.Fec_Ven_Entrada) && l.Estado === 'STOCK';
             })
-            .sort((a, b) => new Date(a.Fec_Ven_Entrada) - new Date(b.Fec_Ven_Entrada));
+            .sort(compararPorVencimiento);
 
-        // Distribuir cantidad entre lotes automáticamente
-        let restante = cantidad;
+        // Distribuir cantidad base entre lotes automáticamente
+        let restante = cantidadBase;
         const lotesUsados = [];
         for (const lote of lotesOrdenados) {
             if (restante <= 0) break;
-            const disponible = lote.Can_Inicial - lote.Can_Salida;
+            const disponible = (lote.Can_Inicial || 0) - (lote.Can_Salida || 0);
             const tomado = Math.min(restante, disponible);
             lotesUsados.push({
                 Id_Insumos: insumo.Id_Insumos,
@@ -167,21 +175,31 @@ const SolicitudConLotes = () => {
                 Nom_Insumo: insumo.Nom_Insumo,
                 Lote: lote.Lote,
                 Fec_Ven: lote.Fec_Ven_Entrada,
-                Uni_Med: insumo.Uni_Med_Insumo,
+                Uni_Med: fmtUnidad(insumo.Uni_medida),
+                Tip_Presentacion: insumo.Tip_Presentacion,
+                Can_Presentacion: insumo.Can_Presentacion,
+                esPorPresentacion,
+                empaquesPedidas: esPorPresentacion ? inputVal : null,
                 cantidad: tomado
             });
             restante -= tomado;
         }
 
-        // Reemplazar entradas previas del mismo insumo y agregar las nuevas
         const carritoSinEste = carrito.filter(item => item.Id_Insumos !== insumo.Id_Insumos);
         setCarrito([...carritoSinEste, ...lotesUsados]);
         setCantidades(prev => ({ ...prev, [insumo.Id_Insumos]: "" }));
 
-        const msg = lotesUsados.length > 1
-            ? `Distribuido en ${lotesUsados.length} lotes automáticamente`
-            : `Lote ${lotesUsados[0].Lote} asignado`;
-        Swal.fire({ icon: "success", title: "Agregado", text: msg, timer: 1000, showConfirmButton: false });
+        const detalleTexto = esPorPresentacion
+            ? `${inputVal} ${nombrePresentacion(insumo.Tip_Presentacion, inputVal)} (${cantidadBase.toLocaleString("es-CO")} ${fmtUnidad(insumo.Uni_medida)})`
+            : `${cantidadBase.toLocaleString("es-CO")} ${fmtUnidad(insumo.Uni_medida)}`;
+
+        Swal.fire({
+            icon: "success",
+            title: "Agregado",
+            text: `${insumo.Nom_Insumo}: ${detalleTexto}`,
+            timer: 1200,
+            showConfirmButton: false
+        });
     };
 
     // Quita TODOS los lotes del insumo del carrito
@@ -195,39 +213,56 @@ const SolicitudConLotes = () => {
             return;
         }
 
-        // Agrupar carrito por insumo para el resumen
         const agrupado = carrito.reduce((acc, item) => {
             if (!acc[item.Nom_Insumo]) {
-                acc[item.Nom_Insumo] = { total: 0, lotes: [] };
+                acc[item.Nom_Insumo] = {
+                    total: 0,
+                    lotes: [],
+                    uniMed: item.Uni_Med,
+                    tipPres: item.Tip_Presentacion,
+                    canPres: item.Can_Presentacion
+                };
             }
             acc[item.Nom_Insumo].total += item.cantidad;
-            acc[item.Nom_Insumo].lotes.push({ lote: item.Lote, cantidad: item.cantidad, vence: item.Fec_Ven });
+            acc[item.Nom_Insumo].lotes.push({ lote: item.Lote, cantidad: item.cantidad, vence: fmtFechaVencimiento(item.Fec_Ven) });
             return acc;
         }, {});
 
+        const tipoLabel = tipSolicitud === "PRESENTACION"
+            ? "Por empaque completo (Bulto, Cubeta, etc.)"
+            : "Por cantidad exacta / fraccionada";
+
         let resumenHTML = `
-            <div style="text-align: left;">
-                <p><strong>Motivo:</strong> ${motivo}</p>
-                <p><strong>Descripción:</strong> ${descripcion}</p>
-                <p><strong>Ficha:</strong> ${ficha}</p>
-                <p><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
-                ${Id_Destino ? `<p><strong>Destino:</strong> ${destinos.find(d => d.Id_Destino == Id_Destino)?.Nom_Destino || Id_Destino}</p>` : ""}
-                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;" />
-                <p style="font-weight: 600; margin-bottom: 8px;">Insumos solicitados (${carrito.length} lote(s)):</p>
+            <div style="text-align: left; font-size: 13px;">
+                <p style="margin: 4px 0;"><strong>Tipo de solicitud:</strong> <span style="color: #1e3a5f; font-weight: 700;">${tipoLabel}</span></p>
+                <p style="margin: 4px 0;"><strong>Motivo:</strong> ${motivo}</p>
+                <p style="margin: 4px 0;"><strong>Descripción:</strong> ${descripcion}</p>
+                ${observaciones ? `<p style="margin: 4px 0;"><strong>Observaciones:</strong> ${observaciones}</p>` : ""}
+                ${ficha ? `<p style="margin: 4px 0;"><strong>Ficha:</strong> ${ficha}</p>` : ""}
+                <p style="margin: 4px 0;"><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
+                ${Id_Destino ? `<p style="margin: 4px 0;"><strong>Destino:</strong> ${destinos.find(d => d.Id_Destino == Id_Destino)?.Nom_Destino || Id_Destino}</p>` : ""}
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 10px 0;" />
+                <p style="font-weight: 700; margin-bottom: 6px;">Insumos solicitados (${carrito.length} lote(s)):</p>
                 <ul style="list-style: none; padding: 0; margin: 0;">
-                    ${Object.entries(agrupado).map(([nombre, info]) => `
+                    ${Object.entries(agrupado).map(([nombre, info]) => {
+                        const cantConPres = fmtCantidadConPresentacion(info.total, {
+                            Tip_Presentacion: info.tipPres,
+                            Can_Presentacion: info.canPres,
+                            Uni_medida: info.uniMed
+                        });
+                        return `
                         <li style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>${nombre}</span>
-                                <span style="font-weight: 600;">${info.total} ${carrito.find(i => i.Nom_Insumo === nombre)?.Uni_Med || "unidad"}</span>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600;">${nombre}</span>
+                                <span style="font-weight: 700; color: #1e3a5f;">${cantConPres}</span>
                             </div>
                             ${info.lotes.length > 0 ? `
                                 <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
-                                    ${info.lotes.map(l => `Lote ${l.lote} (${l.cantidad} uds, vence: ${l.vence})`).join(" · ")}
+                                    ${info.lotes.map(l => `Lote ${l.lote} (${l.cantidad.toLocaleString("es-CO")} ${info.uniMed}, vence: ${l.vence})`).join(" · ")}
                                 </div>
                             ` : ""}
-                        </li>
-                    `).join("")}
+                        </li>`;
+                    }).join("")}
                 </ul>
             </div>
         `;
@@ -254,8 +289,10 @@ const SolicitudConLotes = () => {
                 Fec_entrega: fechaEntrega,
                 motivo, 
                 descripcion, 
+                observaciones: observaciones || null,
                 ficha: ficha || null,
                 Id_Destino: Id_Destino || null,
+                Tip_solicitud: tipSolicitud,
                 insumos: carrito.map(item => ({
                     Id_insumos: item.Id_Insumos,
                     Id_Entradas: item.Id_Entradas,
@@ -264,7 +301,7 @@ const SolicitudConLotes = () => {
             });
             setEnviando(false);
             Swal.fire({ title: "¡Solicitud creada!", text: "Tu solicitud fue registrada correctamente", icon: "success", timer: 1800, showConfirmButton: false });
-            setMotivo(""); setDescripcion(""); setFicha(""); setFichaConfirm("");
+            setMotivo(""); setDescripcion(""); setObservaciones(""); setFicha(""); setFichaConfirm("");
             setFechaEntrega(""); setId_Destino(""); setCarrito([]); setPaso(1);
             cargarMisSolicitudes();
             window.dispatchEvent(new Event("nuevaSolicitud"));
@@ -353,6 +390,76 @@ const SolicitudConLotes = () => {
                             <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
                         </div>
                     </div>
+
+                    {/* Modalidad de solicitud (Requerimiento: por empaque completo vs cantidad exacta) */}
+                    <div className="md:tw-col-span-2">
+                        <label className={labelClass}>
+                            <Layers className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />
+                            Modalidad de Solicitud *
+                        </label>
+                        <div className="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 tw-gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setTipSolicitud("PRESENTACION")}
+                                disabled={paso === 2}
+                                className={`tw-p-3.5 tw-rounded-xl tw-border tw-text-left tw-transition-all tw-flex tw-items-start tw-gap-3 ${
+                                    tipSolicitud === "PRESENTACION"
+                                        ? "tw-border-primario-900 tw-bg-primario-50/60 tw-ring-2 tw-ring-primario-900/10"
+                                        : "tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-white"
+                                }`}
+                            >
+                                <div className={`tw-p-2 tw-rounded-lg ${tipSolicitud === "PRESENTACION" ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>
+                                    <Boxes className="tw-w-5 tw-h-5" />
+                                </div>
+                                <div className="tw-flex-1">
+                                    <p className="tw-text-sm tw-font-bold tw-text-gray-800 tw-m-0">
+                                        Por empaque completo (Bulto, Cubeta, etc.)
+                                    </p>
+                                    <p className="tw-text-xs tw-text-gray-500 tw-m-0 tw-mt-0.5">
+                                        Pide insumos por unidades cerradas completas (ej. 1 bulto de sal, 2 cubetas de huevos).
+                                    </p>
+                                </div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setTipSolicitud("CANTIDAD")}
+                                disabled={paso === 2}
+                                className={`tw-p-3.5 tw-rounded-xl tw-border tw-text-left tw-transition-all tw-flex tw-items-start tw-gap-3 ${
+                                    tipSolicitud === "CANTIDAD"
+                                        ? "tw-border-primario-900 tw-bg-primario-50/60 tw-ring-2 tw-ring-primario-900/10"
+                                        : "tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-white"
+                                }`}
+                            >
+                                <div className={`tw-p-2 tw-rounded-lg ${tipSolicitud === "CANTIDAD" ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>
+                                    <Package className="tw-w-5 tw-h-5" />
+                                </div>
+                                <div className="tw-flex-1">
+                                    <p className="tw-text-sm tw-font-bold tw-text-gray-800 tw-m-0">
+                                        Por cantidad exacta / fraccionada
+                                    </p>
+                                    <p className="tw-text-xs tw-text-gray-500 tw-m-0 tw-mt-0.5">
+                                        Para pedidos específicos fraccionados (ej. 100 gr de sal, 2 huevos, 250 ml).
+                                    </p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Observaciones adicionales (Requerimiento 4) */}
+                    <div className="md:tw-col-span-2">
+                        <label className={labelClass}>
+                            <FileText className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1" />
+                            Observaciones adicionales <span className="tw-text-gray-400 tw-normal-case">(opcional)</span>
+                        </label>
+                        <textarea
+                            className={paso === 2 ? `${inputClass} tw-opacity-60 tw-cursor-not-allowed` : inputClass}
+                            rows={2}
+                            value={observaciones}
+                            onChange={e => setObservaciones(e.target.value)}
+                            placeholder="Indicaciones para el almacén, especificaciones de entrega, etc..."
+                            disabled={paso === 2}
+                        />
+                    </div>
                 </div>
                 <div className="tw-mt-4">
                     {paso === 1 ? (
@@ -385,7 +492,9 @@ const SolicitudConLotes = () => {
                                     <tr className="tw-bg-primario-900">
                                         <th className="tw-text-left tw-px-4 tw-py-3 tw-text-xs tw-font-semibold tw-text-primario-100 tw-uppercase tw-tracking-wide">Insumo</th>
                                         <th className="tw-text-left tw-px-4 tw-py-3 tw-text-xs tw-font-semibold tw-text-primario-100 tw-uppercase tw-tracking-wide">Stock disponible</th>
-                                        <th className="tw-text-left tw-px-4 tw-py-3 tw-text-xs tw-font-semibold tw-text-primario-100 tw-uppercase tw-tracking-wide tw-w-32">Cantidad</th>
+                                        <th className="tw-text-left tw-px-4 tw-py-3 tw-text-xs tw-font-semibold tw-text-primario-100 tw-uppercase tw-tracking-wide tw-w-44">
+                                            {tipSolicitud === "PRESENTACION" ? "N° de Empaques" : "Cantidad"}
+                                        </th>
                                         <th className="tw-px-4 tw-py-3 tw-w-28" />
                                     </tr>
                                 </thead>
@@ -396,28 +505,56 @@ const SolicitudConLotes = () => {
                                         insumosFiltrados.map(ins => {
                                             const stockTotal = calcularStockDisponible(ins);
                                             const sinStock = stockTotal === 0;
+                                            const uni = fmtUnidad(ins.Uni_medida);
+                                            const tienePres = tienePresentacion(ins);
+                                            const esPres = tipSolicitud === "PRESENTACION" && tienePres;
+                                            const cantInput = cantidades[ins.Id_Insumos] || "";
+                                            const numEmp = Number(cantInput);
+                                            const cantCalc = esPres && numEmp > 0 ? numEmp * Number(ins.Can_Presentacion) : null;
+
                                             return (
                                                 <tr key={ins.Id_Insumos} className={`tw-border-t tw-border-gray-100 tw-transition-colors ${sinStock ? "tw-opacity-40" : "hover:tw-bg-gray-50"}`}>
                                                     <td className="tw-px-4 tw-py-3">
                                                         <p className="tw-font-semibold tw-text-gray-800 tw-m-0">{ins.Nom_Insumo}</p>
-                                                        <p className="tw-text-xs tw-text-gray-400 tw-m-0">{ins.Uni_Med_Insumo}</p>
+                                                        {tienePres ? (
+                                                            <span className="tw-inline-flex tw-items-center tw-gap-1 tw-text-[11px] tw-font-medium tw-text-primario-800 tw-bg-primario-50 tw-px-1.5 tw-py-0.5 tw-rounded tw-mt-0.5">
+                                                                <Boxes className="tw-w-3 tw-h-3" />
+                                                                {describirPresentacion(ins)}
+                                                            </span>
+                                                        ) : (
+                                                            <p className="tw-text-xs tw-text-gray-400 tw-m-0">{uni}</p>
+                                                        )}
                                                     </td>
                                                     <td className="tw-px-4 tw-py-3">
                                                         <span className={`tw-inline-flex tw-items-center tw-px-2.5 tw-py-1 tw-rounded-lg tw-text-xs tw-font-bold ${sinStock ? "tw-bg-red-50 tw-text-red-500" : "tw-bg-green-50 tw-text-green-700"}`}>
-                                                            {sinStock ? <span>Sin stock</span> : <span>{stockTotal} {ins.Uni_Med_Insumo}</span>}
+                                                            {sinStock ? (
+                                                                <span>Sin stock</span>
+                                                            ) : esPres ? (
+                                                                <span>{Math.floor(stockTotal / Number(ins.Can_Presentacion))} {nombrePresentacion(ins.Tip_Presentacion, Math.floor(stockTotal / Number(ins.Can_Presentacion)))} ({stockTotal.toLocaleString("es-CO")} {uni})</span>
+                                                            ) : (
+                                                                <span>{stockTotal.toLocaleString("es-CO")} {uni}</span>
+                                                            )}
                                                         </span>
                                                     </td>
                                                     <td className="tw-px-4 tw-py-3">
-                                                        <input
-                                                            type="number"
-                                                            className="tw-w-24 tw-px-3 tw-py-1.5 tw-rounded-lg tw-border tw-border-gray-200 tw-text-sm focus:tw-outline-none focus:tw-border-primario-400 tw-bg-gray-50 disabled:tw-opacity-40"
-                                                            min={1}
-                                                            max={stockTotal}
-                                                            value={cantidades[ins.Id_Insumos] || ""}
-                                                            onChange={e => setCantidades(prev => ({ ...prev, [ins.Id_Insumos]: e.target.value }))}
-                                                            disabled={sinStock}
-                                                            placeholder="0"
-                                                        />
+                                                        <div>
+                                                            <div className="tw-relative">
+                                                                <input
+                                                                    type="number"
+                                                                    className="tw-w-full tw-px-3 tw-py-1.5 tw-rounded-lg tw-border tw-border-gray-200 tw-text-sm focus:tw-outline-none focus:tw-border-primario-400 tw-bg-gray-50 disabled:tw-opacity-40"
+                                                                    min={1}
+                                                                    value={cantInput}
+                                                                    onChange={e => setCantidades(prev => ({ ...prev, [ins.Id_Insumos]: e.target.value }))}
+                                                                    disabled={sinStock}
+                                                                    placeholder={esPres ? `Ej: 1 ${ins.Tip_Presentacion}` : `0 ${uni}`}
+                                                                />
+                                                            </div>
+                                                            {cantCalc !== null && (
+                                                                <span className="tw-text-[11px] tw-text-primario-800 tw-font-semibold tw-block tw-mt-1">
+                                                                    = {cantCalc.toLocaleString("es-CO")} {uni}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="tw-px-4 tw-py-3">
                                                         <button
@@ -554,9 +691,18 @@ const SolicitudConLotes = () => {
                                         <div className="tw-flex tw-items-center tw-gap-2">
                                             <span className="tw-text-secundario-400 tw-font-bold tw-text-sm">#{sol.Id_solicitud}</span>
                                             <span className="tw-text-primario-200 tw-text-sm">— {sol.Descripcion || sol.motivo}</span>
+                                            <span className="tw-ml-2 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[11px] tw-font-semibold tw-bg-primario-800 tw-text-secundario-300">
+                                                {sol.Tip_solicitud === 'PRESENTACION' ? 'Por empaque completo' : 'Por cantidad exacta'}
+                                            </span>
                                         </div>
                                         <span className="tw-text-primario-300 tw-text-xs">{sol.Fec_entrega}</span>
                                     </div>
+
+                                    {sol.Observaciones && (
+                                        <div className="tw-px-5 tw-pt-3 tw-text-xs tw-text-gray-500 tw-border-b tw-border-gray-50">
+                                            <strong>Nota:</strong> {sol.Observaciones}
+                                        </div>
+                                    )}
 
                                     <div className="tw-px-5 tw-py-5">
                                         {/* Stepper de estados */}

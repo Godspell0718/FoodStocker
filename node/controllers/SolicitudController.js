@@ -32,12 +32,20 @@ export const getById = async (req, res) => {
 
 export const createSolicitud = async (req, res) => {
     try {
-        console.log("REQ BODY ", req.body);
-
         const solicitud = await solicitudService.create({
             Id_Responsable: req.body.Id_Responsable,
             Fec_entrega: req.body.Fec_entrega,
-            motivo: req.body.motivo
+            motivo: req.body.motivo,
+            Descripcion: req.body.Descripcion || req.body.descripcion,
+            Ficha: req.body.Ficha || req.body.ficha,
+            Id_Destino: req.body.Id_Destino
+        });
+
+        // Registrar estado inicial (1 = solicitado)
+        await Estado_solicitudModel.create({
+            Id_solicitud: solicitud.Id_solicitud,
+            Id_estado: 1,
+            fecha: new Date()
         });
 
         res.status(201).json(solicitud);
@@ -75,7 +83,7 @@ export const deletesolicitud = async (req, res) => {
                 include: [{
                     model: insumosModel,
                     as: 'insumo',
-                    attributes: ['Nom_Insumo', 'Uni_Med_Insumo']
+                    attributes: ['Nom_Insumo', 'Uni_medida']
                 }]
             });
             res.status(200).json(insumos);
@@ -107,12 +115,18 @@ export const getSolicitudesPendientes = async (req, res) => {
                         {
                             model: insumosModel,
                             as: 'insumo',
-                            attributes: ['Nom_Insumo']
+                            attributes: ['Nom_Insumo', 'Uni_medida', 'Tip_Presentacion', 'Can_Presentacion'],
+                            include: [{
+                                model: entradasModel,
+                                as: 'entradas',
+                                attributes: ['Id_Entradas', 'Lote', 'Can_Inicial', 'Can_Salida', 'Estado', 'Fec_Ven_Entrada', 'Uni_medida'],
+                                required: false
+                            }]
                         },
                         {
                             model: entradasModel,
                             as: 'entrada',
-                            attributes: ['Lote', 'Fec_Ven_Entrada']
+                            attributes: ['Id_Entradas', 'Lote', 'Fec_Ven_Entrada', 'Uni_medida']
                         }
                     ]
                 }
@@ -125,7 +139,7 @@ export const getSolicitudesPendientes = async (req, res) => {
             const ultimoEstadoReg = await Estado_solicitudModel.findOne({
                 where: { Id_solicitud: sol.Id_solicitud },
                 include: [{ model: EstadosModel, as: 'estado', attributes: ['nom_estado'] }],
-                order: [['createdat', 'DESC']]
+                order: [['Id_estado_solicitud', 'DESC']]
             });
 
             return {
@@ -148,13 +162,14 @@ export const cambiarEstadoSolicitud = async (req, res) => {
         if (!Id_solicitud || !Id_estado) {
             return res.status(400).json({ message: "Id_solicitud e Id_estado son requeridos" });
         }
-        if (Id_estado === 4 && (!motivo_cancelacion || !motivo_cancelacion.trim())) {
+        if (Number(Id_estado) === 4 && (!motivo_cancelacion || !String(motivo_cancelacion).trim())) {
             return res.status(400).json({ message: "El motivo de cancelación es obligatorio" });
         }
         const registro = await solicitudServiceNuevo.cambiarEstado({ Id_solicitud, Id_estado, motivo_cancelacion });
         res.status(201).json({ message: "Estado actualizado", registro });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        // Errores de reglas de negocio (transición inválida, stock, etc.) → 400
+        res.status(400).json({ message: error.message });
     }
 };
 
@@ -188,5 +203,16 @@ export const guardarNovedad = async (req, res) => {
     }
 };
 
-
-
+// POST /api/solicitudes/cambiar-lote
+export const cambiarLoteItemSolicitud = async (req, res) => {
+    try {
+        const { Id_insumo_solicitud, Id_Entradas_nuevo } = req.body;
+        if (!Id_insumo_solicitud || !Id_Entradas_nuevo) {
+            return res.status(400).json({ message: "Id_insumo_solicitud e Id_Entradas_nuevo son requeridos" });
+        }
+        const resultado = await solicitudServiceNuevo.cambiarLoteItem({ Id_insumo_solicitud, Id_Entradas_nuevo });
+        res.status(200).json({ message: "Lote cambiado exitosamente", data: resultado });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};

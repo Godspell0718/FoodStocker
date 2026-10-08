@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { Package, Tag, Layers, ChevronDown, Save, X } from "lucide-react";
+import { Package, Tag, Layers, ChevronDown, Save, X, Boxes } from "lucide-react";
+import { UNIDADES_MEDIDA, PRESENTACIONES, nombrePresentacion } from "../utils/inventario.js";
 
 const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all";
 const labelClass = "tw-block tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wide tw-mb-1.5";
@@ -34,12 +35,17 @@ const referenciasInsumo = [
     { value: "PP", label: "PP - Producto en Proceso" },
 ];
 
+const unidadesMedida = UNIDADES_MEDIDA;
+
 const InsumosForm = ({ hideModal, insumoParaEditar, onSuccess }) => {
     const MySwal = withReactContent(Swal);
 
     const [Nom_Insumo, setNombre] = useState('');
     const [Tip_Insumo, setTipo] = useState('lacteos');
+    const [Uni_medida, setUniMedida] = useState('gr');
     const [Ref_Insumo, setReferencia] = useState('MP');
+    const [Tip_Presentacion, setTipPresentacion] = useState('');
+    const [Can_Presentacion, setCanPresentacion] = useState('');
     const [loading, setLoading] = useState(false);
 
     const isEditing = !!insumoParaEditar;
@@ -48,7 +54,10 @@ const InsumosForm = ({ hideModal, insumoParaEditar, onSuccess }) => {
         if (insumoParaEditar) {
             setNombre(insumoParaEditar.Nom_Insumo || '');
             setTipo(insumoParaEditar.Tip_Insumo || 'lacteos');
-            setReferencia(insumoParaEditar.Ref_Insumo || 'MP');
+            setUniMedida((insumoParaEditar.Uni_medida || 'gr').toLowerCase());
+            setReferencia((insumoParaEditar.Ref_Insumo || 'MP').toUpperCase());
+            setTipPresentacion(insumoParaEditar.Tip_Presentacion || '');
+            setCanPresentacion(insumoParaEditar.Can_Presentacion ?? '');
         } else {
             limpiarFormulario();
         }
@@ -57,7 +66,10 @@ const InsumosForm = ({ hideModal, insumoParaEditar, onSuccess }) => {
     const limpiarFormulario = () => {
         setNombre('');
         setTipo('lacteos');
+        setUniMedida('gr');
         setReferencia('MP');
+        setTipPresentacion('');
+        setCanPresentacion('');
     };
 
     const gestionarForm = async (e) => {
@@ -79,12 +91,28 @@ const InsumosForm = ({ hideModal, insumoParaEditar, onSuccess }) => {
             });
         }
 
+        // Presentación: opcional, pero si se llena debe estar completa
+        const tienePres = Tip_Presentacion || Can_Presentacion !== '';
+        if (tienePres) {
+            const cant = Number(Can_Presentacion);
+            if (!Tip_Presentacion || !Number.isInteger(cant) || cant <= 0) {
+                return MySwal.fire({
+                    title: "Presentación incompleta",
+                    text: "Elige el tipo de presentación y escribe cuánto trae (número entero mayor a 0), o deja ambos vacíos.",
+                    icon: "warning"
+                });
+            }
+        }
+
         setLoading(true);
 
         const data = {
             Nom_Insumo: Nom_Insumo.trim(),
             Tip_Insumo,
-            Ref_Insumo: Ref_Insumo || 'MP'
+            Uni_medida: Uni_medida.toLowerCase(),
+            Ref_Insumo: (Ref_Insumo || 'MP').toUpperCase(),
+            Tip_Presentacion: tienePres ? Tip_Presentacion : null,
+            Can_Presentacion: tienePres ? Number(Can_Presentacion) : null
         };
 
         try {
@@ -165,6 +193,29 @@ const InsumosForm = ({ hideModal, insumoParaEditar, onSuccess }) => {
                 </div>
             </div>
 
+            {/* Unidad de Medida */}
+            <div>
+                <label className={labelClass}>
+                    <Package className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5 tw-text-primario-900" />
+                    Unidad de Medida <span className="tw-text-red-500">*</span>
+                </label>
+                <div className="tw-relative">
+                    <select
+                        className={selectClass}
+                        value={Uni_medida}
+                        onChange={(e) => setUniMedida(e.target.value)}
+                        required
+                    >
+                        {unidadesMedida.map(u => (
+                            <option key={u.value} value={u.value}>
+                                {u.label}
+                            </option>
+                        ))}
+                    </select>
+                    <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
+                </div>
+            </div>
+
             {/* Referencia */}
             <div>
                 <label className={labelClass}>
@@ -186,6 +237,52 @@ const InsumosForm = ({ hideModal, insumoParaEditar, onSuccess }) => {
                     </select>
                     <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
                 </div>
+            </div>
+
+            {/* Presentación (opcional) */}
+            <div className="tw-rounded-xl tw-border tw-border-primario-100 tw-bg-primario-50/40 tw-p-4">
+                <label className={labelClass}>
+                    <Boxes className="tw-w-3.5 tw-h-3.5 tw-inline tw-mr-1.5 tw-text-primario-900" />
+                    Presentación <span className="tw-text-gray-400 tw-normal-case tw-font-normal">(opcional — para pedir el empaque completo)</span>
+                </label>
+                <div className="tw-grid tw-grid-cols-2 tw-gap-3">
+                    <div className="tw-relative">
+                        <select
+                            className={selectClass}
+                            value={Tip_Presentacion}
+                            onChange={(e) => {
+                                setTipPresentacion(e.target.value);
+                                if (!e.target.value) setCanPresentacion('');
+                            }}
+                        >
+                            <option value="">Sin presentación</option>
+                            {PRESENTACIONES.map(p => (
+                                <option key={p.value} value={p.value}>{p.label}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
+                    </div>
+                    <div className="tw-relative">
+                        <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            className={`${inputClass} tw-pr-14`}
+                            placeholder={Uni_medida === 'und' ? "Ej: 30" : "Ej: 50000"}
+                            value={Can_Presentacion}
+                            onChange={(e) => setCanPresentacion(e.target.value)}
+                            disabled={!Tip_Presentacion}
+                        />
+                        <span className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-text-xs tw-font-semibold tw-text-gray-400">
+                            {Uni_medida}
+                        </span>
+                    </div>
+                </div>
+                {Tip_Presentacion && Number(Can_Presentacion) > 0 && (
+                    <p className="tw-text-xs tw-text-primario-800 tw-mt-2 tw-mb-0">
+                        1 {nombrePresentacion(Tip_Presentacion)} = <strong>{Number(Can_Presentacion).toLocaleString("es-CO")} {Uni_medida}</strong>
+                    </p>
+                )}
             </div>
 
             {/* Botones de acción */}

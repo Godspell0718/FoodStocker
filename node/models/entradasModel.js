@@ -22,7 +22,6 @@ const entradaModel = db.define('entradas', {
     Vlr_Total: {
         type: DataTypes.DECIMAL(10, 0),
         allowNull: true
-        // Este campo es GENERATED en la DB, no se debe incluir en creates/updates
     },
     Can_Inicial: {
         type: DataTypes.INTEGER(4),
@@ -75,9 +74,12 @@ const entradaModel = db.define('entradas', {
         defaultValue: null
     },
     Uni_medida: {
-        type: DataTypes.ENUM('Kg', 'Gr', 'Ml', 'L', 'Lbs'),
+        type: DataTypes.ENUM('kg', 'gr', 'ml', 'l', 'lbs', 'und'),
         allowNull: false, 
-        defaultValue: 'Gr'
+        defaultValue: 'gr',
+        set(valor) {
+            this.setDataValue('Uni_medida', valor == null ? valor : String(valor).trim().toLowerCase());
+        }
     },
     createdat: {
         type: DataTypes.DATE,

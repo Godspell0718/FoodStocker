@@ -7,8 +7,9 @@ import {
     Package, Tag, Layers, ClipboardList, Eye,
     Pencil, ToggleLeft, ToggleRight, Plus, Search, X, Inbox,
     AlertCircle, CheckCircle2, ArrowLeft, Boxes,
-    History
+    History, DollarSign
 } from "lucide-react"
+import { fmtDinero, fmtUnidad, fmtReferencia, describirPresentacion } from "../utils/inventario.js";
 
 const CrudInsumos = () => {
 
@@ -84,6 +85,16 @@ const CrudInsumos = () => {
         return stockTotal;
     };
 
+    // Cantidad total (en unidades de empaque/presentación ej: bolsas, bultos en lugar de peso)
+    const calcularCantidadTotal = (insumo) => {
+        const stock = calcularStockDisponible(insumo);
+        if (insumo.Can_Presentacion && Number(insumo.Can_Presentacion) > 0) {
+            const cant = stock / Number(insumo.Can_Presentacion);
+            return Number.isInteger(cant) ? cant : Math.round(cant * 100) / 100;
+        }
+        return stock;
+    };
+
     const obtenerConteoYLista = (idInsumo) => {
         const listaParaModal = [];
         let acumuladoSolicitado = 0;
@@ -154,10 +165,18 @@ const CrudInsumos = () => {
             grow: 2,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-3">
-                    <div className="tw-w-8 tw-h-8 tw-bg-primario-50 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
+                    <div className="tw-w-8 tw-h-8 tw-bg-primario-50 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-shrink-0">
                         <Package className="tw-w-4 tw-h-4 tw-text-primario-900" />
                     </div>
-                    <span className="tw-font-medium tw-text-slate-700">{row.Nom_Insumo}</span>
+                    <div>
+                        <span className="tw-font-medium tw-text-slate-700 tw-block">{row.Nom_Insumo}</span>
+                        {describirPresentacion(row) && (
+                            <span className="tw-inline-flex tw-items-center tw-gap-1 tw-text-[11px] tw-text-primario-700 tw-font-medium tw-bg-primario-50 tw-px-1.5 tw-py-0.5 tw-rounded">
+                                <Boxes className="tw-w-3 tw-h-3" />
+                                {describirPresentacion(row)}
+                            </span>
+                        )}
+                    </div>
                 </div>
             )
         },
@@ -173,15 +192,42 @@ const CrudInsumos = () => {
             )
         },
         {
-            name: "Referencia",
-            selector: row => row.Ref_Insumo,
+            name: "Unidad Med.",
+            selector: row => fmtUnidad(row.Uni_medida) || "—",
             sortable: true,
+            width: "110px",
+            cell: row => (
+                <span className="tw-px-2.5 tw-py-1 tw-bg-slate-100 tw-text-slate-700 tw-rounded-lg tw-text-xs tw-font-semibold tw-border tw-border-slate-200">
+                    {fmtUnidad(row.Uni_medida) || "—"}
+                </span>
+            )
+        },
+        {
+            name: "Referencia",
+            selector: row => fmtReferencia(row.Ref_Insumo),
+            sortable: true,
+            width: "110px",
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
                     <Layers className="tw-w-3.5 tw-h-3.5 tw-text-slate-400" />
-                    <span className="tw-text-slate-600">{row.Ref_Insumo || 'N/A'}</span>
+                    <span className="tw-text-slate-600 tw-font-semibold">{fmtReferencia(row.Ref_Insumo) || 'N/A'}</span>
                 </div>
             )
+        },
+        {
+            name: "Cantidad Total",
+            selector: row => calcularCantidadTotal(row),
+            sortable: true,
+            width: "140px",
+            cell: row => {
+                const cant = calcularCantidadTotal(row);
+                const pres = row.Tip_Presentacion;
+                return (
+                    <span className="tw-px-2.5 tw-py-1 tw-bg-indigo-50 tw-text-indigo-800 tw-font-bold tw-text-xs tw-rounded-lg tw-border tw-border-indigo-200" title={`Cantidad de ${pres || 'unidades'} disponibles`}>
+                        {cant} {pres ? (cant === 1 ? pres : `${pres}s`) : (row.Uni_medida === 'und' ? 'und' : '')}
+                    </span>
+                );
+            }
         },
         {
             name: "Stock Disponible",
@@ -217,16 +263,37 @@ const CrudInsumos = () => {
                             setShowModalLotes(true);
                         }}
                     >
-                        {totalFisico}
+                        {totalFisico} {row.Uni_medida || ''}
                     </button>
                 );
             },
-            sortable: true,
             sortFunction: (a, b) => {
                 const stockA = calcularStockDisponible(a);
                 const stockB = calcularStockDisponible(b);
                 return stockA - stockB;
             }
+        },
+        {
+            name: "Vlr. Unitario",
+            selector: row => row.Vlr_Unitario ?? 0,
+            sortable: true,
+            width: "130px",
+            cell: row => (
+                <span className="tw-font-medium tw-text-slate-700 tw-text-xs">
+                    {fmtDinero(row.Vlr_Unitario)}
+                </span>
+            )
+        },
+        {
+            name: "Vlr. Total",
+            selector: row => row.Vlr_Total ?? 0,
+            sortable: true,
+            width: "140px",
+            cell: row => (
+                <span className="tw-font-bold tw-text-emerald-700 tw-text-xs tw-bg-emerald-50 tw-px-2 tw-py-1 tw-rounded-md tw-border tw-border-emerald-200">
+                    {fmtDinero(row.Vlr_Total)}
+                </span>
+            )
         },
         {
             name: "En Solicitud",
@@ -246,11 +313,11 @@ const CrudInsumos = () => {
                             padding: '4px 10px',
                         }}
                         onClick={() => {
-                            setInsumoSolicitudDetalle({ nombre: row.Nom_Insumo, datos: listaParaModal });
+                            setInsumoSolicitudDetalle({ nombre: row.Nom_Insumo, unidad: row.Uni_medida, datos: listaParaModal });
                             setShowModalSolicitudes(true);
                         }}
                     >
-                        {acumuladoSolicitado}
+                        {acumuladoSolicitado} {row.Uni_medida || ''}
                     </button>
                 );
             }
@@ -279,7 +346,7 @@ const CrudInsumos = () => {
                         }}
                         onClick={() => setVistaDetalle(row)}
                     >
-                        {consumido}
+                        {consumido} {row.Uni_medida || ''}
                     </button>
                 );
             }
@@ -503,9 +570,9 @@ const CrudInsumos = () => {
                                                     <td className="tw-px-4 tw-py-3 tw-font-mono tw-text-slate-400">#{l.Id_Entradas}</td>
                                                     <td className="tw-px-4 tw-py-3 tw-font-medium">{l.Lote}</td>
                                                     <td className="tw-px-4 tw-py-3 tw-font-bold tw-text-blue-600">
-                                                        {l.Can_Inicial}
+                                                        {l.Can_Inicial} {l.Uni_medida || vistaDetalle.Uni_medida || ''}
                                                     </td>
-                                                    <td className="tw-px-4 tw-py-3">{l.Can_Inicial - l.Can_Salida}</td>
+                                                    <td className="tw-px-4 tw-py-3">{l.Can_Inicial - l.Can_Salida} {l.Uni_medida || vistaDetalle.Uni_medida || ''}</td>
                                                     <td className="tw-px-4 tw-py-3">{l.Fec_Ven_Entrada ? new Date(l.Fec_Ven_Entrada).toLocaleDateString() : 'N/A'}</td>
                                                     <td className="tw-px-4 tw-py-3">
                                                         <span className={`tw-px-2 tw-py-0.5 tw-rounded-full tw-text-xs tw-font-medium ${l.Estado === 'AGOTADO' ? 'tw-bg-red-100 tw-text-red-700' : 'tw-bg-amber-100 tw-text-amber-700'
@@ -578,7 +645,7 @@ const CrudInsumos = () => {
                                                 {insumoSolicitudDetalle.datos.map((s, i) => (
                                                     <tr key={i}>
                                                         <td className="tw-px-4 tw-py-3 tw-font-mono tw-text-slate-400">#{s.id}</td>
-                                                        <td className="tw-px-4 tw-py-3 tw-font-bold tw-text-primario-900">{s.cantidad}</td>
+                                                        <td className="tw-px-4 tw-py-3 tw-font-bold tw-text-primario-900">{s.cantidad} {insumoSolicitudDetalle?.unidad || ''}</td>
                                                         <td className="tw-px-4 tw-py-3 tw-text-slate-600">{s.responsable}</td>
                                                         <td className="tw-px-4 tw-py-3">
                                                             <span className="tw-px-2 tw-py-0.5 tw-bg-blue-50 tw-text-blue-600 tw-rounded-full tw-text-xs tw-font-medium">
@@ -604,7 +671,7 @@ const CrudInsumos = () => {
                 {/* MODAL DETALLE LOTES (STOCK) */}
                 {showModalLotes && (
                     <div className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm">
-                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-2xl tw-overflow-hidden">
+                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-3xl tw-overflow-hidden">
                             <div className="tw-bg-primario-900 tw-px-6 tw-py-4 tw-flex tw-justify-between tw-items-center">
                                 <div className="tw-flex tw-items-center tw-gap-3">
                                     <Boxes className="tw-text-secundario-400 tw-w-5 tw-h-5" />
@@ -623,6 +690,8 @@ const CrudInsumos = () => {
                                                     <th className="tw-px-4 tw-py-2 tw-rounded-l-lg">ID</th>
                                                     <th className="tw-px-4 tw-py-2">Lote</th>
                                                     <th className="tw-px-4 tw-py-2">Disponible</th>
+                                                    <th className="tw-px-4 tw-py-2">Vlr. Unitario</th>
+                                                    <th className="tw-px-4 tw-py-2">Vlr. Total</th>
                                                     <th className="tw-px-4 tw-py-2">Vencimiento</th>
                                                     <th className="tw-px-4 tw-py-2 tw-rounded-r-lg">Estado</th>
                                                 </tr>
@@ -632,7 +701,9 @@ const CrudInsumos = () => {
                                                     <tr key={ent.Id_Entradas}>
                                                         <td className="tw-px-4 tw-py-3 tw-font-mono tw-text-slate-400">#{ent.Id_Entradas}</td>
                                                         <td className="tw-px-4 tw-py-3 tw-font-medium">{ent.Lote}</td>
-                                                        <td className="tw-px-4 tw-py-3 tw-font-bold tw-text-green-600">{ent.Can_Inicial - ent.Can_Salida}</td>
+                                                        <td className="tw-px-4 tw-py-3 tw-font-bold tw-text-green-600">{ent.Can_Inicial - ent.Can_Salida} {ent.Uni_medida || insumoDetalle?.Uni_medida || ''}</td>
+                                                        <td className="tw-px-4 tw-py-3 tw-font-mono tw-text-slate-700">{fmtDinero(ent.Vlr_Unitario)}</td>
+                                                        <td className="tw-px-4 tw-py-3 tw-font-mono tw-font-bold tw-text-emerald-700">{fmtDinero(ent.Vlr_Total)}</td>
                                                         <td className="tw-px-4 tw-py-3">{ent.Fec_Ven_Entrada ? new Date(ent.Fec_Ven_Entrada).toLocaleDateString() : 'N/A'}</td>
                                                         <td className="tw-px-4 tw-py-3">
                                                             <span className="tw-px-2 tw-py-0.5 tw-bg-green-100 tw-text-green-700 tw-rounded-full tw-text-xs tw-font-medium">Stock</span>

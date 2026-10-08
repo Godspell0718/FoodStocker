@@ -20,6 +20,7 @@ import proveedoresModel from "./models/proveedoresModel.js"
 import responsablesModel from "./models/responsableModel.js"
 import insumosSolicitudModel from "./models/insumosSolicitudModel.js"
 import perdidasRoutes from "./routes/perdidasRoutes.js"
+import solicitudInsumosRoutes from "./routes/solicitudInsumosRoutes.js"
 import perdidaModel from "./models/perdidasModel.js"
 import DestinoModel from "./models/destinoModel.js"
 
@@ -152,6 +153,7 @@ app.use("/api/solicitudes", SolicitudRoutes)
 app.use("/api/estados", EstadosRoutes)
 app.use("/api/estado_solicitud", Estado_solicitudRoutes)
 app.use("/api/perdidas", perdidasRoutes)
+app.use("/api/solicitud-insumos", solicitudInsumosRoutes)
 
 // ============================================
 // CONEXIÓN A BASE DE DATOS

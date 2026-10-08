@@ -41,6 +41,17 @@ const SolicitudModel = sequelize.define(
             type: DataTypes.INTEGER,
             allowNull: true
         },
+        Observaciones: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        // PRESENTACION = se pide el empaque completo (bulto, cubeta...)
+        // CANTIDAD     = se pide una cantidad exacta (ej. 100 gr, 2 und)
+        Tip_solicitud: {
+            type: DataTypes.ENUM('PRESENTACION', 'CANTIDAD'),
+            allowNull: false,
+            defaultValue: 'CANTIDAD'
+        },
 
         createdat: {
             type: DataTypes.DATE,

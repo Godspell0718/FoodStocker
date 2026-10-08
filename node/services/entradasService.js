@@ -2,7 +2,18 @@ import entradasModel from "../models/entradasModel.js";
 import responsablesModel from "../models/responsableModel.js";
 import ProveedorModel from "../models/proveedoresModel.js";
 import insumoModel from "../models/insumosModel.js";
+import insumosSolicitudModel from "../models/insumosSolicitudModel.js";
+import perdidaModel from "../models/perdidasModel.js";
 import { Op } from 'sequelize';
+
+/** Fecha de vencimiento opcional: vacía o "N/A" se guarda como NULL. */
+const normalizarFechaVencimiento = (valor) => {
+  if (valor === undefined) return undefined;
+  if (valor === null) return null;
+  const texto = String(valor).trim();
+  if (!texto || texto.toUpperCase() === 'N/A') return null;
+  return texto;
+};
 
 class EntradasService {
   /**
@@ -17,7 +28,14 @@ class EntradasService {
 
     // Verificar si está vencido
     if (entrada.Fec_Ven_Entrada) {
-      const fechaVencimiento = new Date(entrada.Fec_Ven_Entrada);
+      // Fec_Ven_Entrada es DATEONLY ('YYYY-MM-DD'). `new Date('YYYY-MM-DD')` lo interpreta
+      // como medianoche UTC, lo que en Colombia (UTC-5) lo corre un día atrás.
+      // Por eso se construye la fecha en hora local.
+      const raw = entrada.Fec_Ven_Entrada;
+      const match = typeof raw === 'string' ? raw.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
+      const fechaVencimiento = match
+        ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+        : new Date(raw);
       fechaVencimiento.setHours(0, 0, 0, 0);
 
       if (fechaVencimiento <= hoy) {
@@ -171,8 +189,8 @@ class EntradasService {
   }
 
   async create(data) {
-    // Eliminar Vlr_Total y Estado si vienen en los datos
-    const { Vlr_Total, Estado, ...dataToCreate } = data;
+    const { Estado, ...dataToCreate } = data;
+    dataToCreate.Fec_Ven_Entrada = normalizarFechaVencimiento(dataToCreate.Fec_Ven_Entrada) ?? null;
 
     // Validar campos requeridos
     const camposRequeridos = [
@@ -193,6 +211,25 @@ class EntradasService {
     // Si no viene Can_Salida, iniciarlo en 0
     if (dataToCreate.Can_Salida === undefined || dataToCreate.Can_Salida === null) {
       dataToCreate.Can_Salida = 0;
+    }
+
+    // Calcular Vlr_Total automáticamente si viene Vlr_Unitario y Can_Inicial y no fue provisto explícitamente
+    if (dataToCreate.Vlr_Total !== undefined && dataToCreate.Vlr_Total !== null && dataToCreate.Vlr_Total !== '') {
+      dataToCreate.Vlr_Total = Number(dataToCreate.Vlr_Total);
+    } else if (dataToCreate.Vlr_Unitario !== undefined && dataToCreate.Vlr_Unitario !== null && dataToCreate.Vlr_Unitario !== '') {
+      const vUnit = Number(dataToCreate.Vlr_Unitario);
+      const cInit = Number(dataToCreate.Can_Inicial);
+      dataToCreate.Vlr_Total = (!isNaN(vUnit) && !isNaN(cInit)) ? Math.round(vUnit * cInit) : null;
+    } else {
+      dataToCreate.Vlr_Total = null;
+    }
+
+    // Asegurar que la unidad de medida provenga del insumo seleccionado
+    if (dataToCreate.Id_Insumos) {
+      const insumo = await insumoModel.findByPk(dataToCreate.Id_Insumos);
+      if (insumo && insumo.Uni_medida) {
+        dataToCreate.Uni_medida = insumo.Uni_medida;
+      }
     }
 
     // Calcular el estado inicial automáticamente
@@ -217,8 +254,32 @@ class EntradasService {
       throw new Error("No es posible editar esta entrada porque ya presenta consumos o salidas registradas.");
     }
 
-    // Eliminar Vlr_Total y Estado si vienen en los datos
-    const { Vlr_Total, Estado, ...dataToUpdate } = data;
+    const { Estado, ...dataToUpdate } = data;
+    if ('Fec_Ven_Entrada' in dataToUpdate) {
+      dataToUpdate.Fec_Ven_Entrada = normalizarFechaVencimiento(dataToUpdate.Fec_Ven_Entrada);
+    }
+
+    // Recalcular Vlr_Total si se actualiza Vlr_Unitario o Can_Inicial
+    const vUnitRaw = dataToUpdate.Vlr_Unitario !== undefined ? dataToUpdate.Vlr_Unitario : entradaExistente.Vlr_Unitario;
+    const cInitRaw = dataToUpdate.Can_Inicial !== undefined ? dataToUpdate.Can_Inicial : entradaExistente.Can_Inicial;
+
+    if (dataToUpdate.Vlr_Total !== undefined && dataToUpdate.Vlr_Total !== null && dataToUpdate.Vlr_Total !== '') {
+      dataToUpdate.Vlr_Total = Number(dataToUpdate.Vlr_Total);
+    } else if (vUnitRaw !== undefined && vUnitRaw !== null && vUnitRaw !== '') {
+      const vUnit = Number(vUnitRaw);
+      const cInit = Number(cInitRaw);
+      dataToUpdate.Vlr_Total = (!isNaN(vUnit) && !isNaN(cInit)) ? Math.round(vUnit * cInit) : null;
+    } else {
+      dataToUpdate.Vlr_Total = null;
+    }
+
+    // Asegurar que la unidad de medida se mantenga alineada con el insumo
+    if (dataToUpdate.Id_Insumos) {
+      const insumo = await insumoModel.findByPk(dataToUpdate.Id_Insumos);
+      if (insumo && insumo.Uni_medida) {
+        dataToUpdate.Uni_medida = insumo.Uni_medida;
+      }
+    }
 
     const [updated] = await entradasModel.update(dataToUpdate, {
       where: { Id_Entradas: id }
@@ -234,10 +295,24 @@ class EntradasService {
   }
 
   async delete(id) {
-    const deleted = await entradasModel.destroy({
-      where: { Id_Entradas: id }
-    });
-    if (!deleted) throw new Error("Entrada no encontrada");
+    const entrada = await entradasModel.findByPk(id);
+    if (!entrada) throw new Error("Entrada no encontrada");
+
+    if (Number(entrada.Can_Salida) > 0) {
+      throw new Error("No es posible eliminar esta entrada porque ya presenta consumos o salidas registradas.");
+    }
+
+    const tieneSolicitudes = await insumosSolicitudModel.count({ where: { Id_Entradas: id } });
+    if (tieneSolicitudes > 0) {
+      throw new Error("No es posible eliminar esta entrada porque está vinculada a solicitudes registradas.");
+    }
+
+    const tienePerdidas = await perdidaModel.count({ where: { Id_Entrada: id } });
+    if (tienePerdidas > 0) {
+      throw new Error("No es posible eliminar esta entrada porque está vinculada a reportes de pérdida.");
+    }
+
+    await entrada.destroy();
     return true;
   }
 

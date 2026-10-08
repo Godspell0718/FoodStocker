@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
-import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin, AlertTriangle } from "lucide-react";
+import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin, AlertTriangle, Boxes, Layers } from "lucide-react";
+import { fmtCantidadConPresentacion, fmtUnidad, fmtFechaVencimiento } from "../utils/inventario.js";
 
 const ESTADO_CONFIG = {
     solicitado: { label: "Solicitado", bg: "tw-bg-secundario-100 tw-text-secundario-800", dot: "tw-bg-secundario-400" },
-    proceso:    { label: "En Proceso", bg: "tw-bg-blue-100 tw-text-blue-800",   dot: "tw-bg-blue-500" },
+    proceso: { label: "En Proceso", bg: "tw-bg-blue-100 tw-text-blue-800", dot: "tw-bg-blue-500" },
     despachado: { label: "Despachado", bg: "tw-bg-green-100 tw-text-green-800", dot: "tw-bg-green-500" },
-    cancelado:  { label: "Cancelado",  bg: "tw-bg-red-100 tw-text-red-700",     dot: "tw-bg-red-500" },
+    cancelado: { label: "Cancelado", bg: "tw-bg-red-100 tw-text-red-700", dot: "tw-bg-red-500" },
 };
 
 const EstadoBadge = ({ estado }) => {
@@ -91,6 +92,50 @@ const SolicitudPendientes = () => {
         }
     };
 
+    const handleCambiarLote = async (item, nuevoIdEntrada, sol) => {
+        if (!nuevoIdEntrada || nuevoIdEntrada === item.Id_Entradas) return;
+        const loteDestino = item.insumo?.entradas?.find(e => e.Id_Entradas === nuevoIdEntrada);
+        const nombreLote = loteDestino?.Lote || `#${nuevoIdEntrada}`;
+
+        const confirm = await Swal.fire({
+            title: '¿Cambiar lote asignado?',
+            html: `<p style="font-size:14px;color:#4b5563;margin-bottom:4px;">
+                    ¿Deseas cambiar el insumo <strong>${item.insumo?.Nom_Insumo || ''}</strong> al lote <strong>${nombreLote}</strong>?
+                   </p>
+                   <p style="font-size:12px;color:#6b7280;">Se actualizará la reserva de stock al nuevo lote seleccionado.</p>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cambiar lote',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#153753',
+            cancelButtonColor: '#6b7280',
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        try {
+            await apiAxios.post("/api/solicitudes/cambiar-lote", {
+                Id_insumo_solicitud: item.Id_insumo_solicitud,
+                Id_Entradas_nuevo: nuevoIdEntrada
+            });
+            Swal.fire({
+                icon: 'success',
+                title: 'Lote actualizado',
+                text: `El insumo ahora saldrá del lote ${nombreLote}`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+            cargarSolicitudes();
+            window.dispatchEvent(new Event("nuevaSolicitud"));
+        } catch (error) {
+            Swal.fire(
+                'Error al cambiar lote',
+                error.response?.data?.message || 'No se pudo cambiar el lote asignado',
+                'error'
+            );
+        }
+    };
+
     const guardarNovedad = async (sol) => {
         const estado = sol.ultimoEstado?.toLowerCase();
         const esFinalizado = estado === "despachado" || estado === "cancelado";
@@ -129,6 +174,7 @@ const SolicitudPendientes = () => {
         const filasHTML = insumosData.map((item, idx) => {
             const nombre = item.insumo?.Nom_Insumo ?? `Insumo #${item.Id_insumos}`;
             const lote = item.entrada?.Lote ?? "—";
+            const unidad = item.insumo?.Uni_medida || item.entrada?.Uni_medida || '';
             const solicitada = item.cantidad_solicitada;
             const entregadaPrevia = item.cantidad_entregada !== null && item.cantidad_entregada !== undefined
                 ? item.cantidad_entregada : solicitada;
@@ -139,11 +185,11 @@ const SolicitudPendientes = () => {
                     <td style="padding: 10px 8px; font-size: 13px; font-weight: 600; color: #1e293b;">
                         ${nombre}
                         <div style="font-size: 11px; font-weight: 500; color: #64748b; margin-top: 2px;">
-                            📦 Lote: <strong>${lote}</strong>
+                            Lote: <strong>${lote}</strong> ${unidad ? `· <span style="background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:10px;">${unidad}</span>` : ''}
                         </div>
                     </td>
                     <td style="padding: 10px 8px; text-align: center;">
-                        <span style="font-weight: 700; color: #153753; font-size: 14px;">${solicitada}</span>
+                        <span style="font-weight: 700; color: #153753; font-size: 14px;">${solicitada} ${unidad ? `<small style="font-size:11px;color:#64748b;">${unidad}</small>` : ''}</span>
                     </td>
                     <td style="padding: 10px 8px; text-align: center;">
                         <input type="number" id="novedad-entregar-${idx}" min="0" max="${solicitada}" value="${entregadaPrevia}"
@@ -215,7 +261,7 @@ const SolicitudPendientes = () => {
 
         // Mostrar Modal de Novedad
         const { value: novedadData, isConfirmed } = await Swal.fire({
-            title: '📋 Novedad de entrega de insumos',
+            title: 'Novedad de entrega de insumos',
             html: htmlContent,
             width: 820,
             showCancelButton: true,
@@ -411,6 +457,9 @@ const SolicitudPendientes = () => {
                                     <span className="tw-text-primario-200 tw-text-sm tw-font-medium">
                                         — {sol.responsable?.Nom_Responsable ?? "Sin responsable"}
                                     </span>
+                                    <span className="tw-ml-2 tw-px-2.5 tw-py-0.5 tw-rounded-full tw-text-[11px] tw-font-bold tw-bg-primario-800 tw-text-secundario-300 tw-border tw-border-primario-700">
+                                        {sol.Tip_solicitud === 'PRESENTACION' ? '📦 Empaque completo' : '⚖️ Cantidad exacta'}
+                                    </span>
                                 </div>
                                 <EstadoBadge estado={sol.ultimoEstado} />
                             </div>
@@ -457,6 +506,13 @@ const SolicitudPendientes = () => {
                                     </div>
                                 </div>
 
+                                {/* Observaciones de la solicitud (si las tiene) */}
+                                {sol.Observaciones && (
+                                    <div className="tw-mb-4 tw-px-3.5 tw-py-2 tw-rounded-xl tw-bg-slate-50 tw-border tw-border-slate-200 tw-text-xs tw-text-slate-700">
+                                        <strong className="tw-text-slate-900">Nota / Observaciones:</strong> {sol.Observaciones}
+                                    </div>
+                                )}
+
                                 {/* Divider */}
                                 <div className="tw-border-t tw-border-gray-100 tw-mb-4" />
 
@@ -482,17 +538,72 @@ const SolicitudPendientes = () => {
                                                 {(sol.insumos || []).map((item, index) => (
                                                     <tr key={item.Id_insumo_solicitud || index} className="tw-border-t tw-border-gray-100 hover:tw-bg-gray-50 tw-transition-colors">
                                                         <td className="tw-px-4 tw-py-2.5 tw-text-gray-700">
-                                                            {item.insumo?.Nom_Insumo ?? `Insumo #${item.Id_insumos}`}
+                                                            <span className="tw-font-medium">{item.insumo?.Nom_Insumo ?? `Insumo #${item.Id_insumos}`}</span>
                                                         </td>
                                                         <td className="tw-px-4 tw-py-2.5">
-                                                            <span className="tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-md tw-bg-gray-100 tw-text-gray-600 tw-text-xs tw-font-medium">
-                                                                <Package className="tw-w-3 tw-h-3" />
-                                                                {item.entrada?.Lote ?? "—"}
-                                                            </span>
+                                                            {(() => {
+                                                                const esModoCantidad = String(sol.Tip_solicitud || 'CANTIDAD').toUpperCase() === 'CANTIDAD';
+                                                                const estadoActual = sol.ultimoEstado?.toLowerCase();
+                                                                const puedeCambiarLote = esModoCantidad && (estadoActual === 'solicitado' || estadoActual === 'proceso');
+
+                                                                const lotesCandidatos = (item.insumo?.entradas || []).filter(e => {
+                                                                    if (e.Id_Entradas === item.Id_Entradas) return true;
+                                                                    if (e.Estado !== 'STOCK') return false;
+                                                                    const disp = Number(e.Can_Inicial) - Number(e.Can_Salida);
+                                                                    return disp >= Number(item.cantidad_solicitada);
+                                                                });
+
+                                                                if (puedeCambiarLote && lotesCandidatos.length > 1) {
+                                                                    return (
+                                                                        <div className="tw-flex tw-flex-col tw-gap-1">
+                                                                            <div className="tw-flex tw-items-center tw-gap-1.5">
+                                                                                <select
+                                                                                    value={item.Id_Entradas}
+                                                                                    onChange={(e) => handleCambiarLote(item, Number(e.target.value), sol)}
+                                                                                    className="tw-text-xs tw-font-semibold tw-bg-amber-50 tw-border tw-border-amber-300 tw-text-amber-900 tw-rounded-lg tw-px-2 tw-py-1 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-amber-400 tw-cursor-pointer hover:tw-bg-amber-100 tw-transition-colors"
+                                                                                    title="Cambiar lote asignado (solicitud por cantidad exacta)"
+                                                                                >
+                                                                                    {lotesCandidatos.map(lote => {
+                                                                                        const esActual = lote.Id_Entradas === item.Id_Entradas;
+                                                                                        const disp = esActual
+                                                                                            ? (Number(lote.Can_Inicial) - Number(lote.Can_Salida) + Number(item.cantidad_solicitada))
+                                                                                            : (Number(lote.Can_Inicial) - Number(lote.Can_Salida));
+                                                                                        return (
+                                                                                            <option key={lote.Id_Entradas} value={lote.Id_Entradas}>
+                                                                                                {lote.Lote} {esActual ? '(Asignado)' : `(Disp: ${disp} ${lote.Uni_medida})`}
+                                                                                            </option>
+                                                                                        );
+                                                                                    })}
+                                                                                </select>
+                                                                            </div>
+                                                                            <span className="tw-text-[11px] tw-text-gray-400">
+                                                                                (Vence: {fmtFechaVencimiento(item.entrada?.Fec_Ven_Entrada)})
+                                                                            </span>
+                                                                        </div>
+                                                                    );
+                                                                }
+
+                                                                return (
+                                                                    <div className="tw-flex tw-items-center tw-gap-1.5">
+                                                                        <span className="tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-md tw-bg-gray-100 tw-text-gray-600 tw-text-xs tw-font-medium">
+                                                                            <Package className="tw-w-3 tw-h-3" />
+                                                                            {item.entrada?.Lote ?? "—"}
+                                                                        </span>
+                                                                        <span className="tw-text-[11px] tw-text-gray-400">
+                                                                            (Vence: {fmtFechaVencimiento(item.entrada?.Fec_Ven_Entrada)})
+                                                                        </span>
+                                                                        {puedeCambiarLote && lotesCandidatos.length <= 1 && (
+                                                                            <span className="tw-text-[10px] tw-text-gray-400 tw-italic">
+                                                                                (Único lote)
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })()}
                                                         </td>
                                                         <td className="tw-px-4 tw-py-2.5">
-                                                            <span className="tw-inline-flex tw-items-center tw-px-2.5 tw-py-0.5 tw-rounded-md tw-bg-primario-50 tw-text-primario-800 tw-font-bold tw-text-xs">
-                                                                {item.cantidad_solicitada}
+                                                            <span className="tw-inline-flex tw-items-center tw-px-2.5 tw-py-0.5 tw-rounded-md tw-bg-primario-50 tw-text-primario-900 tw-font-bold tw-text-xs">
+                                                                {fmtCantidadConPresentacion(item.cantidad_solicitada, item.insumo || item.entrada)}
                                                             </span>
                                                         </td>
                                                     </tr>
@@ -505,59 +616,59 @@ const SolicitudPendientes = () => {
                                 {/* Botones de acción */}
                                 <div className="tw-flex tw-flex-wrap tw-items-center tw-gap-2 tw-justify-between">
                                     <div className="tw-flex tw-flex-wrap tw-gap-2">
-                                    {sol.ultimoEstado?.toLowerCase() === "solicitado" && (
-                                        <>
-                                            <button
-                                                onClick={() => cambiarEstado(sol.Id_solicitud, 2, "proceso")}
-                                                className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-primario-900 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-primario-700 tw-transition-all tw-shadow-sm"
-                                            >
-                                                <CheckCircle className="tw-w-4 tw-h-4" /> Aceptar
-                                            </button>
-                                            <button
-                                                onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
-                                                className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
-                                            >
-                                                <XCircle className="tw-w-4 tw-h-4" /> Cancelar
-                                            </button>
-                                        </>
-                                    )}
-                                    {sol.ultimoEstado?.toLowerCase() === "proceso" && (
-                                        <>
-                                            <button
-                                                onClick={() => cambiarEstado(sol.Id_solicitud, 3, "despachado")}
-                                                className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-green-600 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-green-700 tw-transition-all tw-shadow-sm"
-                                            >
-                                                <Truck className="tw-w-4 tw-h-4" /> Despachar
-                                            </button>
-                                            <button
-                                                onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
-                                                className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
-                                            >
-                                                <XCircle className="tw-w-4 tw-h-4" /> Cancelar
-                                            </button>
-                                        </>
-                                    )}
-                                    {sol.ultimoEstado?.toLowerCase() === "despachado" && (
-                                        <span className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-green-50 tw-text-green-700 tw-text-sm tw-font-medium tw-border tw-border-green-200">
-                                            <CheckCircle className="tw-w-4 tw-h-4" /> Despachado
-                                        </span>
-                                    )}
-                                    {sol.ultimoEstado?.toLowerCase() === "cancelado" && (
-                                        <div className="tw-flex tw-flex-col tw-gap-2">
-                                            <span className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-50 tw-text-red-600 tw-text-sm tw-font-medium tw-border tw-border-red-200">
-                                                <XCircle className="tw-w-4 tw-h-4" /> Cancelado
+                                        {sol.ultimoEstado?.toLowerCase() === "solicitado" && (
+                                            <>
+                                                <button
+                                                    onClick={() => cambiarEstado(sol.Id_solicitud, 2, "proceso")}
+                                                    className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-primario-900 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-primario-700 tw-transition-all tw-shadow-sm"
+                                                >
+                                                    <CheckCircle className="tw-w-4 tw-h-4" /> Aceptar
+                                                </button>
+                                                <button
+                                                    onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
+                                                    className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
+                                                >
+                                                    <XCircle className="tw-w-4 tw-h-4" /> Cancelar
+                                                </button>
+                                            </>
+                                        )}
+                                        {sol.ultimoEstado?.toLowerCase() === "proceso" && (
+                                            <>
+                                                <button
+                                                    onClick={() => cambiarEstado(sol.Id_solicitud, 3, "despachado")}
+                                                    className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-green-600 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-green-700 tw-transition-all tw-shadow-sm"
+                                                >
+                                                    <Truck className="tw-w-4 tw-h-4" /> Despachar
+                                                </button>
+                                                <button
+                                                    onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
+                                                    className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
+                                                >
+                                                    <XCircle className="tw-w-4 tw-h-4" /> Cancelar
+                                                </button>
+                                            </>
+                                        )}
+                                        {sol.ultimoEstado?.toLowerCase() === "despachado" && (
+                                            <span className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-green-50 tw-text-green-700 tw-text-sm tw-font-medium tw-border tw-border-green-200">
+                                                <CheckCircle className="tw-w-4 tw-h-4" /> Despachado
                                             </span>
-                                            {sol.motivo_cancelacion && (
-                                                <div className="tw-flex tw-items-start tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-bg-red-50 tw-border tw-border-red-100">
-                                                    <MessageSquare className="tw-w-4 tw-h-4 tw-text-red-400 tw-mt-0.5 tw-shrink-0" />
-                                                    <div>
-                                                        <p className="tw-text-xs tw-font-semibold tw-text-red-500 tw-m-0 tw-mb-0.5">Motivo de cancelación</p>
-                                                        <p className="tw-text-sm tw-text-red-700 tw-m-0">{sol.motivo_cancelacion}</p>
+                                        )}
+                                        {sol.ultimoEstado?.toLowerCase() === "cancelado" && (
+                                            <div className="tw-flex tw-flex-col tw-gap-2">
+                                                <span className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-50 tw-text-red-600 tw-text-sm tw-font-medium tw-border tw-border-red-200">
+                                                    <XCircle className="tw-w-4 tw-h-4" /> Cancelado
+                                                </span>
+                                                {sol.motivo_cancelacion && (
+                                                    <div className="tw-flex tw-items-start tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-bg-red-50 tw-border tw-border-red-100">
+                                                        <MessageSquare className="tw-w-4 tw-h-4 tw-text-red-400 tw-mt-0.5 tw-shrink-0" />
+                                                        <div>
+                                                            <p className="tw-text-xs tw-font-semibold tw-text-red-500 tw-m-0 tw-mb-0.5">Motivo de cancelación</p>
+                                                            <p className="tw-text-sm tw-text-red-700 tw-m-0">{sol.motivo_cancelacion}</p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Botón Novedad — deshabilitado si está despachado/cancelado sin novedad previamente registrada */}
@@ -570,13 +681,12 @@ const SolicitudPendientes = () => {
                                             <button
                                                 onClick={() => guardarNovedad(sol)}
                                                 disabled={deshabilitado}
-                                                className={`tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-shadow-sm tw-border ${
-                                                    deshabilitado
-                                                        ? "tw-bg-gray-100 tw-text-gray-400 tw-border-gray-200 tw-cursor-not-allowed tw-shadow-none"
-                                                        : sol.novedad
-                                                            ? "tw-bg-amber-50 tw-text-amber-700 tw-border-amber-200 hover:tw-bg-amber-100"
-                                                            : "tw-bg-gray-50 tw-text-gray-600 tw-border-gray-200 hover:tw-bg-gray-100"
-                                                }`}
+                                                className={`tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-shadow-sm tw-border ${deshabilitado
+                                                    ? "tw-bg-gray-100 tw-text-gray-400 tw-border-gray-200 tw-cursor-not-allowed tw-shadow-none"
+                                                    : sol.novedad
+                                                        ? "tw-bg-amber-50 tw-text-amber-700 tw-border-amber-200 hover:tw-bg-amber-100"
+                                                        : "tw-bg-gray-50 tw-text-gray-600 tw-border-gray-200 hover:tw-bg-gray-100"
+                                                    }`}
                                                 title={
                                                     deshabilitado
                                                         ? "No se pueden registrar novedades en solicitudes despachadas o canceladas"

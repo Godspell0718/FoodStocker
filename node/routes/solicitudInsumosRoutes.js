@@ -1,10 +1,13 @@
 // routes/solicitudInsumosRoutes.js
 import express from 'express';
 import { Op } from 'sequelize';
+import db from '../database/db.js';
 import insumoModel from '../models/insumosModel.js';
 import entradasModel from '../models/entradasModel.js';
 import InsumosSolicitudModel from '../models/insumosSolicitudModel.js';
 import SolicitudModel from '../models/SolicitudModel.js';
+import { ajustarSalidaLote, parsearCantidadEntera, loteEstaVencido } from '../services/stockHelpers.js';
+import { obtenerEstadoActual } from '../services/SolicitudServiceNuevo.js';
 
 const router = express.Router();
 
@@ -12,8 +15,8 @@ const router = express.Router();
 router.get('/disponibles', async (req, res) => {
   try {
     const { filtro } = req.query;
-    
-    const whereCondition = filtro 
+
+    const whereCondition = filtro
       ? { Nom_Insumo: { [Op.like]: `%${filtro}%` }, Estado: 'ACTIVO' }
       : { Estado: 'ACTIVO' };
 
@@ -35,14 +38,17 @@ router.get('/disponibles', async (req, res) => {
     const insumosFormateados = insumos.map(insumo => ({
       Id_Insumos: insumo.Id_Insumos,
       Nom_Insumo: insumo.Nom_Insumo,
-      lotes: insumo.entradas?.map(entrada => ({
-        Id_Entradas: entrada.Id_Entradas,
-        Lote: entrada.Lote,
-        cantidadDisponible: entrada.Can_Inicial - entrada.Can_Salida,
-        Fec_Ven_Entrada: entrada.Fec_Ven_Entrada,
-        Uni_medida: entrada.Uni_medida,
-        seleccionado: false
-      })) || []
+      Uni_medida: insumo.Uni_medida,
+      lotes: insumo.entradas
+        ?.filter(entrada => !loteEstaVencido(entrada))
+        .map(entrada => ({
+          Id_Entradas: entrada.Id_Entradas,
+          Lote: entrada.Lote,
+          cantidadDisponible: Math.max(Number(entrada.Can_Inicial) - Number(entrada.Can_Salida), 0),
+          Fec_Ven_Entrada: entrada.Fec_Ven_Entrada,
+          Uni_medida: entrada.Uni_medida,
+          seleccionado: false
+        })) || []
     }));
 
     res.json(insumosFormateados);
@@ -54,44 +60,63 @@ router.get('/disponibles', async (req, res) => {
 
 // POST /api/solicitud-insumos/guardar-seleccion
 router.post('/guardar-seleccion', async (req, res) => {
+  const { idSolicitud, insumosSeleccionados } = req.body;
+
+  if (!idSolicitud || !Array.isArray(insumosSeleccionados) || insumosSeleccionados.length === 0) {
+    return res.status(400).json({ message: 'Solicitud o insumos seleccionados no válidos' });
+  }
+
+  const t = await db.transaction();
+
   try {
-    const { idSolicitud, insumosSeleccionados } = req.body;
-    
-    const solicitud = await SolicitudModel.findByPk(idSolicitud);
+    const solicitud = await SolicitudModel.findByPk(idSolicitud, {
+      transaction: t,
+      lock: t.LOCK.UPDATE
+    });
     if (!solicitud) {
+      await t.rollback();
       return res.status(404).json({ message: 'Solicitud no encontrada' });
     }
 
-    const resultados = [];
+    const estadoActual = await obtenerEstadoActual(idSolicitud, t);
+    if (estadoActual === 'despachado' || estadoActual === 'cancelado') {
+      await t.rollback();
+      return res.status(400).json({ message: `No se pueden asignar insumos a una solicitud ${estadoActual}` });
+    }
 
-    for (const item of insumosSeleccionados) {
-      // Actualizar entrada (lote)
-      const entrada = await entradasModel.findByPk(item.idLote);
-      if (entrada) {
-        const nuevaSalida = entrada.Can_Salida + item.cantidad;
-        await entrada.update({ 
-          Can_Salida: nuevaSalida,
-          Estado: (entrada.Can_Inicial - nuevaSalida) <= 0 ? 'AGOTADO' : 'STOCK'
-        });
-      }
+    const resultados = [];
+    // Ordenar por ID de lote para evitar deadlocks
+    const ordenados = [...insumosSeleccionados].sort((a, b) => Number(a.idLote) - Number(b.idLote));
+
+    for (const item of ordenados) {
+      const cantidad = parsearCantidadEntera(item.cantidad, 'cantidad solicitada');
+      const idLote = Number(item.idLote);
+      const idInsumo = Number(item.idInsumo);
+
+      // Bloquea el lote, valida disponibilidad y recalcula estado
+      await ajustarSalidaLote(idLote, cantidad, t);
 
       // Crear registro en insumos_solicitud
       const nuevoRegistro = await InsumosSolicitudModel.create({
         Id_solicitud: idSolicitud,
-        Id_insumos: item.idInsumo,
-        cantidad_solicitada: item.cantidad
-      });
-      
+        Id_insumos: idInsumo,
+        Id_Entradas: idLote,
+        cantidad_solicitada: cantidad
+      }, { transaction: t });
+
       resultados.push(nuevoRegistro);
     }
-    
-    res.json({ 
+
+    await t.commit();
+
+    res.json({
       message: 'Insumos asignados correctamente',
       total: resultados.length
     });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Error al guardar los insumos' });
+    await t.rollback();
+    console.error('Error al guardar selección:', error);
+    res.status(400).json({ message: error.message || 'Error al guardar los insumos' });
   }
 });
 

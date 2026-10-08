@@ -3,8 +3,7 @@ import apiNode from "../api/axiosConfig.js"
 import DataTable from "react-data-table-component"
 import { EntradasForm } from "./entradasForm.jsx"
 import { 
-    Warehouse, Box, Calendar, Truck, UserRound, 
-    GraduationCap, Presentation, Pen, Plus, Search, 
+    Warehouse, Box, Pen, Plus, Search, 
     Inbox, AlertCircle, X, Boxes, Trash2
 } from "lucide-react"
 import Swal from "sweetalert2"
@@ -19,15 +18,6 @@ export const CrudEntradas = () => {
     const [showModal, setShowModal] = useState(false)
 
     const columnsTable = [
-        {
-            name: "ID",
-            selector: row => row.Id_Entradas,
-            sortable: true,
-            width: "65px",
-            cell: row => (
-                <span className="tw-font-mono tw-text-slate-600">#{row.Id_Entradas}</span>
-            )
-        },
         {
             name: "Lote",
             selector: row => row.Lote,
@@ -46,40 +36,37 @@ export const CrudEntradas = () => {
                         const [year, month, day] = row.Fec_Ven_Entrada.split('-');
                         return `${day}/${month}/${year}`;
                     })()
-                    : "—",
+                    : "N/A",
             sortable: true,
             width: "140px",
             cell: row => {
-                const fechaVenc = row.Fec_Ven_Entrada
-                    ? (() => {
-                        const [year, month, day] = row.Fec_Ven_Entrada.split('-');
-                        return new Date(Date.UTC(year, month - 1, day));
-                    })()
-                    : null;
+                if (!row.Fec_Ven_Entrada) {
+                    return (
+                        <span className="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-2 tw-py-0.5 tw-rounded-md tw-bg-slate-100 tw-text-slate-500 tw-text-xs tw-font-semibold tw-border tw-border-slate-200">
+                            <i className="fa-regular fa-calendar-xmark tw-text-xs tw-text-slate-400"></i>
+                            N/A
+                        </span>
+                    );
+                }
 
+                const [year, month, day] = row.Fec_Ven_Entrada.split('-');
+                const fechaVenc = new Date(Date.UTC(year, month - 1, day));
                 const hoy = new Date();
                 const hoyUTC = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()));
 
-                const diasRestantes = fechaVenc ? Math.ceil((fechaVenc - hoyUTC) / (1000 * 60 * 60 * 24)) : null;
+                const diasRestantes = Math.ceil((fechaVenc - hoyUTC) / (1000 * 60 * 60 * 24));
 
                 let colorClase = "tw-text-slate-600";
-                if (diasRestantes !== null) {
-                    if (diasRestantes <= 0) colorClase = "tw-text-red-600 tw-font-medium";
-                    else if (diasRestantes <= 30) colorClase = "tw-text-amber-600 tw-font-medium";
-                    else colorClase = "tw-text-green-600";
-                }
+                if (diasRestantes <= 0) colorClase = "tw-text-red-600 tw-font-medium";
+                else if (diasRestantes <= 30) colorClase = "tw-text-amber-600 tw-font-medium";
+                else colorClase = "tw-text-green-600";
 
-                const fechaMostrada = row.Fec_Ven_Entrada
-                    ? (() => {
-                        const [year, month, day] = row.Fec_Ven_Entrada.split('-');
-                        return `${day}/${month}/${year}`;
-                    })()
-                    : "—";
+                const fechaMostrada = `${day}/${month}/${year}`;
 
                 return (
                     <div className="tw-flex tw-items-center tw-gap-2">
-                        <i className={`fa-regular fa-calendar tw-text-xs ${diasRestantes !== null && diasRestantes <= 0 ? 'tw-text-red-500' :
-                            diasRestantes !== null && diasRestantes <= 30 ? 'tw-text-amber-500' :
+                        <i className={`fa-regular fa-calendar tw-text-xs ${diasRestantes <= 0 ? 'tw-text-red-500' :
+                            diasRestantes <= 30 ? 'tw-text-amber-500' :
                                 'tw-text-slate-400'
                             }`}></i>
                         <span className={colorClase}>
@@ -94,24 +81,19 @@ export const CrudEntradas = () => {
             selector: row => row.insumo?.Nom_Insumo || `ID ${row.Id_Insumos}`,
             sortable: true,
             cell: row => (
-                <div className="tw-flex tw-items-center tw-gap-3">
-                    <div className="tw-w-8 tw-h-8 tw-bg-gradient-to-br tw-from-emerald-200 tw-to-teal-100 tw-rounded-full tw-flex tw-items-center tw-justify-center">
-                        <Box className="tw-w-4 tw-h-4 tw-text-emerald-700" />
-                    </div>
-                    <span className="tw-font-medium tw-text-slate-800">
-                        {row.insumo?.Nom_Insumo || `Insumo #${row.Id_Insumos}`}
-                    </span>
-                </div>
+                <span className="tw-font-medium tw-text-slate-800">
+                    {row.insumo?.Nom_Insumo || `Insumo #${row.Id_Insumos}`}
+                </span>
             )
         },
         {
             name: "Unidad Med.",
-            selector: row => row.Uni_medida || "—",
+            selector: row => (row.Uni_medida || "—").toLowerCase(),
             sortable: true,
             width: "80px",
             cell: row => (
                 <span className="tw-px-2 tw-py-1 tw-bg-slate-100 tw-rounded-lg tw-text-xs tw-font-medium tw-text-slate-600">
-                    {row.Uni_medida || "—"}
+                    {row.Uni_medida ? row.Uni_medida.toLowerCase() : "—"}
                 </span>
             )
         },
@@ -120,19 +102,16 @@ export const CrudEntradas = () => {
             selector: row => row.proveedor?.Nom_Proveedor || `ID ${row.Id_Proveedor}`,
             sortable: true,
             cell: row => (
-                <div className="tw-flex tw-items-center tw-gap-2">
-                    <Truck className="tw-w-3.5 tw-h-3.5 tw-text-blue-400" />
-                    <span className="tw-text-slate-600">
-                        {row.proveedor?.Nom_Proveedor || `Proveedor #${row.Id_Proveedor}`}
-                    </span>
-                </div>
+                <span className="tw-text-slate-600">
+                    {row.proveedor?.Nom_Proveedor || `Proveedor #${row.Id_Proveedor}`}
+                </span>
             )
         },
         {
             name: "Cantidad",
             selector: row => `${row.Can_Inicial - row.Can_Salida} / ${row.Can_Inicial}`,
             sortable: true,
-            width: "100px",
+            width: "120px",
             cell: row => {
                 const disponible = row.Can_Inicial - row.Can_Salida
                 const porcentaje = (disponible / row.Can_Inicial) * 100
@@ -144,7 +123,7 @@ export const CrudEntradas = () => {
                 return (
                     <div className="tw-w-full">
                         <div className="tw-flex tw-justify-between tw-text-xs tw-mb-1">
-                            <span className="tw-font-medium tw-text-slate-700">{disponible}</span>
+                            <span className="tw-font-medium tw-text-slate-700">{disponible} {row.Uni_medida || ''}</span>
                             <span className="tw-text-slate-400">/ {row.Can_Inicial}</span>
                         </div>
                         <div className="tw-w-full tw-bg-slate-200 tw-rounded-full tw-h-1.5">
@@ -159,25 +138,40 @@ export const CrudEntradas = () => {
         },
         {
             name: "Vlr Unitario",
-            selector: row => row.Vlr_Unitario ?? "—",
+            selector: row => (row.Vlr_Unitario != null && row.Vlr_Unitario !== "") ? Number(row.Vlr_Unitario) : 0,
             sortable: true,
-            width: "100px",
-            cell: row => (
-                <span className="tw-font-mono tw-text-slate-600">
-                    ${row.Vlr_Unitario?.toLocaleString("es-CO") ?? "—"}
-                </span>
-            )
+            width: "110px",
+            cell: row => {
+                const val = (row.Vlr_Unitario != null && row.Vlr_Unitario !== "") ? Number(row.Vlr_Unitario) : null;
+                return (
+                    <span className="tw-font-mono tw-text-slate-600">
+                        {val !== null ? `$${val.toLocaleString("es-CO")}` : "—"}
+                    </span>
+                );
+            }
         },
         {
             name: "Vlr Total",
-            selector: row => row.Vlr_Total ?? "—",
+            selector: row => {
+                if (row.Vlr_Total != null && row.Vlr_Total !== "") return Number(row.Vlr_Total);
+                if (row.Vlr_Unitario != null && row.Can_Inicial != null) return Number(row.Vlr_Unitario) * Number(row.Can_Inicial);
+                return 0;
+            },
             sortable: true,
-            width: "100px",
-            cell: row => (
-                <span className="tw-font-mono tw-font-medium tw-text-slate-700">
-                    ${row.Vlr_Total?.toLocaleString("es-CO") ?? "—"}
-                </span>
-            )
+            width: "110px",
+            cell: row => {
+                const total = (row.Vlr_Total != null && row.Vlr_Total !== "")
+                    ? Number(row.Vlr_Total)
+                    : (row.Vlr_Unitario != null && row.Can_Inicial != null
+                        ? Number(row.Vlr_Unitario) * Number(row.Can_Inicial)
+                        : null);
+
+                return (
+                    <span className="tw-font-mono tw-font-medium tw-text-slate-700">
+                        {total !== null ? `$${total.toLocaleString("es-CO")}` : "—"}
+                    </span>
+                );
+            }
         },
         {
             name: "Estado",
@@ -220,12 +214,9 @@ export const CrudEntradas = () => {
             selector: row => row.pasante?.Nom_Responsable || `ID ${row.Id_Pasante}`,
             sortable: true,
             cell: row => (
-                <div className="tw-flex tw-items-center tw-gap-2">
-                    <GraduationCap className="tw-w-3.5 tw-h-3.5 tw-text-purple-400" />
-                    <span className="tw-text-slate-600">
-                        {row.pasante?.Nom_Responsable || `Pasante #${row.Id_Pasante}`}
-                    </span>
-                </div>
+                <span className="tw-text-slate-600">
+                    {row.pasante?.Nom_Responsable || `Pasante #${row.Id_Pasante}`}
+                </span>
             )
         },
         {
@@ -233,12 +224,9 @@ export const CrudEntradas = () => {
             selector: row => row.instructor?.Nom_Responsable || `ID ${row.Id_Instructor}`,
             sortable: true,
             cell: row => (
-                <div className="tw-flex tw-items-center tw-gap-2">
-                    <Presentation className="tw-w-3.5 tw-h-3.5 tw-text-indigo-400" />
-                    <span className="tw-text-slate-600">
-                        {row.instructor?.Nom_Responsable || `Instructor #${row.Id_Instructor}`}
-                    </span>
-                </div>
+                <span className="tw-text-slate-600">
+                    {row.instructor?.Nom_Responsable || `Instructor #${row.Id_Instructor}`}
+                </span>
             )
         },
         {

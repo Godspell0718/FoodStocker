@@ -162,7 +162,7 @@ const PerdidasForm = () => {
                       const disponible = entrada.Can_Inicial - entrada.Can_Salida;
                       return (
                         <option key={entrada.Id_Entradas} value={entrada.Id_Entradas}>
-                          Lote: {entrada.Lote} - Disp: {disponible}
+                          Lote: {entrada.Lote} - Disp: {disponible} {entrada.Uni_medida || ''}
                         </option>
                       );
                     })}
@@ -171,7 +171,9 @@ const PerdidasForm = () => {
 
               {/* Cantidad */}
               <div className="tw-space-y-2">
-                <label className="tw-block tw-text-sm tw-font-bold tw-text-slate-700">Cantidad Perdida <span className="tw-text-rose-500">*</span></label>
+                <label className="tw-block tw-text-sm tw-font-bold tw-text-slate-700">
+                  Cantidad Perdida {insumos.find(i => String(i.Id_Insumos) === String(formData.Id_Insumo))?.Uni_medida ? `(${insumos.find(i => String(i.Id_Insumos) === String(formData.Id_Insumo)).Uni_medida})` : ''} <span className="tw-text-rose-500">*</span>
+                </label>
                 <div className="tw-relative">
                   <input
                     type="number"

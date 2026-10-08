@@ -181,7 +181,7 @@ const PerdidasCrud = () => {
                     <td className="tw-px-6 tw-py-4 tw-whitespace-nowrap">
                       <div className="tw-inline-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1 tw-rounded-full tw-bg-red-50 tw-text-red-600 tw-font-bold tw-border tw-border-red-100">
                         <TrendingUp size={14} className="tw-rotate-180" />
-                        -{perdida.Cantidad}
+                        -{perdida.Cantidad} {perdida.insumo?.Uni_medida || ''}
                       </div>
                     </td>
                     <td className="tw-px-6 tw-py-4 tw-whitespace-nowrap">
