@@ -22,10 +22,10 @@ const Estados_solicitudCrud = () => {
     const [refresh, setRefresh] = useState(false)
 
     const columnsTable = [
-        { 
-            name: 'ID', 
-            selector: row => row.Id_estado_solicitud, 
-            sortable: true, 
+        {
+            name: 'ID',
+            selector: row => row.Id_estado_solicitud,
+            sortable: true,
             width: '65px',
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-1.5 tw-font-mono tw-text-gray-500">
@@ -34,9 +34,9 @@ const Estados_solicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Solicitud', 
-            selector: row => row.Id_solicitud, 
+        {
+            name: 'Solicitud',
+            selector: row => row.Id_solicitud,
             sortable: true,
             width: '180px',
             cell: row => (
@@ -46,9 +46,9 @@ const Estados_solicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Estado', 
-            selector: row => row.Id_estado, 
+        {
+            name: 'Estado',
+            selector: row => row.Id_estado,
             sortable: true,
             width: '150px',
             cell: row => (
@@ -60,9 +60,9 @@ const Estados_solicitudCrud = () => {
                 </div>
             )
         },
-        { 
-            name: 'Fecha', 
-            selector: row => row.fecha, 
+        {
+            name: 'Fecha',
+            selector: row => row.fecha,
             sortable: true,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-1.5 tw-text-gray-500">
@@ -156,18 +156,19 @@ const Estados_solicitudCrud = () => {
     }
 
     return (
-        <div className="tw-p-6">
-            <div className="tw-max-w-5xl tw-mx-auto">
+        <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
+            <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
-                <div className="tw-flex tw-items-center tw-justify-between tw-mb-8">
-                    <div className="tw-flex tw-items-center tw-gap-3">
-                        <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md">
-                            <Waypoints className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+
+                <div className="tw-flex tw-items-start tw-justify-between tw-mb-8">
+                    <div>
+                        <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
+                            <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                                <Waypoints className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+                            </div>
+                            <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Usuarios</h1>
                         </div>
-                        <div>
-                            <h1 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Estados × Solicitudes</h1>
-                            <p className="tw-text-sm tw-text-gray-500 tw-m-0">Historial de cambios de estado por solicitud</p>
-                        </div>
+                        <p className="tw-text-slate-500 tw-ml-12">Administra los usuarios que gestionan el inventario del sistema</p>
                     </div>
 
                     <button
@@ -198,44 +199,46 @@ const Estados_solicitudCrud = () => {
             </div>
 
             {/* Modal */}
-            {showModal && (
-                <div
-                    className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4"
-                    style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
-                    onClick={handleBackdropClick}
-                >
-                    <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-lg tw-overflow-hidden">
+            {
+                showModal && (
+                    <div
+                        className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+                        onClick={handleBackdropClick}
+                    >
+                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-lg tw-overflow-hidden">
 
-                        {/* Modal header */}
-                        <div className="tw-flex tw-items-center tw-justify-between tw-px-6 tw-py-4 tw-bg-primario-900">
-                            <div className="tw-flex tw-items-center tw-gap-2">
-                                <Waypoints className="tw-w-5 tw-h-5 tw-text-secundario-400" />
-                                <h2 className="tw-text-white tw-font-semibold tw-text-base tw-m-0">
-                                    {isEditing ? "Editar Registro" : "Nuevo Estado × Solicitud"}
-                                </h2>
+                            {/* Modal header */}
+                            <div className="tw-flex tw-items-center tw-justify-between tw-px-6 tw-py-4 tw-bg-primario-900">
+                                <div className="tw-flex tw-items-center tw-gap-2">
+                                    <Waypoints className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+                                    <h2 className="tw-text-white tw-font-semibold tw-text-base tw-m-0">
+                                        {isEditing ? "Editar Registro" : "Nuevo Estado × Solicitud"}
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="tw-w-8 tw-h-8 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-text-primario-200 hover:tw-bg-primario-800 hover:tw-text-white tw-transition-all"
+                                >
+                                    <X className="tw-w-4 tw-h-4" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="tw-w-8 tw-h-8 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-text-primario-200 hover:tw-bg-primario-800 hover:tw-text-white tw-transition-all"
-                            >
-                                <X className="tw-w-4 tw-h-4" />
-                            </button>
-                        </div>
 
-                        {/* Modal body */}
-                        <div className="tw-px-6 tw-py-5">
-                            <Estado_solicitudForm
-                                hideModal={hideModal}
-                                isEditing={isEditing}
-                                selectedEstado_solicitud={selectedEstado_solicitud}
-                                setRefresh={setRefresh}
-                                refresh={refresh}
-                            />
+                            {/* Modal body */}
+                            <div className="tw-px-6 tw-py-5">
+                                <Estado_solicitudForm
+                                    hideModal={hideModal}
+                                    isEditing={isEditing}
+                                    selectedEstado_solicitud={selectedEstado_solicitud}
+                                    setRefresh={setRefresh}
+                                    refresh={refresh}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 }
 

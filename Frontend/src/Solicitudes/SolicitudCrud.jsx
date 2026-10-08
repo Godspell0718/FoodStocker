@@ -152,11 +152,10 @@ const SolicitudCrud = () => {
                     <div className="tw-flex tw-gap-1.5">
                         <button
                             title={bloqueado ? `No se puede editar (${row.ultimoEstado})` : "Editar"}
-                            className={`tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-transition-all tw-duration-150 ${
-                                bloqueado
-                                    ? 'tw-bg-gray-100 tw-text-gray-300 tw-cursor-not-allowed'
-                                    : 'tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700'
-                            }`}
+                            className={`tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-transition-all tw-duration-150 ${bloqueado
+                                ? 'tw-bg-gray-100 tw-text-gray-300 tw-cursor-not-allowed'
+                                : 'tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700'
+                                }`}
                             onClick={() => !bloqueado && updateSolicitud(row.Id_solicitud)}
                             disabled={bloqueado}
                         >
@@ -164,11 +163,10 @@ const SolicitudCrud = () => {
                         </button>
                         <button
                             title={bloqueado ? `No se puede eliminar (${row.ultimoEstado})` : "Eliminar"}
-                            className={`tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-transition-all tw-duration-150 ${
-                                bloqueado
-                                    ? 'tw-bg-gray-100 tw-text-gray-300 tw-cursor-not-allowed'
-                                    : 'tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white'
-                            }`}
+                            className={`tw-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-lg tw-transition-all tw-duration-150 ${bloqueado
+                                ? 'tw-bg-gray-100 tw-text-gray-300 tw-cursor-not-allowed'
+                                : 'tw-bg-red-50 tw-text-red-500 hover:tw-bg-red-500 hover:tw-text-white'
+                                }`}
                             onClick={() => !bloqueado && deleteSolicitud(row.Id_solicitud)}
                             disabled={bloqueado}
                         >
@@ -357,56 +355,57 @@ const SolicitudCrud = () => {
     })
 
     return (
-        <div className="tw-p-6">
+        <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
             <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
-                <div className="tw-flex tw-items-center tw-justify-between tw-mb-8">
-                    <div className="tw-flex tw-items-center tw-gap-3">
-                        <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md">
+
+                <div className="tw-mb-8">
+                    <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
                             <ClipboardList className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
-                        <div>
-                            <h1 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Gestión de Solicitudes</h1>
-                            <p className="tw-text-sm tw-text-gray-500 tw-m-0">Administra el historial de solicitudes</p>
-                        </div>
+                        <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Solicitudes</h1>
                     </div>
-
-                    <button
-                        onClick={createSolicitud}
-                        className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 tw-text-primario-50 hover:tw-bg-primario-700 tw-transition-all tw-duration-200 tw-shadow-md tw-font-medium tw-text-sm"
-                    >
-                        <Plus className="tw-w-4 tw-h-4" />
-                        Nueva Solicitud
-                    </button>
+                    <p className="tw-text-slate-500 tw-ml-12">Administra el historial de solicitudes</p>
                 </div>
 
                 {/* Buscador y Exportar */}
-                <div className="tw-flex tw-items-center tw-justify-between tw-mb-6">
-                    <div className="tw-relative tw-w-72">
-                        <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Buscar por responsable o motivo..."
-                            className="tw-w-full tw-pl-9 tw-pr-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 tw-transition-all tw-shadow-sm"
-                            value={filterText}
-                            onChange={(e) => setFilterText(e.target.value)}
-                        />
-                    </div>
-                    <div className="tw-flex tw-gap-2">
-                        <button
-                            onClick={exportToExcel}
-                            className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-green-600 tw-text-white hover:tw-bg-green-700 tw-transition-all tw-duration-200 tw-shadow-sm tw-font-medium tw-text-sm"
-                        >
-                            <Download className="tw-w-4 tw-h-4" />
-                            Excel
-                        </button>
-                        <button
-                            onClick={exportToPDF}
-                            className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-red-600 tw-text-white hover:tw-bg-red-700 tw-transition-all tw-duration-200 tw-shadow-sm tw-font-medium tw-text-sm"
-                        >
-                            <Download className="tw-w-4 tw-h-4" />
-                            PDF
-                        </button>
+                <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-p-4 tw-mb-6">
+                    <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4 ">
+                        <div className="tw-relative tw-w-full md:tw-w-96 ">
+                            <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
+                            <input
+                                type="text"
+                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                                placeholder="Buscar por nombre, correo o documento..."
+                                value={filterText}
+                                onChange={(e) => setFilterText(e.target.value)}
+                            />
+                        </div>
+                        <div className="tw-flex tw-gap-2">
+                            <button
+                                onClick={exportToExcel}
+                                className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-green-600 tw-text-white hover:tw-bg-green-700 tw-transition-all tw-duration-200 tw-shadow-sm tw-font-medium tw-text-sm"
+                            >
+                                <Download className="tw-w-4 tw-h-4" />
+                                Excel
+                            </button>
+                            <button
+                                onClick={exportToPDF}
+                                className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-red-600 tw-text-white hover:tw-bg-red-700 tw-transition-all tw-duration-200 tw-shadow-sm tw-font-medium tw-text-sm"
+                            >
+                                <Download className="tw-w-4 tw-h-4" />
+                                PDF
+                            </button>
+                            <button
+                                type="button"
+                                className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                                onClick={() => createSolicitud()}
+                            >
+                                <Plus className="tw-w-4 tw-h-4" />
+                                <span>Nueva Solicitud</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

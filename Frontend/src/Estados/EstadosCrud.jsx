@@ -6,13 +6,13 @@ import Swal from "sweetalert2"
 import { CircleDot, Plus, Pencil, X, Hash, Type, Trash2, Search, Inbox } from "lucide-react"
 
 const customTableStyles = {
-    table: { 
-        style: { 
-            backgroundColor: 'transparent', 
-            borderRadius: '0.75rem', 
+    table: {
+        style: {
+            backgroundColor: 'transparent',
+            borderRadius: '0.75rem',
             overflow: 'hidden',
             minWidth: '100%'
-        } 
+        }
     },
     tableWrapper: {
         style: {
@@ -21,57 +21,57 @@ const customTableStyles = {
             whiteSpace: 'nowrap'
         }
     },
-    headRow: { 
-        style: { 
-            backgroundColor: '#1e3a5f', 
-            color: '#ffffff', 
-            fontWeight: '600', 
-            fontSize: '13px', 
-            textTransform: 'uppercase', 
-            letterSpacing: '0.5px', 
-            borderBottom: 'none', 
+    headRow: {
+        style: {
+            backgroundColor: '#1e3a5f',
+            color: '#ffffff',
+            fontWeight: '600',
+            fontSize: '13px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            borderBottom: 'none',
             minHeight: '40px',
             width: '100%'
-        } 
+        }
     },
-    headCells: { 
-        style: { 
-            color: '#ffffff', 
-            paddingLeft: '12px', 
+    headCells: {
+        style: {
+            color: '#ffffff',
+            paddingLeft: '12px',
             paddingRight: '12px',
             fontSize: '13px',
             fontWeight: '600'
-        } 
+        }
     },
-    rows: { 
-        style: { 
-            backgroundColor: '#ffffff', 
-            fontSize: '13px', 
-            color: '#1f2937', 
-            borderBottom: '1px solid #f3f4f6', 
-            minHeight: '44px', 
+    rows: {
+        style: {
+            backgroundColor: '#ffffff',
+            fontSize: '13px',
+            color: '#1f2937',
+            borderBottom: '1px solid #f3f4f6',
+            minHeight: '44px',
             transition: 'background-color 0.15s',
             width: '100%'
-        }, 
-        highlightOnHoverStyle: { 
-            backgroundColor: '#fef3c7', 
-            borderBottomColor: '#e0eeff', 
-            outline: 'none' 
-        } 
+        },
+        highlightOnHoverStyle: {
+            backgroundColor: '#fef3c7',
+            borderBottomColor: '#e0eeff',
+            outline: 'none'
+        }
     },
-    cells: { 
-        style: { 
-            paddingLeft: '12px', 
-            paddingRight: '12px' 
-        } 
+    cells: {
+        style: {
+            paddingLeft: '12px',
+            paddingRight: '12px'
+        }
     },
-    pagination: { 
-        style: { 
-            backgroundColor: '#ffffff', 
-            borderTop: '1px solid #e2e8f0', 
-            color: '#374151', 
-            minHeight: '40px' 
-        } 
+    pagination: {
+        style: {
+            backgroundColor: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            color: '#374151',
+            minHeight: '40px'
+        }
     },
 }
 
@@ -85,10 +85,10 @@ const EstadosCrud = () => {
     const [loading, setLoading] = useState(false)
 
     const columnsTable = [
-        { 
-            name: 'ID', 
-            selector: row => row.Id_estado, 
-            sortable: true, 
+        {
+            name: 'ID',
+            selector: row => row.Id_estado,
+            sortable: true,
             width: '80px',
             maxWidth: '80px',
             cell: row => (
@@ -205,23 +205,21 @@ const EstadosCrud = () => {
     const filteredEstados = Estados.filter(estado => {
         const searchTerm = filterText.toLowerCase()
         return estado.nom_estado?.toLowerCase().includes(searchTerm) ||
-               estado.Id_estado?.toString().includes(searchTerm)
+            estado.Id_estado?.toString().includes(searchTerm)
     })
 
     return (
         <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
-            <div className="tw-w-full tw-max-w-none">
+            <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
                 <div className="tw-mb-8">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
                         <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
                             <CircleDot className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
-                        <div>
-                            <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Estados</h1>
-                            <p className="tw-text-sm tw-text-slate-500">Gestiona los estados del sistema</p>
-                        </div>
+                        <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Estados</h1>
                     </div>
+                    <p className="tw-text-slate-500 tw-ml-12">Gestiona los estados del sistema</p>
                 </div>
 
                 {/* Barra de herramientas */}

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Menu } from 'lucide-react'
 
 const Navbar = ({ isAuth, logout }) => {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ const Navbar = ({ isAuth, logout }) => {
                     data-bs-toggle="offcanvas"
                     data-bs-target="#sidebarOffcanvas"
                 >
-                    ☰
+                    <Menu className="tw-w-5 tw-h-5" />
                 </button>
 
                 <div className="collapse navbar-collapse">
@@ -84,7 +85,7 @@ const Navbar = ({ isAuth, logout }) => {
                         </li>
 
 
-                        {/* 🔴 SECCIÓN AGREGADA - Dropdown de usuario */}
+                        {/* SECCIÓN AGREGADA - Dropdown de usuario */}
                         {isAuth ? (
                             <li className="nav-item dropdown">
                                 <a
@@ -190,7 +191,7 @@ const Navbar = ({ isAuth, logout }) => {
                                 Pérdidas
                             </NavLink>
                         </div>
-                        {/* 🔴 También agregar logout en el offcanvas para móviles */}
+                        {/* También agregar logout en el offcanvas para móviles */}
                         {isAuth && (
                             <div className="mt-3 border-top pt-2">
                                 <button

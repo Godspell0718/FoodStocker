@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import {
     ClipboardList, Calendar, FileText, Hash, Search,
     ArrowRight, ArrowLeft, Send, Plus, Trash2, ShoppingCart, Package,
-    CheckCircle, XCircle, Loader2, Truck, Eye, MapPin, ChevronDown, Boxes, Layers
+    CheckCircle, XCircle, Loader2, Truck, Eye, MapPin, ChevronDown, Boxes, Layers, AlertTriangle
 } from "lucide-react";
 import {
     fmtUnidad,
@@ -762,7 +762,7 @@ const SolicitudConLotes = () => {
                                     {/* Novedad — si el admin la registró */}
                                     {sol.novedad && (
                                         <div className="tw-mt-4 tw-flex tw-items-start tw-gap-2 tw-px-4 tw-py-3 tw-rounded-xl tw-bg-amber-50 tw-border tw-border-amber-200">
-                                            <span className="tw-text-amber-500 tw-text-lg tw-leading-none tw-shrink-0">⚠️</span>
+                                            <AlertTriangle className="tw-w-5 tw-h-5 tw-text-amber-500 tw-shrink-0 tw-mt-0.5" />
                                             <div>
                                                 <p className="tw-text-xs tw-font-bold tw-text-amber-700 tw-m-0 tw-mb-0.5 tw-uppercase tw-tracking-wide">Novedad en tu solicitud</p>
                                                 <p className="tw-text-sm tw-text-amber-900 tw-m-0">{sol.novedad}</p>

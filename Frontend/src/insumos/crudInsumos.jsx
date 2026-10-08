@@ -461,42 +461,40 @@ const CrudInsumos = () => {
             <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
                 <div className="tw-mb-8">
-                    <div className="tw-flex tw-items-center tw-justify-between">
-                        <div className="tw-flex tw-items-center tw-gap-3">
-                            <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
-                                <Package className="tw-w-5 tw-h-5 tw-text-secundario-400" />
-                            </div>
-                            <div>
-                                <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-m-0">Gestión de Insumos</h1>
-                                <p className="tw-text-slate-500 tw-text-sm tw-m-0">Control de stock, lotes y requerimientos activos</p>
-                            </div>
+                    <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                            <Package className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
-
-                        {!vistaDetalle && (
-                            <button
-                                type="button"
-                                className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
-                                onClick={() => { setInsumoEditando(null); setShowModalForm(true); }}
-                            >
-                                <Plus className="tw-w-4 tw-h-4" />
-                                <span>Nuevo Insumo</span>
-                            </button>
-                        )}
+                        <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Insumos</h1>
                     </div>
+                    <p className="tw-text-slate-500 tw-ml-12">Control de stock, lotes y requerimientos activos</p>
                 </div>
 
                 {!vistaDetalle ? (
                     <>
                         {/* Barra de búsqueda */}
-                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
-                            <div className="tw-relative tw-w-full md:tw-w-96">
-                                <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
-                                <input
-                                    className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
-                                    placeholder="Buscar por nombre o tipo..."
-                                    value={filterText}
-                                    onChange={(e) => setFilterText(e.target.value)}
-                                />
+                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-p-4 tw-mb-6">
+                            <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4 ">
+                                <div className="tw-relative tw-w-full md:tw-w-96 ">
+                                    <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
+                                    <input
+                                        type="text"
+                                        className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                                        placeholder="Buscar por nombre o tipo..."
+                                        value={filterText}
+                                        onChange={(e) => setFilterText(e.target.value)}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                                    onClick={() => { setInsumoEditando(null); setShowModalForm(true); }}
+                                >
+                                    <Plus className="tw-w-4 tw-h-4" />
+                                    <span>Nuevo Insumo</span>
+                                </button>
+
+
                             </div>
                         </div>
 
