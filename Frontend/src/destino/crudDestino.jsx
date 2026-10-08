@@ -3,9 +3,9 @@ import apiAxios from '../api/axiosConfig.js'
 import DataTable from 'react-data-table-component'
 import DestinoForm from "./destinoForm.jsx"
 import Swal from "sweetalert2"
-import { 
+import {
     MapPin, Utensils, Hash, Type,
-    Plus, Search, Pencil, ToggleLeft, ToggleRight, X, Inbox 
+    Plus, Search, Pencil, ToggleLeft, ToggleRight, X, Inbox
 } from "lucide-react"
 
 const CrudDestino = () => {
@@ -18,14 +18,14 @@ const CrudDestino = () => {
 
 
     const columnsTable = [
-        { 
-            name: 'ID', 
+        {
+            name: 'ID',
             selector: row => row.Id_Destino,
             width: "80px",
             cell: row => <span className="tw-font-mono tw-text-slate-500">#{row.Id_Destino}</span>
         },
-        { 
-            name: 'Nombre Destino', 
+        {
+            name: 'Nombre Destino',
             selector: row => row.Nom_Destino,
             sortable: true,
             cell: row => (
@@ -37,8 +37,8 @@ const CrudDestino = () => {
                 </div>
             )
         },
-        { 
-            name: 'Tipo Destino', 
+        {
+            name: 'Tipo Destino',
             selector: row => row.Tip_Destino,
             cell: row => (
                 <div className="tw-flex tw-items-center tw-gap-2">
@@ -47,16 +47,15 @@ const CrudDestino = () => {
                 </div>
             )
         },
-        { 
-            name: "Estado", 
+        {
+            name: "Estado",
             selector: row => row.Estado || 'ACTIVO',
             sortable: true,
             cell: row => (
-                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${
-                    (row.Estado || 'ACTIVO') === 'ACTIVO'
-                        ? 'tw-bg-emerald-100 tw-text-emerald-800' 
+                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${(row.Estado || 'ACTIVO') === 'ACTIVO'
+                        ? 'tw-bg-emerald-100 tw-text-emerald-800'
                         : 'tw-bg-rose-100 tw-text-rose-800'
-                }`}>
+                    }`}>
                     {row.Estado || 'ACTIVO'}
                 </span>
             )
@@ -71,11 +70,10 @@ const CrudDestino = () => {
                     <div className="tw-flex tw-gap-2">
                         <button
                             title={isActivo ? "Editar" : "No se puede editar un registro inactivo"}
-                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
-                                isActivo
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${isActivo
                                     ? "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
                                     : "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed"
-                            }`}
+                                }`}
                             onClick={() => {
                                 if (!isActivo) {
                                     Swal.fire("Edición Bloqueada", "No se puede editar un destino que se encuentra INACTIVO. Actívelo primero para poder editarlo.", "info");
@@ -89,11 +87,10 @@ const CrudDestino = () => {
                         </button>
                         <button
                             title={isActivo ? "Inactivar Destino" : "Activar Destino"}
-                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
-                                isActivo 
-                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white" 
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${isActivo
+                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white"
                                     : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
-                            }`}
+                                }`}
                             onClick={() => toggleEstadoDestino(row)}
                         >
                             {isActivo ? <ToggleRight className="tw-w-4 tw-h-4" /> : <ToggleLeft className="tw-w-4 tw-h-4" />}
@@ -104,17 +101,17 @@ const CrudDestino = () => {
         }
     ]
 
-  useEffect(() => {
-    getAlldestino()
-  }, [])
+    useEffect(() => {
+        getAlldestino()
+    }, [])
 
-  //Crear una función para la consulta
+    //Crear una función para la consulta
     const toggleEstadoDestino = async (row) => {
         const isActivo = (row.Estado || 'ACTIVO') === 'ACTIVO';
         const accion = isActivo ? "Inactivar" : "Activar";
         const confirm = await Swal.fire({
             title: `¿${accion} destino?`,
-            text: isActivo 
+            text: isActivo
                 ? "El destino pasará a estado INACTIVO (no se mostrará para nuevas solicitudes de insumos)"
                 : "El destino pasará a estado ACTIVO",
             icon: "warning",
@@ -154,17 +151,17 @@ const CrudDestino = () => {
         }
     }
 
-  const newListdestino = destino.filter(destino => {
+    const newListdestino = destino.filter(destino => {
 
-    const textToSearch = filterText.toLowerCase()
+        const textToSearch = filterText.toLowerCase()
 
-    const nombre = destino.Nom_Destino?.toLowerCase() || ""
+        const nombre = destino.Nom_Destino?.toLowerCase() || ""
 
-    return (
-      nombre.includes(textToSearch)
-    )
+        return (
+            nombre.includes(textToSearch)
+        )
 
-  })
+    })
 
     const hideModal = () => {
         setShowModal(false)
@@ -212,7 +209,7 @@ const CrudDestino = () => {
 
     return (
         <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
-            <div className="tw-max-w-5xl tw-mx-auto">
+            <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
                 <div className="tw-mb-8">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
@@ -279,7 +276,7 @@ const CrudDestino = () => {
 
                 {/* Modal Custom Tailwind */}
                 {showModal && (
-                    <div 
+                    <div
                         className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
                         onClick={(e) => e.target === e.currentTarget && hideModal()}
                     >

@@ -146,7 +146,7 @@ const SolicitudForm = ({ hideModal, isEditing, selectedSolicitud }) => {
                     onClick={hideModal}
                     className="tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-gray-600 tw-font-medium tw-text-sm hover:tw-bg-gray-50 tw-transition-all"
                 >
-                    <X className="tw-w-4 tw-h-4" />
+                    <X className="tw-w-4 tw-h-4 tw-text-black hover:tw-scale-105 tw-transition-transform" />
                     Cancelar
                 </button>
             </div>

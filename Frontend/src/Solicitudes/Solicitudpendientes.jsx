@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
-import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin, AlertTriangle, Boxes, Layers } from "lucide-react";
+import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin, AlertTriangle, Boxes, Layers, Scale } from "lucide-react";
 import { fmtCantidadConPresentacion, fmtUnidad, fmtFechaVencimiento } from "../utils/inventario.js";
 
 const ESTADO_CONFIG = {
@@ -145,7 +145,7 @@ const SolicitudPendientes = () => {
             if (sol.novedad) {
                 // Modo lectura: mostrar la novedad registrada sin permitir edición
                 Swal.fire({
-                    title: `📋 Novedad Registrada (#${sol.Id_solicitud})`,
+                    title: `Novedad Registrada (#${sol.Id_solicitud})`,
                     html: `
                         <div style="text-align: left; font-size: 13px; color: #374151;">
                             <p style="margin-bottom: 8px;"><strong>Estado de solicitud:</strong> <span style="text-transform: capitalize;">${estado}</span></p>
@@ -457,8 +457,18 @@ const SolicitudPendientes = () => {
                                     <span className="tw-text-primario-200 tw-text-sm tw-font-medium">
                                         — {sol.responsable?.Nom_Responsable ?? "Sin responsable"}
                                     </span>
-                                    <span className="tw-ml-2 tw-px-2.5 tw-py-0.5 tw-rounded-full tw-text-[11px] tw-font-bold tw-bg-primario-800 tw-text-secundario-300 tw-border tw-border-primario-700">
-                                        {sol.Tip_solicitud === 'PRESENTACION' ? '📦 Empaque completo' : '⚖️ Cantidad exacta'}
+                                    <span className="tw-ml-2 tw-inline-flex tw-items-center tw-gap-1 tw-px-2.5 tw-py-0.5 tw-rounded-full tw-text-[11px] tw-font-bold tw-bg-primario-800 tw-text-secundario-300 tw-border tw-border-primario-700">
+                                        {sol.Tip_solicitud === 'PRESENTACION' ? (
+                                            <>
+                                                <Package className="tw-w-3 tw-h-3" />
+                                                <span>Empaque completo</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Scale className="tw-w-3 tw-h-3" />
+                                                <span>Cantidad exacta</span>
+                                            </>
+                                        )}
                                     </span>
                                 </div>
                                 <EstadoBadge estado={sol.ultimoEstado} />
@@ -628,7 +638,7 @@ const SolicitudPendientes = () => {
                                                     onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
                                                     className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
                                                 >
-                                                    <XCircle className="tw-w-4 tw-h-4" /> Cancelar
+                                                    <X className="tw-w-4 tw-h-4 tw-text-black hover:tw-scale-105 tw-transition-transform" /> Cancelar
                                                 </button>
                                             </>
                                         )}
@@ -644,7 +654,7 @@ const SolicitudPendientes = () => {
                                                     onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
                                                     className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
                                                 >
-                                                    <XCircle className="tw-w-4 tw-h-4" /> Cancelar
+                                                    <X className="tw-w-4 tw-h-4 tw-text-black hover:tw-scale-105 tw-transition-transform" /> Cancelar
                                                 </button>
                                             </>
                                         )}

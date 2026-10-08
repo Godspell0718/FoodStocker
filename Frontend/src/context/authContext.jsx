@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
 
-  // 🔹 Cargar sesión guardada
+  // Cargar sesión guardada
   useEffect(() => {
     const storedUser = localStorage.getItem("userFoodStocker");
     const storedToken = localStorage.getItem("tokenFoodStocker");

@@ -34,12 +34,12 @@ const navItems = [
 ];
 
 const Temporal = [
-  { icon: Warehouse, label: "Destinos", path: "/Destino", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-  { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-  { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-  { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"] },
-  { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-  { icon: ArchiveRestore, label: "Pérdidas", path: "/perdidas", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+    { icon: Warehouse, label: "Destinos", path: "/Destino", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+    { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+    { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+    { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"] },
+    { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+    { icon: ArchiveRestore, label: "Pérdidas", path: "/perdidas", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
 ];
 
 export default function Dashboard() {
@@ -244,13 +244,6 @@ export default function Dashboard() {
                     ))}
                 </nav>
 
-                {/* SETTINGS */}
-                <div className="tw-px-3 tw-pb-4 tw-border-t tw-border-gray-800 tw-pt-4 tw-bg-primario-900">
-                    <button className="tw-w-full tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-text-primario-900 hover:tw-bg-secundario-200 hover:tw-text-primario-950">
-                        <Settings className="tw-w-5 tw-h-5" />
-                        Configuración
-                    </button>
-                </div>
             </aside>
 
             {/* CONTENIDO */}
@@ -358,7 +351,7 @@ export default function Dashboard() {
                                     <ChevronDown className="tw-w-4 tw-h-4 tw-text-primario-50" />
                                 </div>
 
-                                 {/* Dropdown */}
+                                {/* Dropdown */}
                                 {openUserMenu && (
                                     <div className="tw-absolute tw-right-0 tw-mt-3 tw-w-72 tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-border tw-border-gray-100 tw-z-50 tw-overflow-hidden tw-animate-in tw-fade-in tw-slide-in-from-top-2">
                                         {/* User info header */}

@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import {
     User, FileText, Mail, Phone, Lock, Shield,
-    ChevronDown, Save, X, Eye, EyeOff
+    ChevronDown, Save, X, Eye, EyeOff, Sprout, ClipboardList, GraduationCap, AlertTriangle
 } from "lucide-react";
 
 const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all"
@@ -12,10 +12,10 @@ const labelClass = "tw-block tw-text-xs tw-font-semibold tw-text-gray-500 tw-upp
 const selectClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all tw-appearance-none"
 
 const tipoConfig = {
-    ADMIN: { label: "Administrador", color: "tw-bg-red-100 tw-text-red-700", icon: "🛡️" },
-    "Pasante de agroindustria": { label: "Pasante de agroindustria", color: "tw-bg-emerald-100 tw-text-emerald-700", icon: "🌿" },
-    "Instructor de agroindustria": { label: "Instructor de agroindustria", color: "tw-bg-blue-100 tw-text-blue-700", icon: "📋" },
-    "Pasante solicitante": { label: "Pasante solicitante", color: "tw-bg-amber-100 tw-text-amber-700", icon: "🎓" },
+    ADMIN: { label: "Administrador", color: "tw-bg-red-100 tw-text-red-700", Icon: Shield },
+    "Pasante de agroindustria": { label: "Pasante de agroindustria", color: "tw-bg-emerald-100 tw-text-emerald-700", Icon: Sprout },
+    "Instructor de agroindustria": { label: "Instructor de agroindustria", color: "tw-bg-blue-100 tw-text-blue-700", Icon: ClipboardList },
+    "Pasante solicitante": { label: "Pasante solicitante", color: "tw-bg-amber-100 tw-text-amber-700", Icon: GraduationCap },
 }
 
 const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
@@ -59,7 +59,7 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
     const gestionarForm = async (e) => {
         e.preventDefault();
 
-        // 🔍 VALIDACIONES RIGUROSAS (Requerimiento 3)
+        // VALIDACIONES RIGUROSAS (Requerimiento 3)
         if (!Nom_Responsable.trim() || Nom_Responsable.trim().length < 3) {
             return MySwal.fire("Validación", "El nombre debe tener al menos 3 caracteres.", "warning");
         }
@@ -244,30 +244,34 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
                             disabled={isEditingSelf}
                             required
                         >
-                            <option value="ADMIN">🛡️ Administrador</option>
-                            <option value="Pasante de agroindustria">🌿 Pasante de agroindustria</option>
-                            <option value="Instructor de agroindustria">📋 Instructor de agroindustria</option>
-                            <option value="Pasante solicitante">🎓 Pasante solicitante</option>
+                            <option value="ADMIN">Administrador</option>
+                            <option value="Pasante de agroindustria">Pasante de agroindustria</option>
+                            <option value="Instructor de agroindustria">Instructor de agroindustria</option>
+                            <option value="Pasante solicitante">Pasante solicitante</option>
                         </select>
                         <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
                     </div>
                     {isEditingSelf && (
-                        <p className="tw-text-[11px] tw-text-amber-600 tw-font-semibold tw-mt-1">
-                            ⚠️ No puedes modificar tu propio rol de administrador.
+                        <p className="tw-text-[11px] tw-text-amber-600 tw-font-semibold tw-mt-1 tw-flex tw-items-center tw-gap-1">
+                            <AlertTriangle className="tw-w-3.5 tw-h-3.5 tw-shrink-0" />
+                            No puedes modificar tu propio rol de administrador.
                         </p>
                     )}
                 </div>
             </div>
 
             {/* Preview del rol seleccionado */}
-            {Tip_Responsable && tipoConfig[Tip_Responsable] && (
-                <div className={`tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-text-sm tw-font-medium ${tipoConfig[Tip_Responsable].color}`}>
-                    <span className="tw-text-base">{tipoConfig[Tip_Responsable].icon}</span>
-                    <span>
-                        Este usuario será registrado como <strong>{tipoConfig[Tip_Responsable].label}</strong>
-                    </span>
-                </div>
-            )}
+            {Tip_Responsable && tipoConfig[Tip_Responsable] && (() => {
+                const RolIcon = tipoConfig[Tip_Responsable].Icon;
+                return (
+                    <div className={`tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-text-sm tw-font-medium ${tipoConfig[Tip_Responsable].color}`}>
+                        <RolIcon className="tw-w-4 tw-h-4 tw-shrink-0" />
+                        <span>
+                            Este usuario será registrado como <strong>{tipoConfig[Tip_Responsable].label}</strong>
+                        </span>
+                    </div>
+                );
+            })()}
 
             {/* Botones de acción */}
             <div className="tw-flex tw-gap-3 tw-pt-2">

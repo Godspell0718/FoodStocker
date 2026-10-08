@@ -13,6 +13,8 @@ import {
     ToggleRight,
     X,
     Inbox,
+    Plus,
+    Search,
 } from 'lucide-react'
 import Swal from "sweetalert2"
 
@@ -73,29 +75,27 @@ const CrudResponsables = () => {
             name: "Tipo",
             selector: row => row.Tip_Responsable,
             cell: row => (
-                <span className={`tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium ${
-                    row.Tip_Responsable === 'ADMIN' 
-                        ? 'tw-bg-blue-100 tw-text-blue-700' 
-                        : row.Tip_Responsable === 'Instructor de agroindustria'
+                <span className={`tw-px-2 tw-py-1 tw-rounded-full tw-text-xs tw-font-medium ${row.Tip_Responsable === 'ADMIN'
+                    ? 'tw-bg-blue-100 tw-text-blue-700'
+                    : row.Tip_Responsable === 'Instructor de agroindustria'
                         ? 'tw-bg-purple-100 tw-text-purple-700'
                         : row.Tip_Responsable === 'Pasante de agroindustria'
-                        ? 'tw-bg-emerald-100 tw-text-emerald-700'
-                        : 'tw-bg-amber-100 tw-text-amber-700'
-                }`}>
+                            ? 'tw-bg-emerald-100 tw-text-emerald-700'
+                            : 'tw-bg-amber-100 tw-text-amber-700'
+                    }`}>
                     {row.Tip_Responsable}
                 </span>
             )
         },
-        { 
-            name: "Estado", 
+        {
+            name: "Estado",
             selector: row => row.Estado || 'ACTIVO',
             sortable: true,
             cell: row => (
-                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${
-                    (row.Estado || 'ACTIVO') === 'ACTIVO'
-                        ? 'tw-bg-emerald-100 tw-text-emerald-800' 
-                        : 'tw-bg-rose-100 tw-text-rose-800'
-                }`}>
+                <span className={`tw-px-2.5 tw-py-1 tw-rounded-full tw-text-xs tw-font-bold ${(row.Estado || 'ACTIVO') === 'ACTIVO'
+                    ? 'tw-bg-emerald-100 tw-text-emerald-800'
+                    : 'tw-bg-rose-100 tw-text-rose-800'
+                    }`}>
                     {row.Estado || 'ACTIVO'}
                 </span>
             )
@@ -110,11 +110,10 @@ const CrudResponsables = () => {
                     <div className="tw-flex tw-gap-2">
                         <button
                             title={isActivo ? "Editar" : "No se puede editar un registro inactivo"}
-                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
-                                isActivo
-                                    ? "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
-                                    : "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed"
-                            }`}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${isActivo
+                                ? "tw-bg-primario-900 tw-text-white hover:tw-bg-primario-700"
+                                : "tw-bg-slate-200 tw-text-slate-400 tw-cursor-not-allowed"
+                                }`}
                             onClick={() => {
                                 if (!isActivo) {
                                     Swal.fire("Edición Bloqueada", "No se puede editar un usuario que se encuentra INACTIVO. Actívelo primero para poder editarlo.", "info");
@@ -128,11 +127,10 @@ const CrudResponsables = () => {
                         </button>
                         <button
                             title={isActivo ? "Inactivar Usuario" : "Activar Usuario"}
-                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${
-                                isActivo 
-                                    ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white" 
-                                    : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
-                            }`}
+                            className={`tw-p-1.5 tw-rounded-lg tw-transition-all tw-duration-200 tw-shadow-sm ${isActivo
+                                ? "tw-bg-amber-50 tw-text-amber-600 hover:tw-bg-amber-600 hover:tw-text-white"
+                                : "tw-bg-emerald-50 tw-text-emerald-600 hover:tw-bg-emerald-600 hover:tw-text-white"
+                                }`}
                             onClick={() => toggleEstadoResponsable(row)}
                         >
                             {isActivo ? <ToggleRight className="tw-w-4 tw-h-4" /> : <ToggleLeft className="tw-w-4 tw-h-4" />}
@@ -152,7 +150,7 @@ const CrudResponsables = () => {
         const accion = isActivo ? "Inactivar" : "Activar";
         const confirm = await Swal.fire({
             title: `¿${accion} usuario?`,
-            text: isActivo 
+            text: isActivo
                 ? "El usuario pasará a estado INACTIVO (no se eliminarán sus registros históricos)"
                 : "El usuario pasará a estado ACTIVO",
             icon: "warning",
@@ -265,7 +263,7 @@ const CrudResponsables = () => {
                 <div className="tw-bg-white tw-rounded-2xl tw-shadow-[15px_15px_30px_#bebebe,_-15px_-15px_30px_#ffffff] tw-p-4 tw-mb-6">
                     <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4 ">
                         <div className="tw-relative tw-w-full md:tw-w-96 ">
-                            <i className="fa-solid fa-magnifying-glass tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400"></i>
+                            <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
                             <input
                                 type="text"
                                 className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
@@ -277,28 +275,12 @@ const CrudResponsables = () => {
                         <button
                             type="button"
                             className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
-                            onClick={() => {
-                                setResponsableSeleccionado(null)
-                                setShowModal(true)
-                            }}
+                            onClick={() => { setResponsableSeleccionado(null); setShowModal(true); }}
                         >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"></path>
-                                <path d="M8 12H16"></path>
-                                <path d="M12 16V8"></path>
-                            </svg>
+                            <Plus className="tw-w-4 tw-h-4" />
                             <span>Nuevo Responsable</span>
                         </button>
+
 
                     </div>
                 </div>
