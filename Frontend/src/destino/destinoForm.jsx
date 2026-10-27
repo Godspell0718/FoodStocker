@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import apiAxios from "../api/axiosConfig.js"
 import Swal from "sweetalert2"
-import { MapPin, Type, Save, Send } from "lucide-react"
+import { MapPin, Type, Save, Send, X } from "lucide-react"
 
 const DestinoForm = ({ hideModal, destinoSeleccionado }) => {
 
@@ -99,12 +99,20 @@ const DestinoForm = ({ hideModal, destinoSeleccionado }) => {
                 </div>
             </div>
 
-            {/* Submit Button */}
-            <div className="tw-pt-2">
+            {/* Botones de acción */}
+            <div className="tw-flex tw-gap-3 tw-pt-2">
+                <button
+                    type="button"
+                    onClick={hideModal}
+                    className="tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-5 tw-py-3 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-gray-600 tw-font-semibold hover:tw-bg-gray-50 tw-transition-all"
+                >
+                    <X className="tw-w-4 tw-h-4" />
+                    Cancelar
+                </button>
                 <button 
                     type="submit" 
                     disabled={loading}
-                    className="tw-w-full tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-6 tw-py-3 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-bold tw-rounded-xl tw-shadow-lg tw-transition-all tw-duration-200 disabled:tw-opacity-50"
+                    className="tw-flex-[2] tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-6 tw-py-3 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-bold tw-rounded-xl tw-shadow-lg tw-transition-all tw-duration-200 disabled:tw-opacity-50"
                 >
                     {loading ? (
                         <div className="tw-w-5 tw-h-5 tw-border-2 tw-border-white/30 tw-border-t-white tw-rounded-full tw-animate-spin"></div>

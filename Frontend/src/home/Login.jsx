@@ -9,7 +9,8 @@ import {
     AlertCircle,
     Loader2,
     ShieldCheck,
-    Server
+    Server,
+    ArrowLeft
 } from "lucide-react";
 
 const Login = ({ setIsAuth }) => {
@@ -58,7 +59,18 @@ const Login = ({ setIsAuth }) => {
     const displayError = isInactiveError ? error.replace('INACTIVO: ', '') : error;
 
     return (
-        <div className="tw-min-h-screen tw-bg-slate-50 tw-flex tw-items-center tw-justify-center tw-p-6">
+        <div className="tw-min-h-screen tw-bg-slate-50 tw-flex tw-items-center tw-justify-center tw-p-6 tw-relative">
+
+            {/* Botón flotante para regresar al inicio público */}
+            <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="tw-absolute tw-top-6 tw-left-6 tw-flex tw-items-center tw-gap-2 tw-text-xs md:tw-text-sm tw-font-semibold tw-text-slate-700 hover:tw-text-primario-900 tw-bg-white hover:tw-bg-slate-100 tw-px-3.5 tw-py-2 tw-rounded-xl tw-border tw-border-slate-200/80 tw-shadow-sm hover:tw-shadow tw-transition-all tw-cursor-pointer"
+                title="Volver a la página de inicio"
+            >
+                <ArrowLeft className="tw-w-4 tw-h-4" />
+                <span>Volver al inicio</span>
+            </button>
 
             {/* La tarjeta ahora es blanca sólida con una sombra suave */}
             <div className="tw-w-full tw-max-w-md tw-bg-white tw-border tw-border-slate-200 tw-rounded-3xl tw-overflow-hidden tw-shadow-xl">
@@ -66,7 +78,11 @@ const Login = ({ setIsAuth }) => {
                 {/* Header */}
                 <div className="tw-px-8 tw-pt-10 tw-text-center">
                     <div className="tw-flex tw-justify-center tw-mb-4">
-                        <div className="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-shadow-md tw-shadow-slate-300">
+                        <div 
+                            onClick={() => navigate('/')}
+                            className="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-shadow-md tw-shadow-slate-300 tw-cursor-pointer hover:tw-scale-105 tw-transition-transform"
+                            title="Ir al inicio de FoodStocker"
+                        >
                             {/* Ajusté el color del logo para que contraste con el fondo oscuro del ícono */}
                             <svg width="592.000000pt" height="589.000000pt" viewBox="0 0 592.000000 589.000000" xmlns="http://www.w3.org/2000/svg">
                                 <g transform="translate(0.000000,589.000000) scale(0.100000,-0.100000)" fill="#fdfef9" stroke="none">
@@ -269,7 +285,7 @@ const Login = ({ setIsAuth }) => {
                             )}
                         </button>
 
-                        <p className="tw-text-center tw-text-sm tw-text-slate-500">
+                        <p className="tw-text-center tw-text-sm tw-text-slate-500 tw-mb-0">
                             ¿No tienes una cuenta?{" "}
                             <a
                                 href="#"
@@ -278,6 +294,17 @@ const Login = ({ setIsAuth }) => {
                                 Contacta al administrador
                             </a>
                         </p>
+
+                        <div className="tw-pt-3 tw-border-t tw-border-slate-100 tw-text-center">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/')}
+                                className="tw-inline-flex tw-items-center tw-gap-1.5 tw-text-xs tw-font-medium tw-text-slate-500 hover:tw-text-primario-900 tw-transition-colors tw-bg-transparent tw-border-none tw-cursor-pointer"
+                            >
+                                <ArrowLeft className="tw-w-3.5 tw-h-3.5" />
+                                <span>Volver a la página principal</span>
+                            </button>
+                        </div>
                     </form>
                 </div>
 

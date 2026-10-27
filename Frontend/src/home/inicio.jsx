@@ -51,6 +51,8 @@ const ESTADO_CONFIG = {
     cancelado: { label: "Cancelado", bg: "tw-bg-red-100 tw-text-red-700", dot: "tw-bg-red-500" },
 };
 
+import { normalizarRol } from '../utils/roles.js';
+
 const EstadoBadge = ({ estado }) => {
     const key = estado?.toLowerCase();
     const config = ESTADO_CONFIG[key] || { label: estado ?? "Sin estado", bg: "tw-bg-gray-100 tw-text-gray-600", dot: "tw-bg-gray-400" };
@@ -65,10 +67,10 @@ const EstadoBadge = ({ estado }) => {
 const Inicio = () => {
     const navigate = useNavigate();
     const currentUser = JSON.parse(localStorage.getItem('userFoodStocker') || '{}');
-    const userRol = currentUser.rol?.trim() || '';
+    const userRol = normalizarRol(currentUser.rol?.trim() || '');
     const esAdmin = userRol === 'ADMIN';
-    const esPasanteAgro = userRol === 'Pasante de agroindustria';
-    const esInstructorAgro = userRol === 'Instructor de agroindustria';
+    const esPasanteAgro = userRol === 'GA';
+    const esInstructorAgro = userRol === 'IEU';
     const puedeVerSolicitudesPendientes = esAdmin || esPasanteAgro || esInstructorAgro;
     const [greeting, setGreeting] = useState({
         text: '',
@@ -245,9 +247,9 @@ const Inicio = () => {
         return { texto: 'Clima', icono: <Thermometer size={32} className="tw-text-slate-500" /> };
     };
 
-    // Filtrar solicitudes activas ("solicitado" o "proceso")
+    // Filtrar solicitudes pendientes únicamente en estado "solicitado"
     const solicitudesPendientesActivas = solicitudes.filter(
-        sol => sol.ultimoEstado?.toLowerCase() === "solicitado" || sol.ultimoEstado?.toLowerCase() === "proceso"
+        sol => sol.ultimoEstado?.toLowerCase() === "solicitado"
     );
 
     // Paginación para el modal "Ver más"
@@ -380,7 +382,7 @@ const Inicio = () => {
                         ) : solicitudesPendientesActivas.length === 0 ? (
                             <div className="tw-text-center tw-py-8">
                                 <i className="fa-solid fa-circle-check tw-text-green-500 tw-text-3xl tw-mb-2"></i>
-                                <p className="tw-text-sm tw-text-slate-600">No hay solicitudes pendientes de despacho</p>
+                                <p className="tw-text-sm tw-text-slate-600">No hay solicitudes pendientes por atender</p>
                             </div>
                         ) : (
                             <div className="tw-space-y-3">

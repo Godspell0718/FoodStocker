@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import apiAxios from "../api/axiosConfig.js";
 import Swal from "sweetalert2";
-import { ClipboardList, CheckCircle, XCircle, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin, AlertTriangle, Boxes, Layers, Scale } from "lucide-react";
+import { ClipboardList, CheckCircle, XCircle, X, Truck, Loader2, Package, Calendar, User, FileText, Hash, RefreshCw, MessageSquare, MapPin, AlertTriangle, Boxes, Layers, Scale, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { fmtCantidadConPresentacion, fmtUnidad, fmtFechaVencimiento } from "../utils/inventario.js";
 
 const ESTADO_CONFIG = {
@@ -26,6 +26,9 @@ const SolicitudPendientes = () => {
     const [solicitudes, setSolicitudes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filtroEstado, setFiltroEstado] = useState("solicitado");
+    const [busquedaNombre, setBusquedaNombre] = useState("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const ITEMS_POR_PAGINA = 5;
 
     useEffect(() => { cargarSolicitudes(); }, []);
 
@@ -378,6 +381,53 @@ const SolicitudPendientes = () => {
         }
     };
 
+    const normalizar = (texto) =>
+        (texto || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+
+    // Lista de nombres únicos de solicitantes para autocompletado
+    const solicitantesUnicos = Array.from(
+        new Set(
+            solicitudes
+                .map(s => s.responsable?.Nom_Responsable)
+                .filter(Boolean)
+        )
+    ).sort((a, b) => a.localeCompare(b));
+
+    // Solicitudes del estado actual
+    const solicitudesPorEstado = solicitudes.filter(
+        sol => sol.ultimoEstado?.toLowerCase() === filtroEstado.toLowerCase()
+    );
+
+    // Solicitudes del estado actual filtradas por el nombre del solicitante
+    const solicitudesFiltradas = solicitudesPorEstado.filter(sol => {
+        if (!busquedaNombre.trim()) return true;
+        const query = normalizar(busquedaNombre);
+        const nombreResp = normalizar(sol.responsable?.Nom_Responsable);
+        return nombreResp.includes(query);
+    });
+
+    const totalPaginas = Math.ceil(solicitudesFiltradas.length / ITEMS_POR_PAGINA) || 1;
+    const solicitudesPaginadas = solicitudesFiltradas.slice(
+        (paginaActual - 1) * ITEMS_POR_PAGINA,
+        paginaActual * ITEMS_POR_PAGINA
+    );
+
+    // Contador por estado (toma en cuenta el filtro de búsqueda si está activo)
+    const contarPorEstado = (estadoKey) => {
+        if (busquedaNombre.trim()) {
+            const query = normalizar(busquedaNombre);
+            return solicitudes.filter(
+                sol => sol.ultimoEstado?.toLowerCase() === estadoKey &&
+                    normalizar(sol.responsable?.Nom_Responsable).includes(query)
+            ).length;
+        }
+        return solicitudes.filter(sol => sol.ultimoEstado?.toLowerCase() === estadoKey).length;
+    };
+
     return (
         <div className="tw-p-2">
 
@@ -389,44 +439,136 @@ const SolicitudPendientes = () => {
                     </div>
                     <div>
                         <h1 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Solicitudes Pendientes</h1>
-                        <p className="tw-text-sm tw-text-gray-500 tw-m-0">Gestiona y cambia el estado de cada solicitud</p>
+                        <p className="tw-text-sm tw-text-gray-500 tw-m-0">Gestiona y despacha cada solicitud de insumos</p>
                     </div>
                 </div>
                 <button
                     onClick={cargarSolicitudes}
-                    className="tw-flex tw-items-center tw-gap-2 tw-px-3 tw-py-2 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-sm tw-text-gray-600 hover:tw-bg-gray-50 tw-transition-all tw-shadow-sm"
+                    className="tw-flex tw-items-center tw-gap-2 tw-px-3.5 tw-py-2 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-white tw-text-sm tw-text-gray-600 hover:tw-bg-gray-50 tw-transition-all tw-shadow-sm"
                 >
                     <RefreshCw className="tw-w-4 tw-h-4" />
                     Actualizar
                 </button>
             </div>
 
-            {/* Tabs de Filtro */}
-            <div className="tw-flex tw-gap-2 tw-mb-6 tw-bg-white tw-p-1.5 tw-rounded-xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-x-auto">
+            {/* Tabs de Filtro por Estado */}
+            <div className="tw-flex tw-gap-2 tw-mb-4 tw-bg-white tw-p-1.5 tw-rounded-xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-x-auto">
                 <button
-                    onClick={() => setFiltroEstado("solicitado")}
-                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "solicitado" ? "tw-bg-amber-100 tw-text-amber-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                    onClick={() => { setFiltroEstado("solicitado"); setPaginaActual(1); }}
+                    className={`tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${
+                        filtroEstado === "solicitado"
+                            ? "tw-bg-amber-100 tw-text-amber-800 tw-shadow-sm tw-font-semibold"
+                            : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"
+                    }`}
                 >
-                    Solicitadas
+                    <span>Solicitadas</span>
+                    <span className={`tw-px-2 tw-py-0.5 tw-text-xs tw-rounded-full tw-font-bold ${
+                        filtroEstado === "solicitado"
+                            ? "tw-bg-amber-200/80 tw-text-amber-900"
+                            : "tw-bg-gray-100 tw-text-gray-600"
+                    }`}>
+                        {contarPorEstado("solicitado")}
+                    </span>
                 </button>
                 <button
-                    onClick={() => setFiltroEstado("proceso")}
-                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "proceso" ? "tw-bg-blue-100 tw-text-blue-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                    onClick={() => { setFiltroEstado("proceso"); setPaginaActual(1); }}
+                    className={`tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${
+                        filtroEstado === "proceso"
+                            ? "tw-bg-blue-100 tw-text-blue-800 tw-shadow-sm tw-font-semibold"
+                            : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"
+                    }`}
                 >
-                    En Proceso
+                    <span>En Proceso</span>
+                    <span className={`tw-px-2 tw-py-0.5 tw-text-xs tw-rounded-full tw-font-bold ${
+                        filtroEstado === "proceso"
+                            ? "tw-bg-blue-200/80 tw-text-blue-900"
+                            : "tw-bg-gray-100 tw-text-gray-600"
+                    }`}>
+                        {contarPorEstado("proceso")}
+                    </span>
                 </button>
                 <button
-                    onClick={() => setFiltroEstado("despachado")}
-                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "despachado" ? "tw-bg-emerald-100 tw-text-emerald-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                    onClick={() => { setFiltroEstado("despachado"); setPaginaActual(1); }}
+                    className={`tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${
+                        filtroEstado === "despachado"
+                            ? "tw-bg-emerald-100 tw-text-emerald-800 tw-shadow-sm tw-font-semibold"
+                            : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"
+                    }`}
                 >
-                    Despachadas
+                    <span>Despachadas</span>
+                    <span className={`tw-px-2 tw-py-0.5 tw-text-xs tw-rounded-full tw-font-bold ${
+                        filtroEstado === "despachado"
+                            ? "tw-bg-emerald-200/80 tw-text-emerald-900"
+                            : "tw-bg-gray-100 tw-text-gray-600"
+                    }`}>
+                        {contarPorEstado("despachado")}
+                    </span>
                 </button>
                 <button
-                    onClick={() => setFiltroEstado("cancelado")}
-                    className={`tw-flex-1 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${filtroEstado === "cancelado" ? "tw-bg-red-100 tw-text-red-700 tw-shadow-sm" : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"}`}
+                    onClick={() => { setFiltroEstado("cancelado"); setPaginaActual(1); }}
+                    className={`tw-flex-1 tw-flex tw-items-center tw-justify-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-lg tw-text-sm tw-font-medium tw-transition-all tw-whitespace-nowrap ${
+                        filtroEstado === "cancelado"
+                            ? "tw-bg-red-100 tw-text-red-800 tw-shadow-sm tw-font-semibold"
+                            : "tw-text-gray-500 hover:tw-bg-gray-50 hover:tw-text-gray-700"
+                    }`}
                 >
-                    Canceladas
+                    <span>Canceladas</span>
+                    <span className={`tw-px-2 tw-py-0.5 tw-text-xs tw-rounded-full tw-font-bold ${
+                        filtroEstado === "cancelado"
+                            ? "tw-bg-red-200/80 tw-text-red-900"
+                            : "tw-bg-gray-100 tw-text-gray-600"
+                    }`}>
+                        {contarPorEstado("cancelado")}
+                    </span>
                 </button>
+            </div>
+
+            {/* Filtro por Nombre del Solicitante */}
+            <div className="tw-bg-white tw-p-3.5 tw-rounded-xl tw-shadow-sm tw-border tw-border-gray-100 tw-mb-5 tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-between tw-gap-3">
+                <div className="tw-relative tw-w-full sm:tw-w-96">
+                    <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400" />
+                    <input
+                        type="text"
+                        list="lista-solicitantes"
+                        value={busquedaNombre}
+                        onChange={(e) => { setBusquedaNombre(e.target.value); setPaginaActual(1); }}
+                        placeholder="Buscar por nombre del solicitante..."
+                        className="tw-w-full tw-pl-9 tw-pr-9 tw-py-2 tw-text-sm tw-border tw-border-gray-200 tw-rounded-lg tw-bg-gray-50 focus:tw-bg-white focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                    />
+                    {busquedaNombre && (
+                        <button
+                            type="button"
+                            onClick={() => { setBusquedaNombre(""); setPaginaActual(1); }}
+                            className="tw-absolute tw-right-2.5 tw-top-1/2 -tw-translate-y-1/2 tw-text-gray-400 hover:tw-text-gray-600 tw-p-0.5 tw-rounded-full hover:tw-bg-gray-100 tw-transition-colors"
+                            title="Limpiar búsqueda"
+                        >
+                            <X className="tw-w-4 tw-h-4" />
+                        </button>
+                    )}
+                    <datalist id="lista-solicitantes">
+                        {solicitantesUnicos.map((nom, idx) => (
+                            <option key={idx} value={nom} />
+                        ))}
+                    </datalist>
+                </div>
+
+                <div className="tw-flex tw-items-center tw-gap-2 tw-text-xs tw-text-gray-500 tw-w-full sm:tw-w-auto tw-justify-between sm:tw-justify-end">
+                    {busquedaNombre.trim() ? (
+                        <div className="tw-flex tw-items-center tw-gap-1.5 tw-bg-amber-50 tw-text-amber-800 tw-px-2.5 tw-py-1 tw-rounded-lg tw-border tw-border-amber-200">
+                            <User className="tw-w-3.5 tw-h-3.5 tw-text-amber-600" />
+                            <span>
+                                Filtrando por solicitante: <strong>"{busquedaNombre}"</strong>
+                            </span>
+                            <span className="tw-font-bold tw-ml-1">
+                                ({solicitudesFiltradas.length} {solicitudesFiltradas.length === 1 ? 'coincidencia' : 'coincidencias'})
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="tw-text-gray-400">
+                            Mostrando <strong>{solicitudesPorEstado.length}</strong> {solicitudesPorEstado.length === 1 ? 'solicitud' : 'solicitudes'} en este estado
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Loading */}
@@ -435,17 +577,37 @@ const SolicitudPendientes = () => {
                     <Loader2 className="tw-w-8 tw-h-8 tw-text-primario-500 tw-animate-spin" />
                     <p className="tw-text-gray-500 tw-text-sm">Cargando solicitudes...</p>
                 </div>
-            ) : solicitudes.filter(sol => sol.ultimoEstado?.toLowerCase() === filtroEstado.toLowerCase()).length === 0 ? (
+            ) : solicitudesPorEstado.length === 0 ? (
                 <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-20 tw-gap-3">
                     <div className="tw-w-16 tw-h-16 tw-rounded-2xl tw-bg-gray-100 tw-flex tw-items-center tw-justify-center">
                         <ClipboardList className="tw-w-8 tw-h-8 tw-text-gray-400" />
                     </div>
-                    <p className="tw-text-gray-500 tw-font-medium">No hay solicitudes pendientes</p>
-                    <p className="tw-text-gray-400 tw-text-sm">Todas las solicitudes están al día</p>
+                    <p className="tw-text-gray-500 tw-font-medium">
+                        No hay solicitudes {filtroEstado === "solicitado" ? "solicitadas" : filtroEstado === "proceso" ? "en proceso" : filtroEstado === "despachado" ? "despachadas" : "canceladas"}
+                    </p>
+                    <p className="tw-text-gray-400 tw-text-sm">Todas las solicitudes en este estado están al día</p>
+                </div>
+            ) : solicitudesFiltradas.length === 0 ? (
+                <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-16 tw-gap-3 tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm">
+                    <div className="tw-w-14 tw-h-14 tw-rounded-2xl tw-bg-amber-50 tw-flex tw-items-center tw-justify-center">
+                        <Search className="tw-w-7 tw-h-7 tw-text-amber-500" />
+                    </div>
+                    <p className="tw-text-gray-700 tw-font-semibold tw-text-base tw-m-0">
+                        No se encontraron solicitudes para "{busquedaNombre}"
+                    </p>
+                    <p className="tw-text-gray-400 tw-text-sm tw-m-0">
+                        No hay solicitudes de este solicitante en el estado {filtroEstado === "solicitado" ? "Solicitadas" : filtroEstado === "proceso" ? "En Proceso" : filtroEstado === "despachado" ? "Despachadas" : "Canceladas"}.
+                    </p>
+                    <button
+                        onClick={() => setBusquedaNombre("")}
+                        className="tw-mt-2 tw-px-4 tw-py-2 tw-text-xs tw-font-semibold tw-text-primario-900 tw-bg-primario-50 hover:tw-bg-primario-100 tw-rounded-lg tw-transition-colors"
+                    >
+                        Limpiar filtro de búsqueda
+                    </button>
                 </div>
             ) : (
                 <div className="tw-flex tw-flex-col tw-gap-4">
-                    {solicitudes.filter(sol => sol.ultimoEstado?.toLowerCase() === filtroEstado.toLowerCase()).map(sol => (
+                    {solicitudesPaginadas.map(sol => (
                         <div
                             key={sol.Id_solicitud}
                             className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-border tw-border-gray-100 tw-overflow-hidden hover:tw-shadow-md tw-transition-shadow tw-duration-200"
@@ -638,7 +800,7 @@ const SolicitudPendientes = () => {
                                                     onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
                                                     className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
                                                 >
-                                                    <X className="tw-w-4 tw-h-4 tw-text-black hover:tw-scale-105 tw-transition-transform" /> Cancelar
+                                                    <X className="tw-w-4 tw-h-4" /> Cancelar
                                                 </button>
                                             </>
                                         )}
@@ -654,7 +816,7 @@ const SolicitudPendientes = () => {
                                                     onClick={() => cambiarEstado(sol.Id_solicitud, 4, "cancelado")}
                                                     className="tw-flex tw-items-center tw-gap-1.5 tw-px-4 tw-py-2 tw-rounded-lg tw-bg-red-500 tw-text-white tw-text-sm tw-font-medium hover:tw-bg-red-600 tw-transition-all tw-shadow-sm"
                                                 >
-                                                    <X className="tw-w-4 tw-h-4 tw-text-black hover:tw-scale-105 tw-transition-transform" /> Cancelar
+                                                    <X className="tw-w-4 tw-h-4" /> Cancelar
                                                 </button>
                                             </>
                                         )}
@@ -717,6 +879,45 @@ const SolicitudPendientes = () => {
                             </div>
                         </div>
                     ))}
+
+                    {/* Controles de paginación */}
+                    {totalPaginas > 1 && (
+                        <div className="tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-between tw-gap-3 tw-bg-white tw-px-5 tw-py-3.5 tw-rounded-2xl tw-border tw-border-slate-200/80 tw-shadow-sm tw-mt-2">
+                            <span className="tw-text-xs tw-text-slate-500">
+                                Mostrando <strong>{(paginaActual - 1) * ITEMS_POR_PAGINA + 1}</strong> a <strong>{Math.min(paginaActual * ITEMS_POR_PAGINA, solicitudesFiltradas.length)}</strong> de <strong>{solicitudesFiltradas.length}</strong> solicitudes
+                            </span>
+                            <div className="tw-flex tw-items-center tw-gap-1.5">
+                                <button
+                                    type="button"
+                                    disabled={paginaActual === 1}
+                                    onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                                    className={`tw-p-2 tw-rounded-xl tw-border tw-text-xs tw-font-semibold tw-flex tw-items-center tw-gap-1 tw-transition-colors ${paginaActual === 1 ? "tw-border-slate-200 tw-text-slate-300 tw-cursor-not-allowed" : "tw-border-slate-200 tw-text-slate-700 hover:tw-bg-slate-50"}`}
+                                >
+                                    <ChevronLeft className="tw-w-4 tw-h-4" />
+                                    <span>Anterior</span>
+                                </button>
+                                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(num => (
+                                    <button
+                                        key={num}
+                                        type="button"
+                                        onClick={() => setPaginaActual(num)}
+                                        className={`tw-w-8 tw-h-8 tw-rounded-xl tw-text-xs tw-font-bold tw-transition-all ${paginaActual === num ? "tw-bg-primario-900 tw-text-white tw-shadow-sm" : "tw-text-slate-600 hover:tw-bg-slate-100"}`}
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    disabled={paginaActual === totalPaginas}
+                                    onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                                    className={`tw-p-2 tw-rounded-xl tw-border tw-text-xs tw-font-semibold tw-flex tw-items-center tw-gap-1 tw-transition-colors ${paginaActual === totalPaginas ? "tw-border-slate-200 tw-text-slate-300 tw-cursor-not-allowed" : "tw-border-slate-200 tw-text-slate-700 hover:tw-bg-slate-50"}`}
+                                >
+                                    <span>Siguiente</span>
+                                    <ChevronRight className="tw-w-4 tw-h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

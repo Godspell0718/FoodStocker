@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from "react";
+import { normalizarRol } from "../utils/roles.js";
 
 export const AuthContext = createContext();
 
@@ -13,16 +14,23 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem("tokenFoodStocker");
 
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.rol) parsed.rol = normalizarRol(parsed.rol);
+        setUser(parsed);
+      } catch (e) {
+        setUser(JSON.parse(storedUser));
+      }
       setToken(storedToken);
     }
   }, []);
 
   const login = (usuario, token) => {
-    localStorage.setItem("userFoodStocker", JSON.stringify(usuario));
+    const usuarioNormalizado = usuario ? { ...usuario, rol: normalizarRol(usuario.rol) } : usuario;
+    localStorage.setItem("userFoodStocker", JSON.stringify(usuarioNormalizado));
     localStorage.setItem("tokenFoodStocker", token);
 
-    setUser(usuario);
+    setUser(usuarioNormalizado);
     setToken(token);
   };
 

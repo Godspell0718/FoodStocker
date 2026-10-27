@@ -7,11 +7,13 @@ import {
     Inbox, AlertCircle, X, Boxes, Trash2
 } from "lucide-react"
 import Swal from "sweetalert2"
+import { tienePresentacion } from "../utils/inventario.js"
 
 export const CrudEntradas = () => {
 
     const [entradas, setEntradas] = useState([])
     const [filterText, setFilterText] = useState("")
+    const [filtroEstado, setFiltroEstado] = useState("TODOS")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const [entradaSeleccionada, setEntradaSeleccionada] = useState(null)
@@ -80,11 +82,23 @@ export const CrudEntradas = () => {
             name: "Insumo",
             selector: row => row.insumo?.Nom_Insumo || `ID ${row.Id_Insumos}`,
             sortable: true,
-            cell: row => (
-                <span className="tw-font-medium tw-text-slate-800">
-                    {row.insumo?.Nom_Insumo || `Insumo #${row.Id_Insumos}`}
-                </span>
-            )
+            cell: row => {
+                const nombre = row.insumo?.Nom_Insumo || `Insumo #${row.Id_Insumos}`;
+                const tienePres = tienePresentacion(row.insumo);
+                const cant = tienePres ? Number(row.insumo.Can_Presentacion).toLocaleString("es-CO") : null;
+                const unidad = (row.insumo?.Uni_medida || row.Uni_medida || "").toLowerCase();
+
+                return (
+                    <span className="tw-font-medium tw-text-slate-800">
+                        {nombre}
+                        {tienePres && (
+                            <span className="tw-text-slate-500 tw-font-normal tw-text-xs tw-ml-1">
+                                ({cant} {unidad})
+                            </span>
+                        )}
+                    </span>
+                );
+            }
         },
         {
             name: "Unidad Med.",
@@ -317,6 +331,7 @@ export const CrudEntradas = () => {
     }, [])
 
     const filtered = entradas.filter(e => {
+        if (filtroEstado !== "TODOS" && e.Estado !== filtroEstado) return false;
         const textToSearch = filterText.toLowerCase()
         const lote = e.Lote?.toLowerCase() || ''
         const insumo = e.insumo?.Nom_Insumo?.toLowerCase() || ''
@@ -331,6 +346,10 @@ export const CrudEntradas = () => {
             instructor.includes(textToSearch)
     })
 
+    const countStock = entradas.filter(e => e.Estado === 'STOCK').length;
+    const countAgotado = entradas.filter(e => e.Estado === 'AGOTADO').length;
+    const countVencido = entradas.filter(e => e.Estado === 'VENCIDO').length;
+
     const hideModal = () => {
         setShowModal(false)
         setEntradaSeleccionada(null)
@@ -340,29 +359,33 @@ export const CrudEntradas = () => {
     const customStyles = {
         headRow: {
             style: {
-                backgroundColor: '#1e3a5f',
+                backgroundColor: '#153753',
                 borderRadius: '12px 12px 0 0',
+                minHeight: '48px',
             },
         },
         headCells: {
             style: {
                 color: '#ffffff',
-                fontSize: '13px',
-                fontWeight: '600',
+                fontSize: '12px',
+                fontWeight: '700',
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                paddingTop: '16px',
-                paddingBottom: '16px',
+                letterSpacing: '0.05em',
+                paddingTop: '12px',
+                paddingBottom: '12px',
             },
         },
         rows: {
             style: {
-                borderRadius: '8px',
-                marginTop: '4px',
-                marginBottom: '4px',
-                '&:hover': {
-                    backgroundColor: '#fef3c7',
-                },
+                minHeight: '52px',
+                borderBottom: '1px solid #f1f5f9',
+                fontSize: '13px',
+                transition: 'background-color 0.15s ease',
+            },
+            highlightOnHoverStyle: {
+                backgroundColor: '#f0f7ff',
+                borderBottomColor: '#dbeafe',
+                outline: 'none',
             },
         },
         pagination: {
@@ -370,45 +393,143 @@ export const CrudEntradas = () => {
                 borderTop: '1px solid #e2e8f0',
                 paddingTop: '12px',
                 paddingBottom: '12px',
+                fontSize: '13px',
             },
         },
     }
 
     return (
-        <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
+        <div className="tw-min-h-screen tw-bg-slate-50/50 tw-p-6">
             <div className="tw-max-w-7xl tw-mx-auto">
-                <div className="tw-mb-8">
+                <div className="tw-mb-6">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-md">
                             <Warehouse className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
-                        <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Entradas</h1>
+                        <div>
+                            <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-m-0">Gestión de Entradas</h1>
+                            <p className="tw-text-slate-500 tw-text-sm tw-m-0">Administra las entradas de inventario, lotes y stock disponible</p>
+                        </div>
                     </div>
-                    <p className="tw-text-slate-500 tw-ml-12">Administra las entradas de inventario, lotes y stock disponible</p>
                 </div>
 
                 {error && (
                     <div className="tw-mb-4 tw-p-4 tw-bg-red-50 tw-border tw-border-red-200 tw-rounded-xl tw-flex tw-items-center tw-gap-3">
                         <AlertCircle className="tw-w-5 tw-h-5 tw-text-red-500" />
-                        <span className="tw-text-red-700">{error}</span>
+                        <span className="tw-text-red-700 tw-text-sm">{error}</span>
                     </div>
                 )}
 
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
-                    <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
-                        <div className="tw-relative tw-w-full md:tw-w-96">
+                {/* Métricas / KPIs rápidos interactivos */}
+                <div className="tw-grid tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-4 tw-mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setFiltroEstado("TODOS")}
+                        className={`tw-bg-white tw-rounded-2xl tw-p-4 tw-border tw-text-left tw-transition-all ${filtroEstado === "TODOS" ? "tw-border-primario-500 tw-ring-2 tw-ring-primario-500/20 tw-shadow-md" : "tw-border-slate-200/80 tw-shadow-sm hover:tw-border-slate-300"}`}
+                    >
+                        <p className="tw-text-xs tw-font-semibold tw-text-slate-400 tw-uppercase tw-tracking-wider tw-m-0">Total Entradas</p>
+                        <div className="tw-flex tw-items-center tw-justify-between tw-mt-2">
+                            <h3 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-m-0">{entradas.length}</h3>
+                            <div className="tw-w-9 tw-h-9 tw-rounded-xl tw-bg-primario-50 tw-flex tw-items-center tw-justify-center">
+                                <Warehouse className="tw-w-4 tw-h-4 tw-text-primario-900" />
+                            </div>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setFiltroEstado("STOCK")}
+                        className={`tw-bg-white tw-rounded-2xl tw-p-4 tw-border tw-text-left tw-transition-all ${filtroEstado === "STOCK" ? "tw-border-emerald-500 tw-ring-2 tw-ring-emerald-500/20 tw-shadow-md" : "tw-border-slate-200/80 tw-shadow-sm hover:tw-border-slate-300"}`}
+                    >
+                        <p className="tw-text-xs tw-font-semibold tw-text-emerald-600 tw-uppercase tw-tracking-wider tw-m-0">En Stock</p>
+                        <div className="tw-flex tw-items-center tw-justify-between tw-mt-2">
+                            <h3 className="tw-text-2xl tw-font-bold tw-text-emerald-700 tw-m-0">{countStock}</h3>
+                            <div className="tw-w-9 tw-h-9 tw-rounded-xl tw-bg-emerald-50 tw-flex tw-items-center tw-justify-center">
+                                <Box className="tw-w-4 tw-h-4 tw-text-emerald-600" />
+                            </div>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setFiltroEstado("AGOTADO")}
+                        className={`tw-bg-white tw-rounded-2xl tw-p-4 tw-border tw-text-left tw-transition-all ${filtroEstado === "AGOTADO" ? "tw-border-rose-500 tw-ring-2 tw-ring-rose-500/20 tw-shadow-md" : "tw-border-slate-200/80 tw-shadow-sm hover:tw-border-slate-300"}`}
+                    >
+                        <p className="tw-text-xs tw-font-semibold tw-text-rose-500 tw-uppercase tw-tracking-wider tw-m-0">Agotadas</p>
+                        <div className="tw-flex tw-items-center tw-justify-between tw-mt-2">
+                            <h3 className="tw-text-2xl tw-font-bold tw-text-rose-700 tw-m-0">{countAgotado}</h3>
+                            <div className="tw-w-9 tw-h-9 tw-rounded-xl tw-bg-rose-50 tw-flex tw-items-center tw-justify-center">
+                                <Boxes className="tw-w-4 tw-h-4 tw-text-rose-600" />
+                            </div>
+                        </div>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setFiltroEstado("VENCIDO")}
+                        className={`tw-bg-white tw-rounded-2xl tw-p-4 tw-border tw-text-left tw-transition-all ${filtroEstado === "VENCIDO" ? "tw-border-amber-500 tw-ring-2 tw-ring-amber-500/20 tw-shadow-md" : "tw-border-slate-200/80 tw-shadow-sm hover:tw-border-slate-300"}`}
+                    >
+                        <p className="tw-text-xs tw-font-semibold tw-text-amber-600 tw-uppercase tw-tracking-wider tw-m-0">Vencidas</p>
+                        <div className="tw-flex tw-items-center tw-justify-between tw-mt-2">
+                            <h3 className="tw-text-2xl tw-font-bold tw-text-amber-700 tw-m-0">{countVencido}</h3>
+                            <div className="tw-w-9 tw-h-9 tw-rounded-xl tw-bg-amber-50 tw-flex tw-items-center tw-justify-center">
+                                <AlertCircle className="tw-w-4 tw-h-4 tw-text-amber-600" />
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                {/* Barra de herramientas y filtros */}
+                <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-slate-200/80 tw-shadow-sm tw-p-4 tw-mb-6">
+                    <div className="tw-flex tw-flex-col lg:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
+                        {/* Buscador */}
+                        <div className="tw-relative tw-w-full lg:tw-w-96">
                             <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
                             <input
                                 type="text"
-                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                                className="tw-w-full tw-pl-10 tw-pr-9 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-bg-white focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
                                 placeholder="Buscar por lote, insumo, proveedor o responsable..."
                                 value={filterText}
                                 onChange={e => setFilterText(e.target.value)}
                             />
+                            {filterText && (
+                                <button
+                                    type="button"
+                                    onClick={() => setFilterText('')}
+                                    className="tw-absolute tw-right-2.5 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400 hover:tw-text-slate-600 tw-p-1 tw-rounded-full hover:tw-bg-slate-200/50 tw-transition-colors"
+                                    title="Limpiar búsqueda"
+                                >
+                                    <X className="tw-w-4 tw-h-4" />
+                                </button>
+                            )}
                         </div>
+
+                        {/* Pills de Estado */}
+                        <div className="tw-flex tw-items-center tw-gap-1.5 tw-overflow-x-auto tw-w-full lg:tw-w-auto">
+                            {[
+                                { key: "TODOS", label: "Todas", count: entradas.length },
+                                { key: "STOCK", label: "En Stock", count: countStock },
+                                { key: "AGOTADO", label: "Agotadas", count: countAgotado },
+                                { key: "VENCIDO", label: "Vencidas", count: countVencido },
+                            ].map(pill => (
+                                <button
+                                    key={pill.key}
+                                    type="button"
+                                    onClick={() => setFiltroEstado(pill.key)}
+                                    className={`tw-px-3 tw-py-1.5 tw-rounded-xl tw-text-xs tw-font-semibold tw-transition-all tw-whitespace-nowrap tw-flex tw-items-center tw-gap-1.5 ${filtroEstado === pill.key ? "tw-bg-primario-900 tw-text-white tw-shadow-sm" : "tw-bg-slate-100 tw-text-slate-600 hover:tw-bg-slate-200/70"}`}
+                                >
+                                    <span>{pill.label}</span>
+                                    <span className={`tw-px-1.5 tw-py-0.2 tw-rounded-full tw-text-[10px] ${filtroEstado === pill.key ? "tw-bg-white/20 tw-text-white" : "tw-bg-slate-200 tw-text-slate-700"}`}>
+                                        {pill.count}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Botón Nueva Entrada */}
                         <button
                             type="button"
-                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                            className="tw-w-full lg:tw-w-auto tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-semibold tw-rounded-xl tw-shadow-sm hover:tw-shadow tw-transition-all tw-duration-200 tw-flex tw-items-center tw-justify-center tw-gap-2"
                             onClick={() => {
                                 setEntradaSeleccionada(null)
                                 setShowModal(true)
@@ -420,7 +541,8 @@ export const CrudEntradas = () => {
                     </div>
                 </div>
 
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-overflow-hidden">
+                {/* Tabla de datos */}
+                <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-slate-200/80 tw-shadow-sm tw-overflow-hidden">
                     <DataTable
                         columns={columnsTable}
                         data={filtered}
@@ -435,7 +557,7 @@ export const CrudEntradas = () => {
                         progressPending={loading}
                         progressComponent={
                             <div className="tw-py-12 tw-text-center">
-                                <div className="tw-inline-block tw-w-8 tw-h-8 tw-border-4 tw-border-slate-200 tw-border-t-primario-900 tw-rounded-full tw-animate-spin"></div>
+                                <div className="tw-inline-block tw-w-8 tw-h-8 tw-border-4 tw-border-primario-200 tw-border-t-primario-900 tw-rounded-full tw-animate-spin"></div>
                                 <p className="tw-mt-3 tw-text-slate-500">Cargando entradas...</p>
                             </div>
                         }
@@ -448,8 +570,8 @@ export const CrudEntradas = () => {
                     />
                 </div>
 
-                <div className="tw-mt-4 tw-text-right">
-                    <p className="tw-text-sm tw-text-slate-400">
+                <div className="tw-mt-3 tw-text-right">
+                    <p className="tw-text-xs tw-text-slate-400">
                         Mostrando {filtered.length} de {entradas.length} entradas
                     </p>
                 </div>
@@ -459,14 +581,14 @@ export const CrudEntradas = () => {
                         className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/50 tw-backdrop-blur-sm"
                         onClick={(e) => e.target === e.currentTarget && hideModal()}
                     >
-                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-2xl tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
-                            <div className="tw-bg-primario-900 tw-px-6 tw-py-4">
+                        <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-4xl tw-max-h-[92vh] tw-flex tw-flex-col tw-overflow-hidden tw-animate-in tw-fade-in tw-zoom-in-95 tw-duration-200">
+                            <div className="tw-bg-primario-900 tw-px-6 tw-py-3.5 tw-shrink-0">
                                 <div className="tw-flex tw-justify-between tw-items-center">
                                     <div className="tw-flex tw-items-center tw-gap-3">
                                         <div className="tw-w-8 tw-h-8 tw-bg-white/20 tw-rounded-lg tw-flex tw-items-center tw-justify-center">
                                             <Boxes className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                                         </div>
-                                        <h5 className="tw-text-white tw-font-semibold tw-text-lg tw-m-0">
+                                        <h5 className="tw-text-white tw-font-semibold tw-text-base md:tw-text-lg tw-m-0">
                                             {entradaSeleccionada ? 'Editar Entrada' : 'Nueva Entrada'}
                                         </h5>
                                     </div>
@@ -475,12 +597,12 @@ export const CrudEntradas = () => {
                                         className="tw-text-white/70 hover:tw-text-white tw-transition-colors"
                                         onClick={hideModal}
                                     >
-                                        <X className="tw-w-6 tw-h-6" />
+                                        <X className="tw-w-5 tw-h-5" />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="tw-p-6">
+                            <div className="tw-p-4 md:tw-p-6 tw-overflow-y-auto tw-flex-1">
                                 <EntradasForm
                                     hideModal={hideModal}
                                     refreshTable={getAllEntradas}

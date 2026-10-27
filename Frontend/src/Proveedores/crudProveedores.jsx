@@ -176,10 +176,13 @@ const CrudProveedores = () => {
         }
     }
 
-    const newListProveedores = proveedores.filter(proveedores => {
+    const newListProveedores = proveedores.filter(proveedor => {
         const textToSearch = filterText.toLowerCase()
-        const nombre = proveedores.Nom_Proveedor?.toLowerCase() || ""
-        return nombre.includes(textToSearch)
+        const nombre = proveedor.Nom_Proveedor?.toLowerCase() || ""
+        const razon = proveedor.Raz_Social?.toLowerCase() || ""
+        const nit = proveedor.Nit_Proveedor?.toString().toLowerCase() || ""
+        const correo = proveedor.Cor_Proveedor?.toLowerCase() || ""
+        return nombre.includes(textToSearch) || razon.includes(textToSearch) || nit.includes(textToSearch) || correo.includes(textToSearch)
     })
 
     const hideModal = () => {
@@ -192,29 +195,33 @@ const CrudProveedores = () => {
     const customStyles = {
         headRow: {
             style: {
-                backgroundColor: '#1e3a5f',
+                backgroundColor: '#153753',
                 borderRadius: '12px 12px 0 0',
+                minHeight: '48px',
             },
         },
         headCells: {
             style: {
                 color: '#ffffff',
-                fontSize: '13px',
-                fontWeight: '600',
+                fontSize: '12px',
+                fontWeight: '700',
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                paddingTop: '16px',
-                paddingBottom: '16px',
+                letterSpacing: '0.05em',
+                paddingTop: '12px',
+                paddingBottom: '12px',
             },
         },
         rows: {
             style: {
-                borderRadius: '8px',
-                marginTop: '4px',
-                marginBottom: '4px',
-                '&:hover': {
-                    backgroundColor: '#fef3c7',
-                },
+                minHeight: '52px',
+                borderBottom: '1px solid #f1f5f9',
+                fontSize: '13px',
+                transition: 'background-color 0.15s ease',
+            },
+            highlightOnHoverStyle: {
+                backgroundColor: '#f0f7ff',
+                borderBottomColor: '#dbeafe',
+                outline: 'none',
             },
         },
         pagination: {
@@ -222,40 +229,87 @@ const CrudProveedores = () => {
                 borderTop: '1px solid #e2e8f0',
                 paddingTop: '12px',
                 paddingBottom: '12px',
+                fontSize: '13px',
             },
         },
     }
 
+    const totalActivos = proveedores.filter(p => (p.Estado || 'ACTIVO') === 'ACTIVO').length;
+    const totalInactivos = proveedores.filter(p => p.Estado === 'INACTIVO').length;
+
     return (
-        <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
+        <div className="tw-min-h-screen tw-bg-slate-50/50 tw-p-6">
             <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
-                <div className="tw-mb-8">
+                <div className="tw-mb-6">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-md">
                             <Truck className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
-                        <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Proveedores</h1>
+                        <div>
+                            <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-m-0">Gestión de Proveedores</h1>
+                            <p className="tw-text-slate-500 tw-text-sm tw-m-0">Administra los proveedores de insumos y productos alimenticios</p>
+                        </div>
                     </div>
-                    <p className="tw-text-slate-500 tw-ml-12">Administra los proveedores de insumos y productos</p>
+                </div>
+
+                {/* Métricas / KPIs rápidos */}
+                <div className="tw-grid tw-grid-cols-1 sm:tw-grid-cols-3 tw-gap-4 tw-mb-6">
+                    <div className="tw-bg-white tw-rounded-2xl tw-p-4 tw-border tw-border-slate-200/80 tw-shadow-sm tw-flex tw-items-center tw-justify-between">
+                        <div>
+                            <p className="tw-text-xs tw-font-semibold tw-text-slate-400 tw-uppercase tw-tracking-wider tw-m-0">Total Proveedores</p>
+                            <h3 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-mt-1 tw-m-0">{proveedores.length}</h3>
+                        </div>
+                        <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-50 tw-flex tw-items-center tw-justify-center">
+                            <Truck className="tw-w-5 tw-h-5 tw-text-primario-900" />
+                        </div>
+                    </div>
+                    <div className="tw-bg-white tw-rounded-2xl tw-p-4 tw-border tw-border-slate-200/80 tw-shadow-sm tw-flex tw-items-center tw-justify-between">
+                        <div>
+                            <p className="tw-text-xs tw-font-semibold tw-text-emerald-600 tw-uppercase tw-tracking-wider tw-m-0">Proveedores Activos</p>
+                            <h3 className="tw-text-2xl tw-font-bold tw-text-emerald-700 tw-mt-1 tw-m-0">{totalActivos}</h3>
+                        </div>
+                        <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-emerald-50 tw-flex tw-items-center tw-justify-center">
+                            <Building2 className="tw-w-5 tw-h-5 tw-text-emerald-600" />
+                        </div>
+                    </div>
+                    <div className="tw-bg-white tw-rounded-2xl tw-p-4 tw-border tw-border-slate-200/80 tw-shadow-sm tw-flex tw-items-center tw-justify-between">
+                        <div>
+                            <p className="tw-text-xs tw-font-semibold tw-text-rose-500 tw-uppercase tw-tracking-wider tw-m-0">Proveedores Inactivos</p>
+                            <h3 className="tw-text-2xl tw-font-bold tw-text-rose-700 tw-mt-1 tw-m-0">{totalInactivos}</h3>
+                        </div>
+                        <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-rose-50 tw-flex tw-items-center tw-justify-center">
+                            <ToggleLeft className="tw-w-5 tw-h-5 tw-text-rose-600" />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Barra de herramientas */}
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
+                <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-slate-200/80 tw-shadow-sm tw-p-4 tw-mb-6">
                     <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
                         <div className="tw-relative tw-w-full md:tw-w-96">
                             <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
                             <input
                                 type="text"
-                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
-                                placeholder="Buscar por nombre..."
+                                className="tw-w-full tw-pl-10 tw-pr-9 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-bg-white focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                                placeholder="Buscar por nombre, NIT, razón social..."
                                 value={filterText}
                                 onChange={(e) => setFilterText(e.target.value)}
                             />
+                            {filterText && (
+                                <button
+                                    type="button"
+                                    onClick={() => setFilterText('')}
+                                    className="tw-absolute tw-right-2.5 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400 hover:tw-text-slate-600 tw-p-1 tw-rounded-full hover:tw-bg-slate-200/50 tw-transition-colors"
+                                    title="Limpiar búsqueda"
+                                >
+                                    <X className="tw-w-4 tw-h-4" />
+                                </button>
+                            )}
                         </div>
                         <button
                             type="button"
-                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-semibold tw-rounded-xl tw-shadow-sm hover:tw-shadow tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
                             onClick={() => {
                                 setProveedorSeleccionado(null)
                                 setShowModal(true)
@@ -268,19 +322,21 @@ const CrudProveedores = () => {
                 </div>
 
                 {/* Tabla de datos */}
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-overflow-hidden">
+                <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-slate-200/80 tw-shadow-sm tw-overflow-hidden">
                     <DataTable
                         columns={columnsTable}
                         data={newListProveedores}
                         keyField="Id_Proveedor"
                         pagination
+                        paginationPerPage={10}
+                        paginationRowsPerPageOptions={[5, 10, 15, 25]}
                         highlightOnHover
                         responsive
                         customStyles={customStyles}
                         progressPending={loading}
                         progressComponent={
                             <div className="tw-py-12 tw-text-center">
-                                <div className="tw-inline-block tw-w-8 tw-h-8 tw-border-4 tw-border-slate-200 tw-border-t-primario-900 tw-rounded-full tw-animate-spin"></div>
+                                <div className="tw-inline-block tw-w-8 tw-h-8 tw-border-4 tw-border-primario-200 tw-border-t-primario-900 tw-rounded-full tw-animate-spin"></div>
                                 <p className="tw-mt-3 tw-text-slate-500">Cargando proveedores...</p>
                             </div>
                         }
@@ -291,6 +347,13 @@ const CrudProveedores = () => {
                             </div>
                         }
                     />
+                </div>
+
+                {/* Información de registros */}
+                <div className="tw-mt-3 tw-text-right">
+                    <p className="tw-text-xs tw-text-slate-400">
+                        Mostrando {newListProveedores.length} de {proveedores.length} proveedores
+                    </p>
                 </div>
 
                 {/* Modal Custom Tailwind */}

@@ -27,6 +27,8 @@ import DocumentosPublicos from './home/beforeLogin/documentosPublicos.jsx';
 // Lógica de protección: si se cierra sesión, reenvía a /login
 import PerdidasCrud from './Reportes/PerdidasCrud.jsx';
 import PerdidasForm from './Reportes/PerdidasForm.jsx';
+import { tieneRol } from './utils/roles.js';
+
 const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
   const { user } = useContext(AuthContext);
 
@@ -34,7 +36,7 @@ const RutaProtegida = ({ children, rolesPermitidos = [] }) => {
 
   const rol = user.rol?.trim();
 
-  if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(rol)) {
+  if (rolesPermitidos.length > 0 && !tieneRol(rol, rolesPermitidos)) {
     return <Navigate to="/Inicio" replace />;
   }
 
@@ -128,7 +130,7 @@ function App() {
         <Route
           path="/Destino"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <CrudDestino />
             </RutaProtegida>
           }
@@ -136,7 +138,7 @@ function App() {
         <Route
           path="/Estados"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <EstadoCrud />
             </RutaProtegida>
           }
@@ -144,7 +146,7 @@ function App() {
         <Route
           path="/Estado_solicitud"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <Estados_solicitudCrud />
             </RutaProtegida>
           }
@@ -153,7 +155,7 @@ function App() {
         <Route
           path="Insumos"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <CrudInsumos />
             </RutaProtegida>
           }
@@ -162,7 +164,7 @@ function App() {
         <Route
           path="Entradas"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <CrudEntradas />
             </RutaProtegida>
           }
@@ -171,7 +173,7 @@ function App() {
         <Route
           path="Solicitudes"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <SolicitudCrud />
             </RutaProtegida>
           }
@@ -180,7 +182,7 @@ function App() {
         <Route
           path="Reportes"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <DashboardReportes />
             </RutaProtegida>
           }
@@ -189,7 +191,7 @@ function App() {
         <Route
           path="perdidas"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <PerdidasCrud />
             </RutaProtegida>
           }
@@ -198,7 +200,7 @@ function App() {
         <Route
           path="perdidas/nuevo"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <PerdidasForm />
             </RutaProtegida>
           }
@@ -207,7 +209,7 @@ function App() {
         <Route
           path="perdidas/editar/:id"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <PerdidasForm />
             </RutaProtegida>
           }
@@ -216,7 +218,7 @@ function App() {
         <Route
           path="solicitudes-pendientes"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU"]}>
               <SolicitudPendientes />
             </RutaProtegida>
           }
@@ -225,7 +227,7 @@ function App() {
         <Route
           path="solicitud-nueva"
           element={
-            <RutaProtegida rolesPermitidos={["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"]}>
+            <RutaProtegida rolesPermitidos={["ADMIN", "GA", "IEU", "SOL"]}>
               <SolicitudConLotes />
             </RutaProtegida>
           }

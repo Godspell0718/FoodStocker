@@ -2,6 +2,7 @@ import apiAxios from "../api/axiosConfig.js"
 import { useEffect, useState } from "react"
 import DataTable from "react-data-table-component"
 import SolicitudForm from "./SolicitudForm.jsx"
+import { X } from "lucide-react"
 
 const SolicitudCrud = () => {
     const [solicitudes, setSolicitudes] = useState([])
@@ -137,10 +138,12 @@ const SolicitudCrud = () => {
                                     </h5>
                                     <button
                                         type="button"
-                                        className="btn-close btn-close-dark"
-                                        aria-label="Close"
+                                        className="tw-text-gray-400 hover:tw-text-gray-700 tw-transition-colors tw-p-1 tw-rounded-lg hover:tw-bg-gray-100"
+                                        aria-label="Cerrar"
                                         onClick={() => setShowModal(false)}
-                                    ></button>
+                                    >
+                                        <X className="tw-w-5 tw-h-5" />
+                                    </button>
                                 </div>
                                 <div className="modal-body">
                                     <SolicitudForm

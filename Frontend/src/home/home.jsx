@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import apiAxios from "../api/axiosConfig.js";
+import { AuthContext } from "../context/authContext.jsx";
 import {
     ClipboardPaste,
     ArchiveRestore,
@@ -20,26 +21,56 @@ import {
     X,
     Shield,
     LogOut,
+    SlidersHorizontal,
+    Workflow,
+    FilePlus,
+    BarChart3,
+    PackageX,
+    MapPin,
+    History,
 } from "lucide-react";
 import ProfileModal from "./ProfileModal.jsx";
+import { tieneRol, obtenerNombreRol } from "../utils/roles.js";
 
-const navItems = [
-    { icon: House, label: "Inicio", path: "/Inicio", roles: ["ADMIN", "PDU", "IA", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"] },
-    { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "IA", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: Wheat, label: "Insumos", path: "/Insumos", roles: ["ADMIN"] },
-    { icon: UserRound, label: "Responsables", path: "/Responsables", roles: ["ADMIN", "IA"] },
-    { icon: Package, label: "Proveedores", path: "/Proveedores", roles: ["ADMIN", "IA"] },
-    { icon: ClockArrowUp, label: "Historico de Solicitudes", path: "/Solicitudes", roles: ["ADMIN", "PDU", "IA"] },
-];
-
-const Temporal = [
-    { icon: Warehouse, label: "Destinos", path: "/Destino", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: Waypoints, label: "Estados", path: "/Estados", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: Waypoints, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: Waypoints, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"] },
-    { icon: ClockArrowUp, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
-    { icon: ArchiveRestore, label: "Pérdidas", path: "/perdidas", roles: ["ADMIN", "Pasante de agroindustria", "Instructor de agroindustria"] },
+const seccionesMenu = [
+    {
+        title: "Principal",
+        items: [
+            { icon: House, label: "Inicio", path: "/Inicio", roles: ["ADMIN", "GA", "IEU", "SOL"] },
+        ]
+    },
+    {
+        title: "Solicitudes",
+        items: [
+            { icon: FilePlus, label: "Solicitud Nueva", path: "/solicitud-nueva", roles: ["ADMIN", "GA", "IEU", "SOL"] },
+            { icon: ClipboardPaste, label: "Solicitudes Pendientes", path: "/solicitudes-pendientes", roles: ["ADMIN", "GA", "IEU"] },
+            { icon: History, label: "Histórico de Solicitudes", path: "/Solicitudes", roles: ["ADMIN", "GA", "IEU"] },
+        ]
+    },
+    {
+        title: "Inventario",
+        items: [
+            { icon: Wheat, label: "Insumos", path: "/Insumos", roles: ["ADMIN", "GA", "IEU"] },
+            { icon: ArchiveRestore, label: "Entradas", path: "/Entradas", roles: ["ADMIN", "GA", "IEU"] },
+            { icon: PackageX, label: "Pérdidas", path: "/perdidas", roles: ["ADMIN", "GA", "IEU"] },
+        ]
+    },
+    {
+        title: "Administración",
+        items: [
+            { icon: UserRound, label: "Responsables", path: "/Responsables", roles: ["ADMIN", "IEU"] },
+            { icon: Package, label: "Proveedores", path: "/Proveedores", roles: ["ADMIN", "IEU"] },
+            { icon: MapPin, label: "Destinos", path: "/Destino", roles: ["ADMIN", "GA", "IEU"] },
+            { icon: SlidersHorizontal, label: "Estados", path: "/Estados", roles: ["ADMIN", "GA", "IEU"] },
+            { icon: Workflow, label: "Estados solicitud", path: "/Estado_solicitud", roles: ["ADMIN", "GA", "IEU"] },
+        ]
+    },
+    {
+        title: "Reportes",
+        items: [
+            { icon: BarChart3, label: "Reportes", path: "/Reportes", roles: ["ADMIN", "GA", "IEU"] },
+        ]
+    }
 ];
 
 export default function Dashboard() {
@@ -47,16 +78,12 @@ export default function Dashboard() {
     const location = useLocation();
     const user = JSON.parse(localStorage.getItem('userFoodStocker') || '{}');
     const rol = user.rol?.trim();
-    const navSections = [
-        {
-            title: "Principal",
-            items: navItems.filter(item => item.roles.includes(rol))
-        },
-        {
-            title: "Temporal",
-            items: Temporal.filter(item => item.roles.includes(rol))
-        }
-    ];
+    const navSections = seccionesMenu
+        .map(section => ({
+            title: section.title,
+            items: section.items.filter(item => tieneRol(rol, item.roles))
+        }))
+        .filter(section => section.items.length > 0);
 
     const [openUserMenu, setOpenUserMenu] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -80,7 +107,9 @@ export default function Dashboard() {
         }
     };
 
+    const { logout: authLogout } = useContext(AuthContext) || {};
     const logout = () => {
+        if (authLogout) authLogout();
         localStorage.removeItem('tokenFoodStocker');
         localStorage.removeItem('userFoodStocker');
         navigate('/login');
@@ -220,7 +249,7 @@ export default function Dashboard() {
 
                     {navSections.map((section) => (
                         <div key={section.title} className="tw-mb-4">
-                            <p className="tw-px-3 tw-text-[10px] tw-font-bold tw-text-gray-500 tw-uppercase tw-tracking-widest tw-mb-1.5">
+                            <p className="tw-px-3 tw-text-[10px] tw-font-bold tw-text-gray-400 tw-uppercase tw-tracking-wider tw-mb-2 tw-mt-1">
                                 {section.title}
                             </p>
                             {section.items.map(({ icon: Icon, label, path }) => {
@@ -366,7 +395,7 @@ export default function Dashboard() {
                                                     </p>
                                                     <span className="tw-inline-flex tw-items-center tw-gap-1 tw-mt-1 tw-px-2 tw-py-0.5 tw-bg-secundario-400/20 tw-text-secundario-400 tw-text-[11px] tw-font-bold tw-rounded-md">
                                                         <Shield className="tw-w-3 tw-h-3" />
-                                                        {user.rol || 'N/A'}
+                                                        {obtenerNombreRol(user.rol)}
                                                     </span>
                                                 </div>
                                             </div>

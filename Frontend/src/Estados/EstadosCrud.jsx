@@ -23,14 +23,14 @@ const customTableStyles = {
     },
     headRow: {
         style: {
-            backgroundColor: '#1e3a5f',
+            backgroundColor: '#153753',
             color: '#ffffff',
-            fontWeight: '600',
-            fontSize: '13px',
+            fontWeight: '700',
+            fontSize: '12px',
             textTransform: 'uppercase',
-            letterSpacing: '0.5px',
+            letterSpacing: '0.05em',
             borderBottom: 'none',
-            minHeight: '40px',
+            minHeight: '48px',
             width: '100%'
         }
     },
@@ -39,8 +39,8 @@ const customTableStyles = {
             color: '#ffffff',
             paddingLeft: '12px',
             paddingRight: '12px',
-            fontSize: '13px',
-            fontWeight: '600'
+            fontSize: '12px',
+            fontWeight: '700'
         }
     },
     rows: {
@@ -48,14 +48,14 @@ const customTableStyles = {
             backgroundColor: '#ffffff',
             fontSize: '13px',
             color: '#1f2937',
-            borderBottom: '1px solid #f3f4f6',
-            minHeight: '44px',
-            transition: 'background-color 0.15s',
+            borderBottom: '1px solid #f1f5f9',
+            minHeight: '48px',
+            transition: 'background-color 0.15s ease',
             width: '100%'
         },
         highlightOnHoverStyle: {
-            backgroundColor: '#fef3c7',
-            borderBottomColor: '#e0eeff',
+            backgroundColor: '#f0f7ff',
+            borderBottomColor: '#dbeafe',
             outline: 'none'
         }
     },
@@ -209,35 +209,47 @@ const EstadosCrud = () => {
     })
 
     return (
-        <div className="tw-min-h-screen tw-bg-gradient-to-br tw-from-slate-50 tw-to-blue-50 tw-p-6">
+        <div className="tw-min-h-screen tw-bg-slate-50/50 tw-p-6">
             <div className="tw-max-w-7xl tw-mx-auto">
                 {/* Header */}
-                <div className="tw-mb-8">
+                <div className="tw-mb-6">
                     <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
+                        <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-md">
                             <CircleDot className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                         </div>
-                        <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Estados</h1>
+                        <div>
+                            <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800 tw-m-0">Gestión de Estados</h1>
+                            <p className="tw-text-slate-500 tw-text-sm tw-m-0">Configura los estados disponibles en el sistema</p>
+                        </div>
                     </div>
-                    <p className="tw-text-slate-500 tw-ml-12">Gestiona los estados del sistema</p>
                 </div>
 
                 {/* Barra de herramientas */}
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-sm tw-p-4 tw-mb-6">
+                <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-slate-200/80 tw-shadow-sm tw-p-4 tw-mb-6">
                     <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-center tw-gap-4">
                         <div className="tw-relative tw-w-full md:tw-w-96">
                             <Search className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-slate-400" />
                             <input
                                 type="text"
-                                className="tw-w-full tw-pl-10 tw-pr-4 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
+                                className="tw-w-full tw-pl-10 tw-pr-9 tw-py-2.5 tw-border tw-border-slate-200 tw-rounded-xl tw-bg-slate-50 tw-text-slate-700 tw-placeholder-slate-400 focus:tw-bg-white focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-primario-500/20 focus:tw-border-primario-500 tw-transition-all"
                                 placeholder="Buscar por ID o nombre de estado..."
                                 value={filterText}
                                 onChange={e => setFilterText(e.target.value)}
                             />
+                            {filterText && (
+                                <button
+                                    type="button"
+                                    onClick={() => setFilterText('')}
+                                    className="tw-absolute tw-right-2.5 tw-top-1/2 -tw-translate-y-1/2 tw-text-slate-400 hover:tw-text-slate-600 tw-p-1 tw-rounded-full hover:tw-bg-slate-200/50 tw-transition-colors"
+                                    title="Limpiar búsqueda"
+                                >
+                                    <X className="tw-w-4 tw-h-4" />
+                                </button>
+                            )}
                         </div>
                         <button
                             onClick={createEstado}
-                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-medium tw-rounded-xl tw-shadow-md hover:tw-shadow-lg tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
+                            className="tw-px-5 tw-py-2.5 tw-bg-primario-900 hover:tw-bg-primario-700 tw-text-white tw-font-semibold tw-rounded-xl tw-shadow-sm hover:tw-shadow tw-transition-all tw-duration-200 tw-flex tw-items-center tw-gap-2"
                         >
                             <Plus className="tw-w-4 tw-h-4" />
                             <span>Nuevo Estado</span>
@@ -246,7 +258,7 @@ const EstadosCrud = () => {
                 </div>
 
                 {/* Tabla - Ahora ocupa todo el ancho disponible */}
-                <div className="tw-bg-white tw-rounded-2xl tw-shadow-lg tw-overflow-hidden">
+                <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-slate-200/80 tw-shadow-sm tw-overflow-hidden">
                     <DataTable
                         columns={columnsTable}
                         data={filteredEstados}

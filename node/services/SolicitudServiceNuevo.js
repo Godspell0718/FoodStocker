@@ -195,6 +195,19 @@ class SolicitudServiceNuevo {
                 }
             }
 
+            // 🟢 SI SE DESPACHA → Los ítems sin novedad previa se marcan con cantidad_entregada = cantidad_solicitada (entrega completa)
+            if (estadoNuevo === 'despachado') {
+                const items = await insumosSolicitudModel.findAll({
+                    where: { Id_solicitud },
+                    transaction: t
+                });
+                for (const item of items) {
+                    if (item.cantidad_entregada === null || item.cantidad_entregada === undefined) {
+                        await item.update({ cantidad_entregada: item.cantidad_solicitada }, { transaction: t });
+                    }
+                }
+            }
+
             const estado = await Estado_solicitudModel.create({
                 Id_solicitud,
                 Id_estado: idEstadoNuevo,

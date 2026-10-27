@@ -166,9 +166,9 @@ const Estados_solicitudCrud = () => {
                             <div className="tw-w-10 tw-h-10 tw-bg-primario-900 tw-rounded-xl tw-flex tw-items-center tw-justify-center tw-shadow-lg">
                                 <Waypoints className="tw-w-5 tw-h-5 tw-text-secundario-400" />
                             </div>
-                            <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Usuarios</h1>
+                            <h1 className="tw-text-2xl tw-font-bold tw-text-slate-800">Gestión de Estados_Solicitud</h1>
                         </div>
-                        <p className="tw-text-slate-500 tw-ml-12">Administra los usuarios que gestionan el inventario del sistema</p>
+                        <p className="tw-text-slate-500 tw-ml-12">Administra los Estados_Solicitud del sistema</p>
                     </div>
 
                     <button

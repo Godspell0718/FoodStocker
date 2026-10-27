@@ -11,7 +11,22 @@ export const authorizeRoles = (...rolesPermitidos) => {
         return next();
       }
 
-      if (!rolesPermitidos.includes(rol)) {
+      const ROL_ALIAS = {
+        'Pasante de agroindustria': 'GA',
+        'Gestor de almacen': 'GA',
+        'Gestor de almacén': 'GA',
+        'Instructor de agroindustria': 'IEU',
+        'Instructor encargado de unidad': 'IEU',
+        'Pasante solicitante': 'SOL',
+        'Solicitante': 'SOL',
+        'PDU': 'GA',
+        'IA': 'IEU'
+      };
+
+      const rolNormalizado = ROL_ALIAS[rol] || rol;
+      const permitidosNormalizados = rolesPermitidos.map(r => ROL_ALIAS[r] || r);
+
+      if (!permitidosNormalizados.includes(rolNormalizado)) {
         return res.status(403).json({
           message: `El rol ${rol} no tiene acceso`
         });

@@ -11,8 +11,9 @@ const responsableModel = db.define("responsables", {
         type: DataTypes.STRING
     },
     Tip_Responsable: {
-        type: DataTypes.ENUM("ADMIN", "Pasante de agroindustria", "Instructor de agroindustria", "Pasante solicitante"),
-        allowNull: false
+        type: DataTypes.ENUM("ADMIN", "GA", "IEU", "SOL"),
+        allowNull: false,
+        defaultValue: "SOL"
     },
      Tel_Responsable: {
         type: DataTypes.STRING,

@@ -4,7 +4,8 @@ import Swal from "sweetalert2";
 import {
     ClipboardList, Calendar, FileText, Hash, Search,
     ArrowRight, ArrowLeft, Send, Plus, Trash2, ShoppingCart, Package,
-    CheckCircle, XCircle, Loader2, Truck, Eye, MapPin, ChevronDown, Boxes, Layers, AlertTriangle
+    CheckCircle, XCircle, Loader2, Truck, Eye, MapPin, ChevronDown, Boxes, Layers, AlertTriangle, X,
+    Clock, RotateCcw, Filter, ChevronLeft, ChevronRight, Check
 } from "lucide-react";
 import {
     fmtUnidad,
@@ -38,6 +39,14 @@ const SolicitudConLotes = () => {
     const [enviando, setEnviando] = useState(false);
     const [misSolicitudes, setMisSolicitudes] = useState([]);
     const [loadingSolicitudes, setLoadingSolicitudes] = useState(true);
+    const [solicitudSeleccionada, setSolicitudSeleccionada] = useState(null);
+
+    // Pestaña activa y controles de Mis Solicitudes
+    const [tabActiva, setTabActiva] = useState("nueva"); // "nueva" | "mis-solicitudes"
+    const [filtroEstadoMis, setFiltroEstadoMis] = useState("todos");
+    const [busquedaMis, setBusquedaMis] = useState("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const ITEMS_POR_PAGINA = 5;
 
     // Motivos disponibles
     const MOTIVOS = [
@@ -304,6 +313,9 @@ const SolicitudConLotes = () => {
             setMotivo(""); setDescripcion(""); setObservaciones(""); setFicha(""); setFichaConfirm("");
             setFechaEntrega(""); setId_Destino(""); setCarrito([]); setPaso(1);
             cargarMisSolicitudes();
+            setTabActiva("mis-solicitudes");
+            setFiltroEstadoMis("todos");
+            setPaginaActual(1);
             window.dispatchEvent(new Event("nuevaSolicitud"));
         } catch (error) {
             setEnviando(false);
@@ -311,26 +323,103 @@ const SolicitudConLotes = () => {
         }
     };
 
+    // Métricas y filtrado para Mis Solicitudes
+    const totalMis = misSolicitudes.length;
+    const cantSolicitado = misSolicitudes.filter(s => (s.ultimoEstado || "").toLowerCase() === "solicitado").length;
+    const cantProceso = misSolicitudes.filter(s => (s.ultimoEstado || "").toLowerCase() === "proceso").length;
+    const cantDespachado = misSolicitudes.filter(s => (s.ultimoEstado || "").toLowerCase() === "despachado").length;
+    const cantCancelado = misSolicitudes.filter(s => (s.ultimoEstado || "").toLowerCase() === "cancelado").length;
+
+    const solicitudesFiltradas = misSolicitudes.filter(sol => {
+        const estado = (sol.ultimoEstado || "solicitado").toLowerCase();
+        if (filtroEstadoMis !== "todos" && estado !== filtroEstadoMis) return false;
+        if (busquedaMis.trim()) {
+            const q = busquedaMis.toLowerCase();
+            const idMatch = String(sol.Id_solicitud).includes(q) || `#${sol.Id_solicitud}`.includes(q);
+            const descMatch = (sol.Descripcion || "").toLowerCase().includes(q);
+            const motivoMatch = (sol.motivo || "").toLowerCase().includes(q);
+            const fechaMatch = (sol.Fec_entrega || "").toLowerCase().includes(q);
+            if (!idMatch && !descMatch && !motivoMatch && !fechaMatch) return false;
+        }
+        return true;
+    });
+
+    const totalPaginas = Math.max(1, Math.ceil(solicitudesFiltradas.length / ITEMS_POR_PAGINA));
+    const inicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
+    const solicitudesPaginadas = solicitudesFiltradas.slice(inicio, inicio + ITEMS_POR_PAGINA);
+
     return (
         <div className="tw-p-2">
 
-            {/* Header */}
-            <div className="tw-flex tw-items-center tw-gap-3 tw-mb-6">
-                <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md">
-                    <ClipboardList className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+            {/* Header con Pestañas Superiores */}
+            <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center sm:tw-justify-between tw-gap-4 tw-mb-6 tw-bg-white tw-p-4 tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm">
+                <div className="tw-flex tw-items-center tw-gap-3">
+                    <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md tw-shrink-0">
+                        {tabActiva === "nueva" ? (
+                            <ClipboardList className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+                        ) : (
+                            <Eye className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+                        )}
+                    </div>
+                    <div>
+                        <h1 className="tw-text-lg sm:tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">
+                            {tabActiva === "nueva" ? "Nueva Solicitud de Insumos" : "Mis Solicitudes"}
+                        </h1>
+                        <p className="tw-text-xs sm:tw-text-sm tw-text-gray-500 tw-m-0">
+                            {tabActiva === "nueva"
+                                ? "El sistema asignará automáticamente el lote más próximo a vencer"
+                                : "Seguimiento en tiempo real del estado de tus solicitudes"}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h1 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Nueva Solicitud de Insumos</h1>
-                    <p className="tw-text-sm tw-text-gray-500 tw-m-0">El sistema asignará automáticamente el lote más próximo a vencer</p>
+
+                {/* Selector de Pestañas */}
+                <div className="tw-inline-flex tw-p-1 tw-bg-gray-100 tw-rounded-xl tw-border tw-border-gray-200/80 tw-self-start sm:tw-self-auto">
+                    <button
+                        type="button"
+                        onClick={() => setTabActiva("nueva")}
+                        className={`tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2 tw-rounded-lg tw-text-xs sm:tw-text-sm tw-font-semibold tw-transition-all ${
+                            tabActiva === "nueva"
+                                ? "tw-bg-white tw-text-primario-900 tw-shadow-sm"
+                                : "tw-text-gray-500 hover:tw-text-gray-800"
+                        }`}
+                    >
+                        <Plus className="tw-w-4 tw-h-4" />
+                        <span>Crear Solicitud</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTabActiva("mis-solicitudes")}
+                        className={`tw-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2 tw-rounded-lg tw-text-xs sm:tw-text-sm tw-font-semibold tw-transition-all ${
+                            tabActiva === "mis-solicitudes"
+                                ? "tw-bg-white tw-text-primario-900 tw-shadow-sm"
+                                : "tw-text-gray-500 hover:tw-text-gray-800"
+                        }`}
+                    >
+                        <Eye className="tw-w-4 tw-h-4" />
+                        <span>Mis Solicitudes</span>
+                        {misSolicitudes.length > 0 && (
+                            <span className={`tw-px-2 tw-py-0.2 tw-rounded-full tw-text-[11px] tw-font-bold ${
+                                tabActiva === "mis-solicitudes"
+                                    ? "tw-bg-primario-50 tw-text-primario-900"
+                                    : "tw-bg-gray-200 tw-text-gray-700"
+                            }`}>
+                                {misSolicitudes.length}
+                            </span>
+                        )}
+                    </button>
                 </div>
             </div>
 
-            {/* Stepper */}
-            <div className="tw-flex tw-items-center tw-mb-10">
-                <div className={`tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-full tw-text-sm tw-font-bold tw-shadow-sm ${paso >= 1 ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>1</div>
-                <div className={`tw-flex-1 tw-h-1 tw-mx-2 tw-rounded-full tw-transition-all ${paso >= 2 ? "tw-bg-primario-700" : "tw-bg-gray-200"}`} />
-                <div className={`tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-full tw-text-sm tw-font-bold tw-shadow-sm ${paso >= 2 ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>2</div>
-            </div>
+            {/* VISTA 1: CREAR SOLICITUD */}
+            {tabActiva === "nueva" && (
+                <>
+                    {/* Stepper */}
+                    <div className="tw-flex tw-items-center tw-mb-8">
+                        <div className={`tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-full tw-text-sm tw-font-bold tw-shadow-sm ${paso >= 1 ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>1</div>
+                        <div className={`tw-flex-1 tw-h-1 tw-mx-2 tw-rounded-full tw-transition-all ${paso >= 2 ? "tw-bg-primario-700" : "tw-bg-gray-200"}`} />
+                        <div className={`tw-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-full tw-text-sm tw-font-bold tw-shadow-sm ${paso >= 2 ? "tw-bg-primario-900 tw-text-secundario-400" : "tw-bg-gray-200 tw-text-gray-500"}`}>2</div>
+                    </div>
 
             {/* PASO 1 — Datos */}
             <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-p-5 tw-mb-4">
@@ -646,135 +735,580 @@ const SolicitudConLotes = () => {
                 </div>
             )}
 
-            {/* ============================================ */}
-            {/* SECCIÓN: MIS SOLICITUDES CON STEPPER DE ESTADOS */}
-            {/* ============================================ */}
-            <div className="tw-mt-10">
-                <div className="tw-flex tw-items-center tw-gap-3 tw-mb-6">
-                    <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-900 tw-flex tw-items-center tw-justify-center tw-shadow-md">
-                        <Eye className="tw-w-5 tw-h-5 tw-text-secundario-400" />
+                </>
+            )}
+
+            {/* VISTA 2: MIS SOLICITUDES DASHBOARD */}
+            {tabActiva === "mis-solicitudes" && (
+                <div className="tw-space-y-6">
+                    {/* Tarjetas de Métricas / KPI */}
+                    <div className="tw-grid tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-3 sm:tw-gap-4">
+                        <div
+                            onClick={() => { setFiltroEstadoMis("todos"); setPaginaActual(1); }}
+                            className={`tw-bg-white tw-p-4 tw-rounded-2xl tw-border tw-transition-all tw-cursor-pointer tw-shadow-sm hover:tw-shadow-md ${
+                                filtroEstadoMis === "todos" ? "tw-border-primario-900 tw-ring-2 tw-ring-primario-100" : "tw-border-gray-100 hover:tw-border-gray-200"
+                            }`}
+                        >
+                            <div className="tw-flex tw-items-center tw-justify-between tw-mb-2">
+                                <span className="tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wider">Total</span>
+                                <div className="tw-w-8 tw-h-8 tw-rounded-lg tw-bg-primario-50 tw-flex tw-items-center tw-justify-center tw-text-primario-900">
+                                    <ClipboardList className="tw-w-4 tw-h-4" />
+                                </div>
+                            </div>
+                            <div className="tw-text-2xl tw-font-black tw-text-gray-900">{totalMis}</div>
+                            <p className="tw-text-[11px] tw-text-gray-400 tw-m-0 tw-mt-1">Todas las solicitudes</p>
+                        </div>
+
+                        <div
+                            onClick={() => { setFiltroEstadoMis("solicitado"); setPaginaActual(1); }}
+                            className={`tw-bg-white tw-p-4 tw-rounded-2xl tw-border tw-transition-all tw-cursor-pointer tw-shadow-sm hover:tw-shadow-md ${
+                                filtroEstadoMis === "solicitado" ? "tw-border-amber-500 tw-ring-2 tw-ring-amber-100" : "tw-border-gray-100 hover:tw-border-gray-200"
+                            }`}
+                        >
+                            <div className="tw-flex tw-items-center tw-justify-between tw-mb-2">
+                                <span className="tw-text-xs tw-font-semibold tw-text-amber-700 tw-uppercase tw-tracking-wider">En Espera</span>
+                                <div className="tw-w-8 tw-h-8 tw-rounded-lg tw-bg-amber-50 tw-flex tw-items-center tw-justify-center tw-text-amber-600">
+                                    <Clock className="tw-w-4 tw-h-4" />
+                                </div>
+                            </div>
+                            <div className="tw-text-2xl tw-font-black tw-text-amber-700">{cantSolicitado}</div>
+                            <p className="tw-text-[11px] tw-text-gray-400 tw-m-0 tw-mt-1">Pendientes de revisión</p>
+                        </div>
+
+                        <div
+                            onClick={() => { setFiltroEstadoMis("proceso"); setPaginaActual(1); }}
+                            className={`tw-bg-white tw-p-4 tw-rounded-2xl tw-border tw-transition-all tw-cursor-pointer tw-shadow-sm hover:tw-shadow-md ${
+                                filtroEstadoMis === "proceso" ? "tw-border-blue-600 tw-ring-2 tw-ring-blue-100" : "tw-border-gray-100 hover:tw-border-gray-200"
+                            }`}
+                        >
+                            <div className="tw-flex tw-items-center tw-justify-between tw-mb-2">
+                                <span className="tw-text-xs tw-font-semibold tw-text-blue-700 tw-uppercase tw-tracking-wider">En Alistamiento</span>
+                                <div className="tw-w-8 tw-h-8 tw-rounded-lg tw-bg-blue-50 tw-flex tw-items-center tw-justify-center tw-text-blue-600">
+                                    <Loader2 className="tw-w-4 tw-h-4" />
+                                </div>
+                            </div>
+                            <div className="tw-text-2xl tw-font-black tw-text-blue-700">{cantProceso}</div>
+                            <p className="tw-text-[11px] tw-text-gray-400 tw-m-0 tw-mt-1">Siendo preparadas</p>
+                        </div>
+
+                        <div
+                            onClick={() => { setFiltroEstadoMis("despachado"); setPaginaActual(1); }}
+                            className={`tw-bg-white tw-p-4 tw-rounded-2xl tw-border tw-transition-all tw-cursor-pointer tw-shadow-sm hover:tw-shadow-md ${
+                                filtroEstadoMis === "despachado" ? "tw-border-green-600 tw-ring-2 tw-ring-green-100" : "tw-border-gray-100 hover:tw-border-gray-200"
+                            }`}
+                        >
+                            <div className="tw-flex tw-items-center tw-justify-between tw-mb-2">
+                                <span className="tw-text-xs tw-font-semibold tw-text-green-700 tw-uppercase tw-tracking-wider">Despachadas</span>
+                                <div className="tw-w-8 tw-h-8 tw-rounded-lg tw-bg-green-50 tw-flex tw-items-center tw-justify-center tw-text-green-600">
+                                    <Truck className="tw-w-4 tw-h-4" />
+                                </div>
+                            </div>
+                            <div className="tw-text-2xl tw-font-black tw-text-green-700">{cantDespachado}</div>
+                            <p className="tw-text-[11px] tw-text-gray-400 tw-m-0 tw-mt-1">Entregadas con éxito</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="tw-text-xl tw-font-bold tw-text-gray-800 tw-m-0">Mis Solicitudes</h2>
-                        <p className="tw-text-sm tw-text-gray-500 tw-m-0">Seguimiento del estado de tus solicitudes</p>
+
+                    {/* Barra de Búsqueda y Filtros */}
+                    <div className="tw-bg-white tw-p-3 sm:tw-p-4 tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-flex tw-flex-col md:tw-flex-row md:tw-items-center md:tw-justify-between tw-gap-3">
+                        <div className="tw-relative tw-flex-1 tw-max-w-md">
+                            <Search className="tw-w-4 tw-h-4 tw-text-gray-400 tw-absolute tw-left-3.5 tw-top-1/2 -tw-translate-y-1/2 tw-pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Buscar por #ID, motivo o descripción..."
+                                value={busquedaMis}
+                                onChange={e => { setBusquedaMis(e.target.value); setPaginaActual(1); }}
+                                className="tw-w-full tw-pl-9 tw-pr-8 tw-py-2 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-xs sm:tw-text-sm focus:tw-outline-none focus:tw-border-primario-500 focus:tw-bg-white tw-transition-all"
+                            />
+                            {busquedaMis && (
+                                <button
+                                    onClick={() => { setBusquedaMis(""); setPaginaActual(1); }}
+                                    className="tw-absolute tw-right-2.5 tw-top-1/2 -tw-translate-y-1/2 tw-text-gray-400 hover:tw-text-gray-600"
+                                >
+                                    <X className="tw-w-3.5 tw-h-3.5" />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Filtros por Estado */}
+                        <div className="tw-flex tw-items-center tw-gap-1.5 tw-overflow-x-auto tw-pb-1 md:tw-pb-0">
+                            {[
+                                { id: "todos", label: "Todas", count: totalMis },
+                                { id: "solicitado", label: "En Espera", count: cantSolicitado },
+                                { id: "proceso", label: "En Proceso", count: cantProceso },
+                                { id: "despachado", label: "Despachadas", count: cantDespachado },
+                                ...(cantCancelado > 0 ? [{ id: "cancelado", label: "Canceladas", count: cantCancelado }] : [])
+                            ].map(tab => (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => { setFiltroEstadoMis(tab.id); setPaginaActual(1); }}
+                                    className={`tw-px-3 tw-py-1.5 tw-rounded-xl tw-text-xs tw-font-semibold tw-whitespace-nowrap tw-transition-all tw-flex tw-items-center tw-gap-1.5 ${
+                                        filtroEstadoMis === tab.id
+                                            ? "tw-bg-primario-900 tw-text-white tw-shadow-sm"
+                                            : "tw-bg-gray-100 tw-text-gray-600 hover:tw-bg-gray-200"
+                                    }`}
+                                >
+                                    <span>{tab.label}</span>
+                                    <span className={`tw-px-1.5 tw-py-0.2 tw-rounded-full tw-text-[10px] ${
+                                        filtroEstadoMis === tab.id ? "tw-bg-white/20 tw-text-white" : "tw-bg-gray-200 tw-text-gray-700"
+                                    }`}>
+                                        {tab.count}
+                                    </span>
+                                </button>
+                            ))}
+
+                            <button
+                                type="button"
+                                onClick={cargarMisSolicitudes}
+                                title="Actualizar solicitudes"
+                                className="tw-p-2 tw-rounded-xl tw-border tw-border-gray-200 tw-text-gray-500 hover:tw-text-primario-900 hover:tw-bg-gray-50 tw-transition-all tw-shrink-0"
+                            >
+                                <RotateCcw className={`tw-w-4 tw-h-4 ${loadingSolicitudes ? "tw-animate-spin tw-text-primario-600" : ""}`} />
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                {loadingSolicitudes ? (
-                    <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-12 tw-gap-3">
-                        <Loader2 className="tw-w-7 tw-h-7 tw-text-primario-500 tw-animate-spin" />
-                        <p className="tw-text-gray-400 tw-text-sm">Cargando solicitudes...</p>
-                    </div>
-                ) : misSolicitudes.length === 0 ? (
-                    <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-py-12 tw-text-center">
-                        <ClipboardList className="tw-w-10 tw-h-10 tw-text-gray-300 tw-mx-auto tw-mb-3" />
-                        <p className="tw-text-gray-500 tw-font-medium tw-m-0">No tienes solicitudes registradas</p>
-                        <p className="tw-text-gray-400 tw-text-sm tw-m-0 tw-mt-1">Crea una solicitud para ver su seguimiento aquí</p>
-                    </div>
-                ) : (
-                    <div className="tw-flex tw-flex-col tw-gap-4">
-                        {misSolicitudes.map(sol => {
-                            const estado = sol.ultimoEstado?.toLowerCase() ?? "solicitado";
-                            const esCancelado = estado === "cancelado";
-                            const pasoActual = esCancelado ? 0 : estado === "solicitado" ? 1 : estado === "proceso" ? 2 : estado === "despachado" ? 3 : 1;
+                    {/* Listado de Solicitudes */}
+                    {loadingSolicitudes ? (
+                        <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-p-12 tw-text-center tw-flex tw-flex-col tw-items-center tw-gap-3">
+                            <Loader2 className="tw-w-8 tw-h-8 tw-text-primario-500 tw-animate-spin" />
+                            <p className="tw-text-gray-500 tw-text-sm tw-font-medium tw-m-0">Actualizando tus solicitudes...</p>
+                        </div>
+                    ) : solicitudesFiltradas.length === 0 ? (
+                        <div className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-py-12 tw-px-4 tw-text-center">
+                            <ClipboardList className="tw-w-12 tw-h-12 tw-text-gray-300 tw-mx-auto tw-mb-3" />
+                            <h3 className="tw-text-base tw-font-bold tw-text-gray-700 tw-m-0">No se encontraron solicitudes</h3>
+                            <p className="tw-text-gray-400 tw-text-xs sm:tw-text-sm tw-mt-1 tw-max-w-md tw-mx-auto">
+                                {busquedaMis || filtroEstadoMis !== "todos"
+                                    ? "No hay solicitudes que coincidan con los filtros seleccionados."
+                                    : "Aún no has creado solicitudes. ¡Empieza creando tu primera solicitud!"}
+                            </p>
+                            {busquedaMis || filtroEstadoMis !== "todos" ? (
+                                <button
+                                    onClick={() => { setBusquedaMis(""); setFiltroEstadoMis("todos"); setPaginaActual(1); }}
+                                    className="tw-mt-4 tw-px-4 tw-py-2 tw-rounded-xl tw-bg-gray-100 hover:tw-bg-gray-200 tw-text-gray-700 tw-text-xs tw-font-semibold tw-transition-all"
+                                >
+                                    Limpiar filtros
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setTabActiva("nueva")}
+                                    className="tw-mt-4 tw-inline-flex tw-items-center tw-gap-2 tw-px-4 tw-py-2.5 tw-rounded-xl tw-bg-primario-900 hover:tw-bg-primario-800 tw-text-white tw-text-xs tw-font-semibold tw-transition-all tw-shadow-md"
+                                >
+                                    <Plus className="tw-w-4 tw-h-4" />
+                                    Crear primera solicitud
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="tw-space-y-3.5">
+                            {solicitudesPaginadas.map(sol => {
+                                const estado = (sol.ultimoEstado || "solicitado").toLowerCase();
+                                const esCancelado = estado === "cancelado";
+                                const pasoActual = esCancelado ? 0 : estado === "solicitado" ? 1 : estado === "proceso" ? 2 : estado === "despachado" ? 3 : 1;
 
-                            const pasos = [
-                                { num: 1, label: "Solicitado", icon: ClipboardList },
-                                { num: 2, label: "En Proceso", icon: Loader2 },
-                                { num: 3, label: "Despachado", icon: Truck },
-                            ];
+                                const pasos = [
+                                    { num: 1, label: "Solicitado", icon: ClipboardList },
+                                    { num: 2, label: "En Proceso", icon: Loader2 },
+                                    { num: 3, label: "Despachado", icon: Truck },
+                                ];
 
-                            return (
-                                <div key={sol.Id_solicitud} className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-overflow-hidden hover:tw-shadow-md tw-transition-shadow">
-                                    {/* Header de la tarjeta */}
-                                    <div className="tw-flex tw-items-center tw-justify-between tw-px-5 tw-py-3 tw-bg-primario-900">
-                                        <div className="tw-flex tw-items-center tw-gap-2">
-                                            <span className="tw-text-secundario-400 tw-font-bold tw-text-sm">#{sol.Id_solicitud}</span>
-                                            <span className="tw-text-primario-200 tw-text-sm">— {sol.Descripcion || sol.motivo}</span>
-                                            <span className="tw-ml-2 tw-px-2 tw-py-0.5 tw-rounded-full tw-text-[11px] tw-font-semibold tw-bg-primario-800 tw-text-secundario-300">
-                                                {sol.Tip_solicitud === 'PRESENTACION' ? 'Por empaque completo' : 'Por cantidad exacta'}
-                                            </span>
-                                        </div>
-                                        <span className="tw-text-primario-300 tw-text-xs">{sol.Fec_entrega}</span>
-                                    </div>
-
-                                    {sol.Observaciones && (
-                                        <div className="tw-px-5 tw-pt-3 tw-text-xs tw-text-gray-500 tw-border-b tw-border-gray-50">
-                                            <strong>Nota:</strong> {sol.Observaciones}
-                                        </div>
-                                    )}
-
-                                    <div className="tw-px-5 tw-py-5">
-                                        {/* Stepper de estados */}
-                                        {esCancelado ? (
-                                            <div className="tw-flex tw-flex-col tw-items-center tw-gap-2 tw-py-2">
-                                                <div className="tw-flex tw-items-center tw-justify-center tw-w-12 tw-h-12 tw-rounded-full tw-bg-red-100">
-                                                    <XCircle className="tw-w-6 tw-h-6 tw-text-red-500" />
-                                                </div>
-                                                <span className="tw-text-red-600 tw-font-bold tw-text-sm">Cancelado</span>
-                                                {sol.motivo_cancelacion && (
-                                                    <p className="tw-text-red-500 tw-text-xs tw-text-center tw-m-0 tw-max-w-xs">
-                                                        "{sol.motivo_cancelacion}"
-                                                    </p>
+                                return (
+                                    <div key={sol.Id_solicitud} className="tw-bg-white tw-rounded-2xl tw-border tw-border-gray-200/80 tw-shadow-sm hover:tw-shadow-md tw-transition-all tw-overflow-hidden">
+                                        {/* Header de la tarjeta */}
+                                        <div className="tw-px-4 sm:tw-px-5 tw-py-3 tw-bg-gray-50/80 tw-border-b tw-border-gray-100 tw-flex tw-flex-wrap tw-items-center tw-justify-between tw-gap-2">
+                                            <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+                                                <span className="tw-inline-flex tw-items-center tw-px-2.5 tw-py-1 tw-rounded-lg tw-text-xs tw-font-bold tw-bg-primario-900 tw-text-secundario-400">
+                                                    #{sol.Id_solicitud}
+                                                </span>
+                                                <span className="tw-font-bold tw-text-sm tw-text-gray-800">
+                                                    {sol.Descripcion || sol.motivo}
+                                                </span>
+                                                <span className="tw-text-[11px] tw-font-medium tw-px-2.5 tw-py-0.5 tw-rounded-full tw-bg-primario-50 tw-text-primario-800 tw-border tw-border-primario-200/60">
+                                                    {sol.Tip_solicitud === 'PRESENTACION' ? '📦 Por empaque completo' : '⚖️ Por cantidad exacta'}
+                                                </span>
+                                                {sol.destino && (
+                                                    <span className="tw-text-[11px] tw-text-gray-500 tw-flex tw-items-center tw-gap-1 tw-bg-gray-100 tw-px-2 tw-py-0.5 tw-rounded-full">
+                                                        <MapPin className="tw-w-3 tw-h-3 tw-text-gray-400" />
+                                                        {sol.destino.Nom_Destino || sol.destino}
+                                                    </span>
                                                 )}
                                             </div>
-                                        ) : (
-                                            <div className="tw-flex tw-items-center tw-justify-between">
-                                                {pasos.map((p, idx) => {
-                                                    const completado = pasoActual >= p.num;
-                                                    const esActual = pasoActual === p.num;
-                                                    const IconComponent = p.icon;
 
-                                                    return (
-                                                        <div key={p.num} className="tw-flex tw-items-center tw-flex-1">
-                                                            <div className="tw-flex tw-flex-col tw-items-center tw-gap-1.5">
-                                                                <div className={`tw-flex tw-items-center tw-justify-center tw-w-10 tw-h-10 tw-rounded-full tw-transition-all tw-duration-300 ${
-                                                                    completado
-                                                                        ? esActual
-                                                                            ? "tw-bg-primario-900 tw-text-secundario-400 tw-shadow-lg tw-ring-4 tw-ring-primario-100"
-                                                                            : "tw-bg-green-500 tw-text-white tw-shadow-sm"
-                                                                        : "tw-bg-gray-200 tw-text-gray-400"
-                                                                }`}>
-                                                                    {completado && !esActual ? (
-                                                                        <CheckCircle className="tw-w-5 tw-h-5" />
-                                                                    ) : (
-                                                                        <IconComponent className={`tw-w-5 tw-h-5 ${esActual && p.num === 2 ? "" : ""}`} />
-                                                                    )}
-                                                                </div>
-                                                                <span className={`tw-text-xs tw-font-semibold tw-whitespace-nowrap ${
-                                                                    completado ? esActual ? "tw-text-primario-800" : "tw-text-green-600" : "tw-text-gray-400"
-                                                                }`}>
-                                                                    {p.label}
-                                                                </span>
-                                                            </div>
-                                                            {idx < pasos.length - 1 && (
-                                                                <div className={`tw-flex-1 tw-h-1 tw-mx-3 tw-rounded-full tw-transition-all tw-duration-300 ${
-                                                                    pasoActual > p.num ? "tw-bg-green-400" : "tw-bg-gray-200"
-                                                                }`} />
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Novedad — si el admin la registró */}
-                                    {sol.novedad && (
-                                        <div className="tw-mt-4 tw-flex tw-items-start tw-gap-2 tw-px-4 tw-py-3 tw-rounded-xl tw-bg-amber-50 tw-border tw-border-amber-200">
-                                            <AlertTriangle className="tw-w-5 tw-h-5 tw-text-amber-500 tw-shrink-0 tw-mt-0.5" />
-                                            <div>
-                                                <p className="tw-text-xs tw-font-bold tw-text-amber-700 tw-m-0 tw-mb-0.5 tw-uppercase tw-tracking-wide">Novedad en tu solicitud</p>
-                                                <p className="tw-text-sm tw-text-amber-900 tw-m-0">{sol.novedad}</p>
+                                            <div className="tw-flex tw-items-center tw-gap-3">
+                                                <span className="tw-text-xs tw-text-gray-500 tw-flex tw-items-center tw-gap-1 tw-font-mono">
+                                                    <Calendar className="tw-w-3.5 tw-h-3.5 tw-text-gray-400" />
+                                                    Entrega: {sol.Fec_entrega}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSolicitudSeleccionada(sol)}
+                                                    className="tw-flex tw-items-center tw-gap-1.5 tw-px-3 tw-py-1.5 tw-rounded-xl tw-bg-primario-900 hover:tw-bg-primario-800 active:tw-scale-95 tw-text-secundario-400 hover:tw-text-white tw-text-xs tw-font-semibold tw-transition-all tw-shadow-sm cursor-pointer"
+                                                    title="Ver qué pedí en esta solicitud"
+                                                >
+                                                    <Eye className="tw-w-3.5 tw-h-3.5" />
+                                                    <span>Ver pedido</span>
+                                                </button>
                                             </div>
                                         </div>
-                                    )}
+
+                                        {/* Stepper y detalles */}
+                                        <div className="tw-px-4 sm:tw-px-6 tw-py-4">
+                                            {esCancelado ? (
+                                                <div className="tw-flex tw-items-center tw-gap-3 tw-p-3 tw-rounded-xl tw-bg-red-50 tw-border tw-border-red-200">
+                                                    <XCircle className="tw-w-5 tw-h-5 tw-text-red-500 tw-shrink-0" />
+                                                    <div className="tw-flex-1">
+                                                        <p className="tw-text-xs tw-font-bold tw-text-red-700 tw-m-0 tw-uppercase">Solicitud Cancelada</p>
+                                                        <p className="tw-text-xs tw-text-red-600 tw-m-0 tw-mt-0.5">
+                                                            {sol.motivo_cancelacion ? `Motivo: "${sol.motivo_cancelacion}"` : "Esta solicitud fue cancelada por el almacén."}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="tw-flex tw-items-center tw-justify-between tw-max-w-xl tw-mx-auto">
+                                                    {pasos.map((p, idx) => {
+                                                        const completado = pasoActual >= p.num;
+                                                        const esActual = pasoActual === p.num;
+                                                        const IconComponent = p.icon;
+
+                                                        return (
+                                                            <div key={p.num} className="tw-flex tw-items-center tw-flex-1">
+                                                                <div className="tw-flex tw-flex-col tw-items-center tw-gap-1 tw-text-center">
+                                                                    <div className={`tw-flex tw-items-center tw-justify-center tw-w-9 tw-h-9 tw-rounded-full tw-transition-all tw-duration-300 ${
+                                                                        completado
+                                                                            ? esActual
+                                                                                ? "tw-bg-primario-900 tw-text-secundario-400 tw-shadow-md tw-ring-4 tw-ring-primario-100"
+                                                                                : "tw-bg-green-500 tw-text-white tw-shadow-sm"
+                                                                            : "tw-bg-gray-100 tw-text-gray-400 tw-border tw-border-gray-200"
+                                                                    }`}>
+                                                                        {completado && !esActual ? (
+                                                                            <CheckCircle className="tw-w-4 tw-h-4" />
+                                                                        ) : (
+                                                                            <IconComponent className="tw-w-4 tw-h-4" />
+                                                                        )}
+                                                                    </div>
+                                                                    <span className={`tw-text-xs tw-font-semibold tw-whitespace-nowrap ${
+                                                                        completado ? esActual ? "tw-text-primario-900" : "tw-text-green-600" : "tw-text-gray-400"
+                                                                    }`}>
+                                                                        {p.label}
+                                                                    </span>
+                                                                </div>
+                                                                {idx < pasos.length - 1 && (
+                                                                    <div className={`tw-flex-1 tw-h-1 tw-mx-2 sm:tw-mx-3 tw-rounded-full tw-transition-all tw-duration-300 ${
+                                                                        pasoActual > p.num ? "tw-bg-green-500" : "tw-bg-gray-200"
+                                                                    }`} />
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {/* Novedad si existe */}
+                                            {sol.novedad && (
+                                                <div className="tw-mt-3 tw-flex tw-items-start tw-gap-2 tw-px-3.5 tw-py-2 tw-rounded-xl tw-bg-amber-50 tw-border tw-border-amber-200">
+                                                    <AlertTriangle className="tw-w-4 tw-h-4 tw-text-amber-500 tw-shrink-0 tw-mt-0.5" />
+                                                    <div>
+                                                        <p className="tw-text-[11px] tw-font-bold tw-text-amber-700 tw-m-0 tw-uppercase">Novedad del almacén</p>
+                                                        <p className="tw-text-xs tw-text-amber-900 tw-m-0">{sol.novedad}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Observaciones si existen */}
+                                            {sol.Observaciones && (
+                                                <p className="tw-text-xs tw-text-gray-500 tw-m-0 tw-mt-2.5 tw-pt-2 tw-border-t tw-border-gray-50">
+                                                    <span className="tw-font-semibold tw-text-gray-700">Nota:</span> {sol.Observaciones}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Paginación */}
+                    {!loadingSolicitudes && solicitudesFiltradas.length > ITEMS_POR_PAGINA && (
+                        <div className="tw-bg-white tw-px-4 tw-py-3 tw-rounded-2xl tw-border tw-border-gray-100 tw-shadow-sm tw-flex tw-items-center tw-justify-between">
+                            <span className="tw-text-xs tw-text-gray-500">
+                                Mostrando <strong className="tw-text-gray-800">{inicio + 1}</strong> a <strong className="tw-text-gray-800">{Math.min(inicio + ITEMS_POR_PAGINA, solicitudesFiltradas.length)}</strong> de <strong className="tw-text-gray-800">{solicitudesFiltradas.length}</strong> solicitudes
+                            </span>
+                            <div className="tw-flex tw-items-center tw-gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                                    disabled={paginaActual === 1}
+                                    className="tw-p-1.5 tw-rounded-lg tw-border tw-border-gray-200 tw-text-gray-600 hover:tw-bg-gray-50 disabled:tw-opacity-40 disabled:tw-pointer-events-none tw-transition-all"
+                                >
+                                    <ChevronLeft className="tw-w-4 tw-h-4" />
+                                </button>
+                                <span className="tw-text-xs tw-font-semibold tw-text-gray-700 tw-px-2">
+                                    {paginaActual} / {totalPaginas}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                                    disabled={paginaActual === totalPaginas}
+                                    className="tw-p-1.5 tw-rounded-lg tw-border tw-border-gray-200 tw-text-gray-600 hover:tw-bg-gray-50 disabled:tw-opacity-40 disabled:tw-pointer-events-none tw-transition-all"
+                                >
+                                    <ChevronRight className="tw-w-4 tw-h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* MODAL DETALLE DE LO SOLICITADO */}
+            {solicitudSeleccionada && (
+                <div
+                    className="tw-fixed tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-bg-black/60 tw-backdrop-blur-sm"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setSolicitudSeleccionada(null);
+                    }}
+                >
+                    <div className="tw-bg-white tw-rounded-2xl tw-shadow-2xl tw-w-full tw-max-w-3xl tw-overflow-hidden tw-border tw-border-gray-100 tw-flex tw-flex-col tw-max-h-[90vh]">
+                        {/* Header del Modal */}
+                        <div className="tw-px-6 tw-py-4 tw-bg-primario-900 tw-flex tw-items-center tw-justify-between tw-border-b tw-border-primario-800">
+                            <div className="tw-flex tw-items-center tw-gap-3">
+                                <div className="tw-w-10 tw-h-10 tw-rounded-xl tw-bg-primario-800 tw-flex tw-items-center tw-justify-center tw-text-secundario-400 tw-shadow-sm">
+                                    <Eye className="tw-w-5 tw-h-5" />
                                 </div>
-                            );
-                        })}
+                                <div>
+                                    <div className="tw-flex tw-items-center tw-gap-2">
+                                        <h3 className="tw-text-lg tw-font-bold tw-text-white tw-m-0">
+                                            Solicitud #{solicitudSeleccionada.Id_solicitud}
+                                        </h3>
+                                        <span className="tw-px-2.5 tw-py-0.5 tw-rounded-full tw-text-[11px] tw-font-bold tw-bg-primario-800 tw-text-secundario-300 tw-border tw-border-primario-700">
+                                            {solicitudSeleccionada.Tip_solicitud === 'PRESENTACION' ? 'Por empaque completo' : 'Por cantidad exacta'}
+                                        </span>
+                                    </div>
+                                    <p className="tw-text-xs tw-text-primario-300 tw-m-0">
+                                        Detalle de los insumos y cantidades que solicitaste
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSolicitudSeleccionada(null)}
+                                className="tw-w-8 tw-h-8 tw-rounded-lg tw-flex tw-items-center tw-justify-center tw-text-primario-300 hover:tw-text-white hover:tw-bg-primario-800 tw-transition-colors cursor-pointer"
+                                title="Cerrar"
+                            >
+                                <X className="tw-w-5 tw-h-5" />
+                            </button>
+                        </div>
+
+                        {/* Contenido del Modal */}
+                        <div className="tw-p-6 tw-overflow-y-auto tw-space-y-5">
+                            {/* Resumen General */}
+                            <div className="tw-grid tw-grid-cols-2 sm:tw-grid-cols-4 tw-gap-3 tw-bg-gray-50 tw-p-4 tw-rounded-xl tw-border tw-border-gray-200/70">
+                                <div>
+                                    <span className="tw-text-[11px] tw-font-semibold tw-text-gray-400 tw-uppercase tw-tracking-wide tw-block">
+                                        Motivo
+                                    </span>
+                                    <p className="tw-text-xs tw-font-bold tw-text-gray-700 tw-m-0 tw-mt-0.5 tw-truncate" title={solicitudSeleccionada.motivo}>
+                                        {solicitudSeleccionada.motivo || "N/A"}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="tw-text-[11px] tw-font-semibold tw-text-gray-400 tw-uppercase tw-tracking-wide tw-block">
+                                        Destino
+                                    </span>
+                                    <p className="tw-text-xs tw-font-bold tw-text-gray-700 tw-m-0 tw-mt-0.5">
+                                        {solicitudSeleccionada.destino?.Nom_Destino || "N/A"}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="tw-text-[11px] tw-font-semibold tw-text-gray-400 tw-uppercase tw-tracking-wide tw-block">
+                                        Fecha Entrega
+                                    </span>
+                                    <p className="tw-text-xs tw-font-bold tw-text-gray-700 tw-m-0 tw-mt-0.5">
+                                        {solicitudSeleccionada.Fec_entrega || "N/A"}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="tw-text-[11px] tw-font-semibold tw-text-gray-400 tw-uppercase tw-tracking-wide tw-block">
+                                        Ficha
+                                    </span>
+                                    <p className="tw-text-xs tw-font-bold tw-text-gray-700 tw-m-0 tw-mt-0.5">
+                                        {solicitudSeleccionada.Ficha || "N/A"}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Descripción */}
+                            {solicitudSeleccionada.Descripcion && (
+                                <div className="tw-bg-blue-50/60 tw-border tw-border-blue-100 tw-rounded-xl tw-p-3.5">
+                                    <span className="tw-text-[11px] tw-font-bold tw-text-blue-900 tw-uppercase tw-tracking-wide tw-block tw-mb-1">
+                                        Descripción
+                                    </span>
+                                    <p className="tw-text-xs tw-text-blue-950 tw-m-0">
+                                        {solicitudSeleccionada.Descripcion}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Lista de Insumos Solicitados */}
+                            <div>
+                                <div className="tw-flex tw-items-center tw-justify-between tw-mb-2.5">
+                                    <div className="tw-flex tw-items-center tw-gap-2">
+                                        <Package className="tw-w-4 tw-h-4 tw-text-primario-600" />
+                                        <h4 className="tw-text-sm tw-font-bold tw-text-gray-800 tw-m-0">
+                                            Insumos Pedidos ({solicitudSeleccionada.insumos?.length || 0})
+                                        </h4>
+                                    </div>
+                                    <span className="tw-text-xs tw-text-gray-400">
+                                        Estado: <strong className="tw-capitalize tw-text-primario-900">{solicitudSeleccionada.ultimoEstado || 'Solicitado'}</strong>
+                                    </span>
+                                </div>
+
+                                {!solicitudSeleccionada.insumos || solicitudSeleccionada.insumos.length === 0 ? (
+                                    <div className="tw-text-center tw-py-8 tw-bg-gray-50 tw-rounded-xl tw-border tw-border-gray-200">
+                                        <Package className="tw-w-8 tw-h-8 tw-text-gray-300 tw-mx-auto tw-mb-2" />
+                                        <p className="tw-text-xs tw-text-gray-500 tw-m-0">
+                                            No hay registros de insumos para esta solicitud
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="tw-border tw-border-gray-200 tw-rounded-xl tw-overflow-hidden tw-shadow-sm">
+                                        <div className="tw-overflow-x-auto">
+                                            <table className="tw-w-full tw-text-left tw-border-collapse">
+                                                <thead>
+                                                    <tr className="tw-bg-primario-900 tw-text-white tw-text-[11px] tw-font-semibold tw-uppercase tw-tracking-wider">
+                                                        <th className="tw-py-2.5 tw-px-3">Insumo</th>
+                                                        <th className="tw-py-2.5 tw-px-3">Lote</th>
+                                                        <th className="tw-py-2.5 tw-px-3 tw-text-center">Cant. Solicitada</th>
+                                                        {solicitudSeleccionada.ultimoEstado?.toLowerCase() !== 'solicitado' && (
+                                                            <th className="tw-py-2.5 tw-px-3 tw-text-center">Cant. Entregada</th>
+                                                        )}
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="tw-divide-y tw-divide-gray-100 tw-text-xs tw-bg-white">
+                                                    {solicitudSeleccionada.insumos.map((item, idx) => {
+                                                        const nombreInsumo = item.insumo?.Nom_Insumo || `Insumo #${item.Id_insumos}`;
+                                                        const loteNum = item.entrada?.Lote || (item.Id_Entradas ? `#${item.Id_Entradas}` : "—");
+                                                        const fecVen = item.entrada?.Fec_Ven_Entrada ? fmtFechaVencimiento(item.entrada.Fec_Ven_Entrada) : null;
+                                                        const cantSolicitadaTexto = fmtCantidadConPresentacion(item.cantidad_solicitada, item.insumo);
+                                                        const estadoSol = solicitudSeleccionada.ultimoEstado?.toLowerCase() || 'solicitado';
+                                                        const esDespachado = estadoSol === 'despachado';
+                                                        const valorEntregado = (item.cantidad_entregada !== null && item.cantidad_entregada !== undefined)
+                                                            ? item.cantidad_entregada
+                                                            : (esDespachado ? item.cantidad_solicitada : null);
+
+                                                        const tieneEntrega = valorEntregado !== null && valorEntregado !== undefined;
+                                                        const cantEntregadaTexto = tieneEntrega
+                                                            ? fmtCantidadConPresentacion(valorEntregado, item.insumo)
+                                                            : null;
+
+                                                        return (
+                                                            <tr key={idx} className="hover:tw-bg-gray-50/80 tw-transition-colors">
+                                                                <td className="tw-py-3 tw-px-3">
+                                                                    <div className="tw-font-bold tw-text-gray-800">{nombreInsumo}</div>
+                                                                    {tienePresentacion(item.insumo) && (
+                                                                        <div className="tw-text-[11px] tw-text-gray-400">
+                                                                            {describirPresentacion(item.insumo)}
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                                <td className="tw-py-3 tw-px-3">
+                                                                    <span className="tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-md tw-bg-gray-100 tw-text-gray-700 tw-font-mono tw-text-[11px] tw-font-semibold">
+                                                                        {loteNum}
+                                                                    </span>
+                                                                    {fecVen && (
+                                                                        <div className="tw-text-[10px] tw-text-gray-400 tw-mt-0.5">
+                                                                            Vence: {fecVen}
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                                <td className="tw-py-3 tw-px-3 tw-text-center">
+                                                                    <span className="tw-inline-block tw-px-2.5 tw-py-1 tw-rounded-lg tw-bg-primario-50 tw-text-primario-900 tw-font-bold tw-text-xs">
+                                                                        {cantSolicitadaTexto}
+                                                                    </span>
+                                                                </td>
+                                                                {solicitudSeleccionada.ultimoEstado?.toLowerCase() !== 'solicitado' && (
+                                                                    <td className="tw-py-3 tw-px-3 tw-text-center">
+                                                                        {tieneEntrega ? (
+                                                                            <span className={`tw-inline-block tw-px-2.5 tw-py-1 tw-rounded-lg tw-font-bold tw-text-xs ${
+                                                                                valorEntregado < item.cantidad_solicitada
+                                                                                    ? "tw-bg-amber-100 tw-text-amber-800"
+                                                                                    : "tw-bg-green-100 tw-text-green-800"
+                                                                            }`}>
+                                                                                {cantEntregadaTexto}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="tw-inline-block tw-px-2 tw-py-0.5 tw-rounded-md tw-bg-gray-100 tw-text-gray-500 tw-text-[11px] tw-font-medium">
+                                                                                Pendiente
+                                                                            </span>
+                                                                        )}
+                                                                    </td>
+                                                                )}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Observaciones generales si las tiene */}
+                            {solicitudSeleccionada.Observaciones && (
+                                <div className="tw-bg-gray-50 tw-border tw-border-gray-200 tw-rounded-xl tw-p-3.5">
+                                    <span className="tw-text-[11px] tw-font-bold tw-text-gray-500 tw-uppercase tw-tracking-wide tw-block tw-mb-1">
+                                        Observaciones de la solicitud
+                                    </span>
+                                    <p className="tw-text-xs tw-text-gray-700 tw-m-0">
+                                        {solicitudSeleccionada.Observaciones}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Novedad de entrega */}
+                            {solicitudSeleccionada.novedad && (
+                                <div className="tw-bg-amber-50 tw-border tw-border-amber-200 tw-rounded-xl tw-p-3.5 tw-flex tw-items-start tw-gap-2.5">
+                                    <AlertTriangle className="tw-w-4 tw-h-4 tw-text-amber-600 tw-mt-0.5 tw-shrink-0" />
+                                    <div>
+                                        <span className="tw-text-[11px] tw-font-bold tw-text-amber-800 tw-uppercase tw-tracking-wide tw-block tw-mb-0.5">
+                                            Novedad en la entrega
+                                        </span>
+                                        <p className="tw-text-xs tw-text-amber-900 tw-m-0">
+                                            {solicitudSeleccionada.novedad}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Motivo de cancelación */}
+                            {solicitudSeleccionada.motivo_cancelacion && (
+                                <div className="tw-bg-red-50 tw-border tw-border-red-200 tw-rounded-xl tw-p-3.5 tw-flex tw-items-start tw-gap-2.5">
+                                    <XCircle className="tw-w-4 tw-h-4 tw-text-red-600 tw-mt-0.5 tw-shrink-0" />
+                                    <div>
+                                        <span className="tw-text-[11px] tw-font-bold tw-text-red-800 tw-uppercase tw-tracking-wide tw-block tw-mb-0.5">
+                                            Motivo de cancelación
+                                        </span>
+                                        <p className="tw-text-xs tw-text-red-900 tw-m-0">
+                                            {solicitudSeleccionada.motivo_cancelacion}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer del Modal */}
+                        <div className="tw-px-6 tw-py-3.5 tw-bg-gray-50 tw-border-t tw-border-gray-200 tw-flex tw-justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setSolicitudSeleccionada(null)}
+                                className="tw-px-5 tw-py-2 tw-rounded-xl tw-bg-primario-900 hover:tw-bg-primario-800 tw-text-white tw-text-xs tw-font-bold tw-transition-colors tw-shadow-sm cursor-pointer"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };

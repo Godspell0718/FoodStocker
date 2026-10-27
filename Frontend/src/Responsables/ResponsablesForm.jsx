@@ -7,15 +7,20 @@ import {
     ChevronDown, Save, X, Eye, EyeOff, Sprout, ClipboardList, GraduationCap, AlertTriangle
 } from "lucide-react";
 
+import { normalizarRol, ROLES } from "../utils/roles.js";
+
 const inputClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all"
 const labelClass = "tw-block tw-text-xs tw-font-semibold tw-text-gray-500 tw-uppercase tw-tracking-wide tw-mb-1.5"
 const selectClass = "tw-w-full tw-px-4 tw-py-2.5 tw-rounded-xl tw-border tw-border-gray-200 tw-bg-gray-50 tw-text-sm tw-text-gray-700 focus:tw-outline-none focus:tw-border-primario-500 focus:tw-ring-2 focus:tw-ring-primario-100 focus:tw-bg-white tw-transition-all tw-appearance-none"
 
 const tipoConfig = {
-    ADMIN: { label: "Administrador", color: "tw-bg-red-100 tw-text-red-700", Icon: Shield },
-    "Pasante de agroindustria": { label: "Pasante de agroindustria", color: "tw-bg-emerald-100 tw-text-emerald-700", Icon: Sprout },
-    "Instructor de agroindustria": { label: "Instructor de agroindustria", color: "tw-bg-blue-100 tw-text-blue-700", Icon: ClipboardList },
-    "Pasante solicitante": { label: "Pasante solicitante", color: "tw-bg-amber-100 tw-text-amber-700", Icon: GraduationCap },
+    ADMIN: { label: "Administrador", color: "tw-bg-blue-100 tw-text-blue-700", Icon: Shield },
+    GA: { label: "Gestor de almacen", color: "tw-bg-emerald-100 tw-text-emerald-700", Icon: Sprout },
+    IEU: { label: "Instructor encargado de unidad", color: "tw-bg-purple-100 tw-text-purple-700", Icon: ClipboardList },
+    SOL: { label: "Solicitante", color: "tw-bg-amber-100 tw-text-amber-700", Icon: GraduationCap },
+    "Pasante de agroindustria": { label: "Gestor de almacen", color: "tw-bg-emerald-100 tw-text-emerald-700", Icon: Sprout },
+    "Instructor de agroindustria": { label: "Instructor encargado de unidad", color: "tw-bg-purple-100 tw-text-purple-700", Icon: ClipboardList },
+    "Pasante solicitante": { label: "Solicitante", color: "tw-bg-amber-100 tw-text-amber-700", Icon: GraduationCap },
 }
 
 const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
@@ -25,7 +30,7 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
     const [Doc_Responsable, setDocumento] = useState('');
     const [Cor_Responsable, setCorreo] = useState('');
     const [Tel_Responsable, setTelefono] = useState('');
-    const [Tip_Responsable, setTipo] = useState('Pasante solicitante');
+    const [Tip_Responsable, setTipo] = useState(ROLES.SOL);
     const [contrasena, setContrasena] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -40,7 +45,7 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
             setDocumento(responsableSeleccionado.Doc_Responsable || '');
             setCorreo(responsableSeleccionado.Cor_Responsable || '');
             setTelefono(responsableSeleccionado.Tel_Responsable || '');
-            setTipo(responsableSeleccionado.Tip_Responsable || 'PDU');
+            setTipo(normalizarRol(responsableSeleccionado.Tip_Responsable) || ROLES.SOL);
             setContrasena('');
         } else {
             limpiarFormulario();
@@ -52,7 +57,7 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
         setDocumento('');
         setCorreo('');
         setTelefono('');
-        setTipo('PDU');
+        setTipo(ROLES.SOL);
         setContrasena('');
     };
 
@@ -239,15 +244,15 @@ const ResponsablesForm = ({ hideModal, responsableSeleccionado }) => {
                     <div className="tw-relative">
                         <select
                             className={`${selectClass} ${isEditingSelf ? 'tw-bg-gray-200 tw-cursor-not-allowed' : ''}`}
-                            value={Tip_Responsable}
+                            value={normalizarRol(Tip_Responsable)}
                             onChange={(e) => setTipo(e.target.value)}
                             disabled={isEditingSelf}
                             required
                         >
                             <option value="ADMIN">Administrador</option>
-                            <option value="Pasante de agroindustria">Pasante de agroindustria</option>
-                            <option value="Instructor de agroindustria">Instructor de agroindustria</option>
-                            <option value="Pasante solicitante">Pasante solicitante</option>
+                            <option value="GA">Gestor de almacen</option>
+                            <option value="IEU">Instructor encargado de unidad</option>
+                            <option value="SOL">Solicitante</option>
                         </select>
                         <ChevronDown className="tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-w-4 tw-h-4 tw-text-gray-400 tw-pointer-events-none" />
                     </div>
